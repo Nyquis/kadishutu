@@ -98,11 +98,12 @@ def test_save_overview_builds_category_buttons(
     )
     screen.stack_refresh()
 
-    button_texts = [
-        button.text()
+    categories = {
+        button.property("category")
         for button in screen.findChildren(QPushButton)
-    ]
-    for name in [
+        if button.property("category")
+    }
+    assert {
         "DLC",
         "Player",
         "Demons",
@@ -114,11 +115,21 @@ def test_save_overview_builds_category_buttons(
         "Settings",
         "Meta",
         "Plugins",
-    ]:
-        assert any(name in text for text in button_texts)
+    } <= categories
 
+    assert screen.header.title.text() == "Save Overview"
+    assert screen.scroll.widgetResizable()
     assert screen.macca.value() == 123
     assert screen.glory.value() == 456
+
+
+def test_file_selector_has_header_and_primary_action(main_window):
+    from kadishutu.gui.mainwindow import FileSelectorMenu
+
+    menu = FileSelectorMenu()
+    assert menu.header.title.text() == "Open a save"
+    assert menu.file_open.objectName() == "PrimaryButton"
+    assert not menu.file_open.isEnabled()
 
 
 def test_main_window_has_toolbar_and_status_bar(main_window):

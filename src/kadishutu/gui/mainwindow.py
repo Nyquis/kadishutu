@@ -38,6 +38,7 @@ from kadishutu.core.shared.file_handling import DecryptedSave
 from kadishutu.data.save_locs import SAVE_LOCS
 from kadishutu.plugin.loader import PLUGIN_MANAGER
 
+from .components import Card, PageHeader
 from .game_save import GameSaveEditorScreen
 from .shared import (
     AppliableWidget,
@@ -63,8 +64,9 @@ class FileSelector(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.file_path_display = QLineEdit(self)
         self.file_path_display.setReadOnly(True)
+        self.file_path_display.setPlaceholderText("Choose a save file…")
         layout.addWidget(self.file_path_display)
-        self.file_open_button = QPushButton("Select", self)
+        self.file_open_button = QPushButton("Browse…", self)
         self.file_open_button.clicked.connect(self.on_select_clicked)
         layout.addWidget(self.file_open_button)
 
@@ -93,6 +95,7 @@ class FileSelectorPreview(QWidget):
         layout = self.layout()
         assert layout is not None
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
         self.name = QLabel(self)
         layout.addWidget(self.name)
         self.location = QLabel(self)
@@ -129,25 +132,55 @@ class FileSelectorMenu(QWidget):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.setLayout(QVBoxLayout())
-        layout = self.layout()
-        assert layout is not None
-        self.file_path = FileSelector(self)
+        layout = QVBoxLayout(self)
+        self.setLayout(layout)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(16)
+
+        self.header = PageHeader(
+            "Open a save",
+            "Select a game save or system save to begin.",
+            self,
+        )
+        layout.addWidget(self.header)
+
+        self.card = Card(self)
+        card_layout = QVBoxLayout(self.card)
+        card_layout.setContentsMargins(20, 18, 20, 18)
+        card_layout.setSpacing(10)
+
+        file_label = QLabel("Save file", self.card)
+        file_label.setObjectName("SectionTitle")
+        card_layout.addWidget(file_label)
+        self.file_path = FileSelector(self.card)
         file_path_display = self.file_path.file_path_display
         file_path_display.textChanged.connect(self.file_selected)
-        layout.addWidget(self.file_path)
-        self.file_type = QComboBox(self)
+        card_layout.addWidget(self.file_path)
+
+        type_label = QLabel("Save type", self.card)
+        type_label.setObjectName("Muted")
+        card_layout.addWidget(type_label)
+        self.ty = SaveType.GameSave
+        self.file_type = QComboBox(self.card)
         self.file_type.addItems([ty.name for ty in SaveType])
         self.file_type.setCurrentText(SaveType.GameSave.name)
         self.file_type.currentTextChanged.connect(self.on_type_changed)
-        layout.addWidget(self.file_type)
-        self.ty = SaveType.GameSave
-        self.file_preview = FileSelectorPreview(self)
-        layout.addWidget(self.file_preview)
-        self.file_open = QPushButton("Open", self)
+        card_layout.addWidget(self.file_type)
+
+        preview_label = QLabel("Preview", self.card)
+        preview_label.setObjectName("SectionTitle")
+        card_layout.addWidget(preview_label)
+        self.file_preview = FileSelectorPreview(self.card)
+        card_layout.addWidget(self.file_preview)
+
+        self.file_open = QPushButton("Open save", self.card)
+        self.file_open.setObjectName("PrimaryButton")
         self.file_open.setEnabled(False)
         self.file_open.clicked.connect(self.on_file_open)
-        layout.addWidget(self.file_open)
+        card_layout.addWidget(self.file_open)
+
+        layout.addWidget(self.card)
+        layout.addStretch()
 
     def on_file_open(self):
         if self.raw is None:

@@ -306,6 +306,25 @@ QPushButton#CategoryCard:disabled {
     color: $text_disabled;
 }
 
+QLabel#CategoryTitle {
+    color: $text;
+    font-size: 12pt;
+    font-weight: 600;
+}
+
+QLabel#CategoryDescription {
+    color: $text_muted;
+    font-size: 9pt;
+}
+
+QLabel#CategoryTitle:disabled {
+    color: $text_disabled;
+}
+
+QLabel#CategoryDescription:disabled {
+    color: $text_disabled;
+}
+
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
     background-color: $surface_alt;
     border: 1px solid $border;
