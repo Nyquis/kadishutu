@@ -149,5 +149,4 @@ def main(path: Path, file: DecryptedSave, _: list[str]):
             grant_ending(i)
         game.cycles_copy = game.cycles
 
-    file.hash_update()
-    file.encrypt().save(path)
+    file.save_finished(path)

@@ -43,7 +43,7 @@ def main():
     parser_encrypt = subparsers.add_parser("encrypt")
     parser_encrypt.add_argument("source", type=Path)
     parser_encrypt.add_argument("destination", type=Path)
-    parser_encrypt.add_argument("--update-hash", type=bool)
+    parser_encrypt.add_argument("--update-hash", action="store_true")
     parser_encrypt.set_defaults(func=cmd_encrypt)
     SUBPARSERS["encrypt"] = parser_encrypt
 
@@ -60,7 +60,7 @@ def main():
     parser_inspect = subparsers.add_parser("inspect")
     parser_inspect.add_argument("file", type=Path)
     parser_inspect.add_argument("selector", nargs="+")
-    parser_inspect.add_argument("--ignore-hash", type=bool)
+    parser_inspect.add_argument("--ignore-hash", action="store_true")
     parser_inspect.set_defaults(func=cmd_inspect)
     SUBPARSERS["inspect"] = parser_inspect
 
@@ -68,6 +68,7 @@ def main():
     parser_run_script.add_argument("script", type=Path)
     parser_run_script.add_argument("file", type=Path)
     parser_run_script.add_argument("rest_of_args", nargs="*", type=str)
+    parser_run_script.add_argument("--ignore-hash", action="store_true")
     parser_run_script.set_defaults(func=cmd_run_script)
     SUBPARSERS["run_script"] = parser_run_script
 

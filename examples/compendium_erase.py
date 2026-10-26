@@ -81,5 +81,4 @@ def main(path: Path, file: DecryptedSave, args: list[str]):
     if ans.lower() != "y":
         exit(1)
     modify(game)
-    file.hash_update()
-    file.encrypt().save(path)
+    file.save_finished(path)

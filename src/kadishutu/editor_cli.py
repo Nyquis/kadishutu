@@ -63,11 +63,16 @@ def cmd_edit(args: Namespace):
         data = bytearray(f.read())
     reencrypt = not is_save_decrypted(data)
     file = EncryptedSave(data).decrypt() if reencrypt else DecryptedSave(data)
+    if not file.hash_validate() and not getattr(args, "force", False):
+        raise ValueError(
+            "The save file's hash is not valid. "
+            "Re-run with \"--force\" to edit it anyway."
+        )
     game = GameSaveEditor(file)
     args.func_x(args, game)
     file.hash_update()
     if reencrypt:
-        file.encrypt().save(path)
+        file.save_finished(path)
     else:
         file.save(path)
 
@@ -76,6 +81,11 @@ def argparse_edit(subparsers):
     parser: ArgumentParser = subparsers.add_parser("edit")
     assert isinstance(parser, ArgumentParser)
     parser.add_argument("file", type=Path)
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Edit even if the save file's hash is invalid",
+    )
     parser.set_defaults(func=cmd_edit)
     subparsers = parser.add_subparsers(title="subcommand", dest="subcommand_x", required=True)
 

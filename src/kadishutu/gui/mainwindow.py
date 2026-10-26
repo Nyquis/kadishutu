@@ -130,6 +130,7 @@ class FileSelectorMenu(QWidget):
         self.file_type.setCurrentText(SaveType.GameSave.name)
         self.file_type.currentTextChanged.connect(self.on_type_changed)
         layout.addWidget(self.file_type)
+        self.ty = SaveType.GameSave
         self.file_preview = FileSelectorPreview(self)
         layout.addWidget(self.file_preview)
         self.file_open = QPushButton("Open", self)
@@ -138,7 +139,8 @@ class FileSelectorMenu(QWidget):
         layout.addWidget(self.file_open)
 
     def on_file_open(self):
-        assert self.raw
+        if self.raw is None:
+            return
         if self.ty == SaveType.SysSave:
             editor = SysSaveEditorScreen(self.file_path.path, self.raw, self)
         else:
@@ -147,23 +149,46 @@ class FileSelectorMenu(QWidget):
 
     def file_selected(self):
         path = self.file_path.path
-        self.raw = DecryptedSave.auto_open(path)
-        self.file_open.setEnabled(True)
-        raw = self.raw
+        self.raw = None
+        self.file_open.setEnabled(False)
+        self.file_preview.empty()
+
+        try:
+            raw = DecryptedSave.auto_open(path)
+        except (OSError, ValueError, AssertionError) as exc:
+            QMessageBox.critical(self, "Could not open save", str(exc))
+            return
+
+        if not raw.hash_validate():
+            answer = QMessageBox.warning(
+                self,
+                "Invalid save hash",
+                "The save file's hash is invalid. It may be corrupted or "
+                "modified by another tool.\n\nOpen it anyway?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if answer != QMessageBox.StandardButton.Yes:
+                return
+
         if len(raw.data) == 0x12e0:
             self.file_type.setDisabled(True)
             self.ty = SaveType.SysSave
-            self.file_preview.empty()
         elif len(raw.data) == 0x6dc90:
             self.file_type.setDisabled(True)
             self.ty = SaveType.GameSave
-            self.file_type.setCurrentText(self.ty.name)
-            save = GameSaveEditor(raw)
+            try:
+                save = GameSaveEditor(raw)
+            except Exception as exc:
+                QMessageBox.critical(self, "Could not parse game save", str(exc))
+                return
             self.file_preview.update_preview(save)
         else:
             self.file_type.setDisabled(False)
-            self.raw = None
-            self.file_preview.empty()
+            return
+
+        self.raw = raw
+        self.file_open.setEnabled(True)
         self.file_type.setCurrentText(self.ty.name)
 
     def on_type_changed(self, tystr: str):
@@ -302,16 +327,12 @@ class MainWindow(QMainWindow):
             self.apply_button.setEnabled(True)
         else:
             self.apply_button.setEnabled(False)
-        if len(self.inner.widget_stack) > 1:
-            self.save_button.setEnabled(True)
-            self.save_as_button.setEnabled(True)
-            self.close_button.setEnabled(True)
-            self.undo_button.setEnabled(True)
-        else:
-            self.save_button.setEnabled(False)
-            self.save_as_button.setEnabled(False)
-            self.close_button.setEnabled(False)
-            self.undo_button.setEnabled(False)
+        has_editor = len(self.inner.widget_stack) > 1
+        can_save = has_editor and self.inner.editor_widget.can_save
+        self.save_button.setEnabled(can_save)
+        self.save_as_button.setEnabled(can_save)
+        self.close_button.setEnabled(has_editor)
+        self.undo_button.setEnabled(has_editor)
         #self.statusBar().showMessage(" > ".join([
         #    i.__class__.__name__
         #    for i in self.inner.widget_stack
@@ -335,8 +356,13 @@ class MainWindow(QMainWindow):
         if not self.inner.should_show_navigation:
             return
         widget = self.inner.editor_widget
-        widget.raw_save.hash_update()
-        widget.raw_save.encrypt().save(widget.path)
+        if not widget.can_save:
+            return
+        try:
+            widget.raw_save.save_finished(widget.path)
+        except Exception as exc:
+            QMessageBox.critical(self, "Save failed", str(exc))
+            return
         widget.modified = False
 
     def on_save_as(self):
@@ -345,8 +371,14 @@ class MainWindow(QMainWindow):
             return
         path = Path(pathstr)
         widget = self.inner.editor_widget
-        widget.raw_save.hash_update()
-        widget.raw_save.encrypt().save(path)
+        if not widget.can_save:
+            return
+        try:
+            widget.raw_save.save_finished(path)
+        except Exception as exc:
+            QMessageBox.critical(self, "Save failed", str(exc))
+            return
+        widget.path = path
         widget.modified = False
 
     def on_file_close(self):

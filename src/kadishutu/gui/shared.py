@@ -171,6 +171,7 @@ class ScreenMixin:
 
 
 class SaveScreenMixin(ScreenMixin):
+    can_save = True
     path: Path
     raw_save: DecryptedSave
     modified: bool

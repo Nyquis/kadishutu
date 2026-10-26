@@ -136,6 +136,11 @@ Available subcommands:
 - `run_script`
 - `update_hash`
 
+Saves are written atomically and a timestamped `.bak` copy of the previous
+file is created before it is replaced. Commands that read a save validate its
+hash by default; `encrypt --update-hash`, `edit --force`, and
+`inspect --ignore-hash` / `run_script --ignore-hash` are explicit overrides.
+
 #### Edit subcommand
 
 ##### DLC
@@ -167,8 +172,9 @@ game.player.healable.mp = 999
 game.macca = 9999999
 game.items.from_name("Big Glory Crystal").amount = 99
 
-savefile.hash_update()
-savefile.encrypt().save(path)
+# Updates the hash, encrypts, writes atomically, creates a timestamped
+# backup, and verifies the saved file.
+savefile.save_finished(path)
 ```
 
 ## What works?

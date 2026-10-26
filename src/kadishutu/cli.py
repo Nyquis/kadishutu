@@ -15,11 +15,14 @@ def cmd_decrypt(args):
     destination = args.destination or source
     print(f"Opening {source}")
     savefile = EncryptedSave.open(source)
-    assert not savefile.is_save_decrypted(), "Save file already decrypted"
+    if savefile.is_save_decrypted():
+        raise ValueError("The save file is already decrypted.")
     print("Decrypting...")
     savefile = savefile.decrypt()
-    assert savefile.is_save_decrypted(), "Save file decryption failed"
-    assert savefile.hash_validate(), "The save file's hash is not valid."
+    if not savefile.is_save_decrypted():
+        raise ValueError("The save file decryption failed.")
+    if not savefile.hash_validate():
+        raise ValueError("The save file's hash is not valid.")
     print(f"Saving file to {destination}")
     savefile.save(destination)
 
@@ -29,21 +32,31 @@ def cmd_encrypt(args):
     destination = args.destination or source
     print(f"Opening {source}")
     savefile = DecryptedSave.open(source)
-    assert savefile.is_save_decrypted, "Save file already encrypted"
+    if not savefile.is_save_decrypted():
+        raise ValueError("The save file is already encrypted.")
     if savefile.hash_validate():
         print("Contained hash is valid.")
-    elif args.update_hash:
+    elif getattr(args, "update_hash", False):
         print("Updating contained hash.")
         savefile.hash_update()
     else:
-        raise ValueError("The save file's hash is not valid. Re-run with \"--update-hash\".")
+        raise ValueError(
+            "The save file's hash is not valid. "
+            "Re-run with \"--update-hash\"."
+        )
     print(f"Saving file to {destination}")
-    savefile.encrypt().save(destination)
+    savefile.save_finished(destination)
 
 
 def cmd_inspect(args):
     path = args.file
     savefile = DecryptedSave.auto_open(path)
+    if (not getattr(args, "ignore_hash", False) and
+        not savefile.hash_validate()):
+        raise ValueError(
+            "The save file's hash is not valid. "
+            "Re-run with \"--ignore-hash\" to inspect it anyway."
+        )
     game = GameSaveEditor(savefile)
     this = game
     skip = 0
@@ -78,10 +91,17 @@ def cmd_run_script(args):
     path: Path = args.file
     script_path: Path = args.script.absolute()
     savefile = DecryptedSave.auto_open(path)
+    if (not getattr(args, "ignore_hash", False) and
+        not savefile.hash_validate()):
+        raise ValueError(
+            "The save file's hash is not valid. "
+            "Re-run with \"--ignore-hash\" to run the script anyway."
+        )
     #script = importlib.import_module(str(script_path))
     loader = SourceFileLoader("script", str(script_path))
     spec = importlib.util.spec_from_loader("script", loader)
-    assert spec
+    if spec is None:
+        raise ValueError(f"Could not load script {script_path}")
     script = importlib.util.module_from_spec(spec)
     loader.exec_module(script)
     #if not hasattr(script, "main"):
@@ -95,6 +115,8 @@ def cmd_run_script(args):
 def cmd_update_hash(args):
     path = args.file
     savefile = DecryptedSave.open(path)
+    if not savefile.is_save_decrypted():
+        raise ValueError("The save file is encrypted; decrypt it first.")
     if savefile.hash_validate():
         print("The hash is already valid.")
         return
