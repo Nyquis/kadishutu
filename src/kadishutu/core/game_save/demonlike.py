@@ -1,11 +1,16 @@
-from ..shared.editors import AbsoulteDispatcher, U8Editor, U64Editor
+from ..shared.editors import (
+    AbsoulteDispatcher,
+    AbstractEditor,
+    U8Editor,
+    U64Editor,
+)
 from .affinities import AffinityManager
 from .potentials import PotentialEditor
 from .skills import InnateSkillEditor, SkillManager
 from .stats import HealableEditor, StatBlockEditor
 
 
-class DemonLikeEditor:
+class DemonLikeEditor(AbstractEditor):
     stats: AbsoulteDispatcher[StatBlockEditor]
     healable: AbsoulteDispatcher[HealableEditor]
     level: U8Editor

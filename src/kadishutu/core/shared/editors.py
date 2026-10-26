@@ -5,7 +5,6 @@ from enum import Enum
 from struct import Struct
 from typing import (
     Any,
-    ClassVar,
     Generic,
     Self,
     TypeVar,
@@ -109,7 +108,7 @@ class BaseOffsetEditor(BaseEditor, ABC):
 
 
 class BaseStaticEditor(BaseOffsetEditor, ABC):
-    offset: ClassVar[int] = NotImplemented
+    offset: int = NotImplemented
 
     @classmethod
     def __init_subclass__(cls):
@@ -232,74 +231,90 @@ class EditorGetter(Generic[T, TAbstractEditor], ABC):
         raise NotImplementedError
 
     @overload
-    def __get__(self, instance: object, _) -> T: ...
+    def __get__(
+        self,
+        instance: None,
+        owner: type[Any] | None = None,
+    ) -> Self: ...
+
     @overload
-    def __get__(self, instance: None, _) -> Self: ...
-    def __get__(self, instance, _):
+    def __get__(
+        self,
+        instance: TAbstractEditor,
+        owner: type[Any] | None = None,
+    ) -> T: ...
+
+    def __get__(
+        self,
+        instance: TAbstractEditor | None,
+        owner: type[Any] | None = None,
+    ) -> T | Self:
         if instance is None:
             return self
-        assert instance is not None
         assert isinstance(instance, AbstractEditor)
-        self._editor = instance  # type: ignore
+        self._editor = instance
         res = self.read()
         self._editor = None
         return res
 
-    def __set__(self, instance, value: T):
-        assert instance is not None
+    def __set__(self, instance: TAbstractEditor, value: T) -> None:
         assert isinstance(instance, AbstractEditor)
-        self._editor = instance  # type: ignore
+        self._editor = instance
         self.write(value)
         self._editor = None
 
 
-TBaseEditor = TypeVar("TBaseEditor", bound=BaseEditor)
-
-
-class AbsoulteDispatcher(EditorGetter, Generic[TBaseEditor]):
-    def __init__(self, ed_cls: type[TBaseEditor], *args, **kwargs):
+class AbsoulteDispatcher(
+    EditorGetter[TBaseEditor, AbstractEditor],
+    Generic[TBaseEditor],
+):
+    def __init__(
+        self,
+        ed_cls: type[TBaseEditor],
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         self.ed_cls = ed_cls
         self.args = args
         self.kwargs = kwargs
 
-    def read(self):
+    def read(self) -> TBaseEditor:
         return self.editor.dispatch(
             self.ed_cls,
             *self.args,
             **self.kwargs,
         )
 
-    def write(self, _):
+    def write(self, value: TBaseEditor) -> None:
         raise AttributeError("dispatchers are read-only")
 
-    def __get__(self, instance, _) -> TBaseEditor:
-        return super().__get__(instance, _)
-
-    def __set__(self, _, v):
-        self.write(v)
+    def __set__(self, instance: AbstractEditor, value: TBaseEditor) -> None:
+        self.write(value)
 
 
-TBaseDynamicEditor = TypeVar("TBaseDynamicEditor", bound=BaseDynamicEditor)
-
-
-class RelativeDispatcher(AbsoulteDispatcher, Generic[TBaseDynamicEditor]):
+class RelativeDispatcher(
+    AbsoulteDispatcher[TBaseDynamicEditor],
+    Generic[TBaseDynamicEditor],
+):
     ed_cls: type[TBaseDynamicEditor]
 
     def __init__(
         self,
         ed_cls: type[TBaseDynamicEditor],
         relative_offset: int,
-        *args,
-        **kwargs
-    ):
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(ed_cls, *args, **kwargs)
         self.relative_offset = relative_offset
 
     @property
     def editor(self) -> BaseOffsetEditor:
-        return super().editor
+        editor = super().editor
+        assert isinstance(editor, BaseOffsetEditor)
+        return editor
 
-    def read(self):
+    def read(self) -> TBaseDynamicEditor:
         return self.editor.relative_dispatch(
             self.ed_cls,
             self.relative_offset,
@@ -307,37 +322,36 @@ class RelativeDispatcher(AbsoulteDispatcher, Generic[TBaseDynamicEditor]):
             **self.kwargs,
         )
 
-    def __get__(self, instance, _) -> TBaseDynamicEditor:
-        return super().__get__(instance, _)
 
-
-class FieldDispatcher(AbsoulteDispatcher, Generic[TBaseDynamicEditor]):
+class FieldDispatcher(
+    AbsoulteDispatcher[TBaseDynamicEditor],
+    Generic[TBaseDynamicEditor],
+):
     ed_cls: type[TBaseDynamicEditor]
 
     def __init__(
         self,
         ed_cls: type[TBaseDynamicEditor],
         field: int,
-        *args,
-        **kwargs
-    ):
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(ed_cls, *args, **kwargs)
         self.field = field
 
     @property
     def editor(self) -> BaseStructAsFieldEditor:
-        return super().editor
+        editor = super().editor
+        assert isinstance(editor, BaseStructAsFieldEditor)
+        return editor
 
-    def read(self):
+    def read(self) -> TBaseDynamicEditor:
         return self.editor.field_dispatch(
             self.ed_cls,
             self.field,
             *self.args,
-            **self.kwargs
+            **self.kwargs,
         )
-
-    def __get__(self, instance, _) -> TBaseDynamicEditor:
-        return super().__get__(instance, _)
 
 
 class BytesEditor(EditorGetter):
