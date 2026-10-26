@@ -1,9 +1,16 @@
 import sys
 from argparse import Namespace
+from collections.abc import Callable
 from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QCloseEvent, QGuiApplication
+from PySide6.QtGui import (
+    QAction,
+    QActionGroup,
+    QCloseEvent,
+    QGuiApplication,
+    QKeySequence,
+)
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -17,6 +24,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QStackedWidget,
+    QStatusBar,
+    QToolBar,
     QVBoxLayout,
     QWidget,
 )
@@ -38,7 +47,7 @@ from .shared import (
     ScreenMixin,
 )
 from .sys_save import SysSaveEditorScreen
-from .theme import ThemeController
+from .theme import ThemeController, ThemeMode
 
 MAIN_WINDOW: "MainWindow"
 
@@ -279,37 +288,149 @@ class ManagedStackWidget(QWidget):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        theme_controller: ThemeController | None = None,
+        **kwargs,
+    ) -> None:
         super().__init__(*args, **kwargs)
-        #self.resize(1280, 720)
+        self.theme_controller = theme_controller
+        self.theme_actions: dict[ThemeMode, QAction] = {}
+
+        self.setWindowTitle("Kadishutu Save Editor")
+        self.resize(1120, 760)
+        self.setMinimumSize(900, 620)
 
         self.file_menu = QMenu("File", self)
-        self.save_button = self.file_menu.addAction("Save")
-        self.save_button.triggered.connect(self.on_save)
-        self.save_as_button = self.file_menu.addAction("Save as")
-        self.save_as_button.triggered.connect(self.on_save_as)
-        self.close_button = self.file_menu.addAction("Close")
-        self.close_button.triggered.connect(self.on_file_close)
+        self.save_button = self._make_action(
+            "Save",
+            QKeySequence.StandardKey.Save,
+            self.on_save,
+        )
+        self.save_as_button = self._make_action(
+            "Save as",
+            QKeySequence.StandardKey.SaveAs,
+            self.on_save_as,
+        )
+        self.close_button = self._make_action(
+            "Close",
+            QKeySequence("Ctrl+W"),
+            self.on_file_close,
+        )
+        self.quit_button = self._make_action(
+            "Quit",
+            QKeySequence.StandardKey.Quit,
+            self._quit,
+        )
+        self.file_menu.addAction(self.save_button)
+        self.file_menu.addAction(self.save_as_button)
+        self.file_menu.addAction(self.close_button)
         self.file_menu.addSeparator()
-        self.quit_button = self.file_menu.addAction("Quit")
-        self.quit_button.triggered.connect(self.close)
+        self.file_menu.addAction(self.quit_button)
         self.menuBar().addMenu(self.file_menu)
+
         self.edit_menu = QMenu("Edit", self)
-        self.undo_button = self.edit_menu.addAction("Undo")
-        self.undo_button.triggered.connect(self.on_undo)
+        self.undo_button = self._make_action(
+            "Undo",
+            QKeySequence.StandardKey.Undo,
+            self.on_undo,
+        )
+        self.apply_button = self._make_action(
+            "Apply",
+            QKeySequence("Ctrl+Return"),
+            self.on_apply,
+        )
+        self.edit_menu.addAction(self.undo_button)
+        self.edit_menu.addAction(self.apply_button)
         self.menuBar().addMenu(self.edit_menu)
-        self.menu_separator = self.menuBar().addSeparator()
-        self.apply_button = self.menuBar().addAction("Apply")
-        self.apply_button.triggered.connect(self.on_apply)
-        self.back_button = self.menuBar().addAction("Back")
-        self.back_button.triggered.connect(self.on_back)
+
+        self.navigate_menu = QMenu("Navigate", self)
+        self.back_button = self._make_action(
+            "Back",
+            QKeySequence("Alt+Left"),
+            self.on_back,
+        )
+        self.navigate_menu.addAction(self.back_button)
+        self.menuBar().addMenu(self.navigate_menu)
+
+        self._build_theme_menu()
+        self._build_toolbar()
+        self._build_status_bar()
 
         self.inner = ManagedStackWidget(self)
+        self.inner.setObjectName("AppRoot")
         self.setCentralWidget(self.inner)
 
         self.file_selector = FileSelectorMenu(self)
         self.stack_add(self.file_selector)
         self.back_button.setEnabled(False)
+
+    def _make_action(
+        self,
+        text: str,
+        shortcut: QKeySequence | QKeySequence.StandardKey | None,
+        slot: Callable[[], None],
+    ) -> QAction:
+        action = QAction(text, self)
+        if shortcut is not None:
+            action.setShortcut(shortcut)
+        action.triggered.connect(slot)
+        return action
+
+    def _quit(self) -> None:
+        self.close()
+
+    def _build_theme_menu(self) -> None:
+        if self.theme_controller is None:
+            return
+        self.view_menu = QMenu("View", self)
+        theme_menu = self.view_menu.addMenu("Theme")
+        group = QActionGroup(self)
+        group.setExclusive(True)
+        for mode in (ThemeMode.SYSTEM, ThemeMode.LIGHT, ThemeMode.DARK):
+            action = QAction(mode.label, self)
+            action.setCheckable(True)
+            action.setChecked(self.theme_controller.mode is mode)
+            action.triggered.connect(
+                lambda _checked=False, mode=mode: self._set_theme(mode)
+            )
+            group.addAction(action)
+            theme_menu.addAction(action)
+            self.theme_actions[mode] = action
+        self.theme_group = group
+        self.menuBar().addMenu(self.view_menu)
+
+    def _set_theme(self, mode: ThemeMode) -> None:
+        if self.theme_controller is None:
+            return
+        self.theme_controller.set_mode(mode)
+        for action_mode, action in self.theme_actions.items():
+            action.setChecked(action_mode is mode)
+
+    def _build_toolbar(self) -> None:
+        self.toolbar = QToolBar("Main", self)
+        self.toolbar.setObjectName("MainToolbar")
+        self.toolbar.setMovable(False)
+        self.toolbar.setFloatable(False)
+        self.toolbar.setToolButtonStyle(
+            Qt.ToolButtonStyle.ToolButtonTextOnly
+        )
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolbar)
+        self.toolbar.addAction(self.save_button)
+        self.toolbar.addAction(self.save_as_button)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.apply_button)
+        self.toolbar.addAction(self.back_button)
+        self.toolbar.addAction(self.undo_button)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.close_button)
+
+    def _build_status_bar(self) -> None:
+        self.status_bar = QStatusBar(self)
+        self.setStatusBar(self.status_bar)
+        self.status_label = QLabel("No save open", self)
+        self.status_bar.addWidget(self.status_label)
 
     def stack_add(self, widget: QWidget):
         self.inner.stack_add(widget)
@@ -335,10 +456,18 @@ class MainWindow(QMainWindow):
         self.save_as_button.setEnabled(can_save)
         self.close_button.setEnabled(has_editor)
         self.undo_button.setEnabled(has_editor)
-        #self.statusBar().showMessage(" > ".join([
-        #    i.__class__.__name__
-        #    for i in self.inner.widget_stack
-        #]))
+        self.update_status()
+
+    def update_status(self) -> None:
+        if not self.inner.should_show_navigation:
+            self.status_label.setText("No save open")
+            self.setWindowTitle("Kadishutu Save Editor")
+            return
+        widget = self.inner.editor_widget
+        modified = " • modified" if widget.modified else ""
+        self.status_label.setText(f"{widget.path}{modified}")
+        marker = " •" if widget.modified else ""
+        self.setWindowTitle(f"{widget.path.name}{marker} — Kadishutu")
 
     def on_back(self):
         self.stack_remove()
@@ -353,6 +482,7 @@ class MainWindow(QMainWindow):
             if not isinstance(widget, ScreenMixin):
                 continue
             widget.stack_refresh()
+        self.update_status()
 
     def on_save(self):
         if not self.inner.should_show_navigation:
@@ -366,6 +496,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Save failed", str(exc))
             return
         widget.modified = False
+        self.update_status()
 
     def on_save_as(self):
         (pathstr, _) = QFileDialog.getSaveFileName(self)
@@ -382,6 +513,7 @@ class MainWindow(QMainWindow):
             return
         widget.path = path
         widget.modified = False
+        self.update_status()
 
     def on_file_close(self):
         if (isinstance(self.inner.widget_stack[1], SaveScreenMixin) and
@@ -395,6 +527,7 @@ class MainWindow(QMainWindow):
         if not isinstance(widget, ScreenMixin):
             raise NotImplementedError
         widget.stack_refresh()
+        self.update_status()
 
     def alert_abandoning_modifications(self) -> bool:
         if not (self.inner.should_show_navigation and
@@ -422,8 +555,8 @@ def gui_main(args: Namespace):
     app.setApplicationName("Kadishutu")
     app.setApplicationDisplayName("Kadishutu")
     app.setOrganizationName("kadishutu")
-    ThemeController(app, parent=app)
-    widget = MainWindow()
+    theme_controller = ThemeController(app, parent=app)
+    widget = MainWindow(theme_controller=theme_controller)
     global MAIN_WINDOW
     MAIN_WINDOW = widget
     if args.file:

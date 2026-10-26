@@ -121,6 +121,72 @@ def test_save_overview_builds_category_buttons(
     assert screen.glory.value() == 456
 
 
+def test_main_window_has_toolbar_and_status_bar(main_window):
+    assert main_window.toolbar.objectName() == "MainToolbar"
+    assert main_window.status_label.text() == "No save open"
+    actions = main_window.toolbar.actions()
+    assert main_window.save_button in actions
+    assert main_window.apply_button in actions
+    assert main_window.back_button in actions
+
+
+def test_main_window_has_keyboard_shortcuts(main_window):
+    assert main_window.save_button.shortcut().toString() == "Ctrl+S"
+    assert main_window.save_as_button.shortcut().toString() == "Ctrl+Shift+S"
+    assert main_window.close_button.shortcut().toString() == "Ctrl+W"
+    assert main_window.undo_button.shortcut().toString() == "Ctrl+Z"
+
+
+def test_main_window_has_sensible_minimum_size(main_window):
+    assert main_window.minimumWidth() >= 900
+    assert main_window.minimumHeight() >= 620
+
+
+def test_main_window_status_shows_open_save(main_window):
+    from kadishutu.gui.sys_save import SysSaveEditorScreen
+
+    editor = SysSaveEditorScreen(
+        Path("sys.sav"),
+        DecryptedSave(bytearray(0x12E0)),
+        main_window,
+    )
+    main_window.stack_add(editor)
+
+    assert "sys.sav" in main_window.status_label.text()
+    assert "sys.sav" in main_window.windowTitle()
+
+
+def test_theme_menu_updates_controller(qapp: QApplication, tmp_path: Path):
+    from PySide6.QtCore import QSettings
+
+    from kadishutu.gui import mainwindow
+    from kadishutu.gui.theme import (
+        ThemeController,
+        ThemeMode,
+        apply_theme,
+    )
+
+    settings = QSettings(
+        str(tmp_path / "settings.ini"),
+        QSettings.Format.IniFormat,
+    )
+    controller = ThemeController(qapp, settings=settings)
+    window = mainwindow.MainWindow(theme_controller=controller)
+    try:
+        assert window.theme_actions[ThemeMode.SYSTEM].isChecked()
+        window.theme_actions[ThemeMode.DARK].trigger()
+
+        assert controller.mode is ThemeMode.DARK
+        assert controller.resolved_mode is ThemeMode.DARK
+        assert window.theme_actions[ThemeMode.DARK].isChecked()
+    finally:
+        window.close()
+        window.deleteLater()
+        controller.deleteLater()
+        qapp.processEvents()
+        apply_theme(qapp, ThemeMode.SYSTEM)
+
+
 def test_theme_mode_resolution():
     from PySide6.QtCore import Qt
 
