@@ -19,12 +19,6 @@ SUMMONED_DEMONS_FMT = array_of_fmt("B", 3)
 class DemonOrderEditor(StructEditor):
     fmt = array_of_fmt("B", DEMON_TABLE_SIZE)
 
-    def __get__(self, instance, _) -> list[int]:
-        return super().__get__(instance, _)
-
-    def __set__(self, instance, value: list[int]):
-        return super().__set__(instance, value)
-
     def read(self) -> list[int]:
         return list(super().read())
 

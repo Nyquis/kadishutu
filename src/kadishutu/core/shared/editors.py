@@ -407,10 +407,10 @@ class StructEditor(EditorGetter):
     def struct_obj(self) -> Struct:
         return Struct(self.fmt)
 
-    def read(self) -> tuple[Any, ...]:
+    def read(self) -> Any:
         return self.struct_obj.unpack_from(self.data, self.offset)
 
-    def write(self, v: tuple[Any, ...]):
+    def write(self, v: Any):
         self.struct_obj.pack_into(self.data, self.offset, *v)
 
 
@@ -438,7 +438,7 @@ class BoolEditor(U8Editor):
     def read(self) -> bool:
         return bool(super().read())
 
-    def write(self, v: bool):
+    def write(self, v: int):
         super().write(int(v))
 
 
@@ -474,7 +474,9 @@ class EnumEditor(SingularStructEditor, Generic[TEnum]):
         super().write(v.value)
 
 
-class TimeDeltaEditor(U32Editor):
+class TimeDeltaEditor(SingularStructEditor):
+    fmt = "<I"
+
     def read(self) -> timedelta:
         return timedelta(seconds=super().read())
 
@@ -482,7 +484,9 @@ class TimeDeltaEditor(U32Editor):
         super().write(v.seconds)
 
 
-class UnrealTimeEditor(U64Editor):
+class UnrealTimeEditor(SingularStructEditor):
+    fmt = "<Q"
+
     def read(self) -> datetime:
         return unreal_to_python_datetime(super().read())
 

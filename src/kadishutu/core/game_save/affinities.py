@@ -3,7 +3,7 @@ from kadishutu.data.affinity import Affinity
 from ..shared.editors import (
     BaseDynamicEditor,
     BaseStructAsFieldEditor,
-    U16Editor,
+    SingularStructEditor,
 )
 
 ELEMENTAL_AFFINITY_NAMES = [
@@ -15,18 +15,14 @@ AILMENT_AFFINITY_NAMES = [
 ]
 
 
-class AffinityEditor(U16Editor):
+class AffinityEditor(SingularStructEditor):
+    fmt = "<H"
+
     def read(self) -> Affinity:
         return Affinity(super().read())
 
     def write(self, v: Affinity):
         super().write(v.value)
-
-    def __get__(self, instance, _) -> Affinity:
-        return super().__get__(instance, _)
-
-    def __set__(self, instance, v: Affinity):
-        super().__set__(instance, v)
 
 
 class ElementalAffinityEditor(BaseDynamicEditor, BaseStructAsFieldEditor):

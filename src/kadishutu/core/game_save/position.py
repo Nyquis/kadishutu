@@ -44,7 +44,9 @@ class FloatSetEditor(StructEditor):
         super().write(v)
 
 
-class Vector3Editor(FloatSetEditor):
+class Vector3Editor(StructEditor):
+    fmt = FloatSetEditor.fmt
+
     def read(self) -> Vector3:
         return Vector3.from_tuple(*super().read())
 
