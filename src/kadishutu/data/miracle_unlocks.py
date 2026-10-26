@@ -1,29 +1,21 @@
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Self
-
-from dataclasses_json import DataClassJsonMixin
 
 from .miracles import MIRACLE_NAME_MAP, Miracle
-from .tools.dataclasses_json import hex_int_config
+from .tools.json import JsonListMixin
 from .tools.mapping import make_maps
 from .tools.path import TABLES_PATH
+from .tools.serialization import hex_int_config
 
 MIRACLE_UNLOCKS_DATA_PATH = TABLES_PATH / "miracle_unlocks.json"
 
 
 @dataclass
-class MiracleUnlock(DataClassJsonMixin):
+class MiracleUnlock(JsonListMixin):
     id: int = field(
         metadata=hex_int_config(4)
     )
     name: str
     miracles: list[str]
-
-    @classmethod
-    def load_path(cls, path: Path) -> list[Self]:
-        with open(path) as file:
-            return cls.schema().loads(file.read(), many=True)
 
     @property
     def miracles_obj(self) -> list[Miracle]:

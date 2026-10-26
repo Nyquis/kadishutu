@@ -1,11 +1,8 @@
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Self
 
-from dataclasses_json import DataClassJsonMixin
-
-from .tools.dataclasses_json import bytes_config, hex_int_config
+from .tools.json import JsonListMixin
 from .tools.path import TABLES_PATH
+from .tools.serialization import bytes_config, hex_int_config
 
 LAYLINE_DATA_PATH = TABLES_PATH / "laylines.json"
 
@@ -14,7 +11,7 @@ LAYLINE_UNLOCK_OFFSET = 0x80a2
 
 
 @dataclass
-class LaylineUnlock(DataClassJsonMixin):
+class LaylineUnlock(JsonListMixin):
     offset: int = field(
         metadata=hex_int_config(5)
     )
@@ -22,7 +19,7 @@ class LaylineUnlock(DataClassJsonMixin):
 
 
 @dataclass
-class Layline(DataClassJsonMixin):
+class Layline(JsonListMixin):
     id: int = field(
         metadata=hex_int_config(0)
     )
@@ -50,12 +47,6 @@ class Layline(DataClassJsonMixin):
     @property
     def unlock_data(self) -> tuple[int, int]:
         return self.unlock_data_from_id(self.id)
-
-    @classmethod
-    def load_path(cls, path: Path) -> list[Self]:
-        with open(path) as file:
-            return cls.schema().loads(file.read(), many=True)
-
 
 LAYLINE_DATA = Layline.load_path(LAYLINE_DATA_PATH)
 

@@ -6,14 +6,14 @@ from pathlib import Path
 from types import ModuleType
 from typing import Self
 
-from dataclasses_json import DataClassJsonMixin
+from mashumaro.mixins.json import DataClassJSONMixin
 
 from kadishutu.tools.eprint import printexcept
 
 ENCODING = "UTF-8"
 
 
-class PathJsonMixin(DataClassJsonMixin):
+class PathJsonMixin(DataClassJSONMixin):
     @classmethod
     def from_path(cls, path: Path, encoding: str = ENCODING) -> Self:
         with path.open("rt", encoding=encoding) as file:

@@ -1,11 +1,9 @@
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Self
-
-from dataclasses_json import DataClassJsonMixin
 
 from .element_icons import Element
 from .tools.csv import FromCsv
+from .tools.json import JsonListMixin
 from .tools.mapping import make_maps
 from .tools.path import TABLES_PATH
 from .tools.unused import is_unused
@@ -45,16 +43,11 @@ ANY_ITEMS = AnyItem.from_csv_headerless(ITEM_NAMES_TABLE_PATH, 1)
 
 
 @dataclass
-class ItemExtraData(DataClassJsonMixin):
+class ItemExtraData(JsonListMixin):
     id: int
     limit: int | None = None
     icon: Element | None = None
     desc: str | None = None
-
-    @classmethod
-    def load_path(cls, path: Path) -> list[Self]:
-        with open(path) as file:
-            return cls.schema().loads(file.read(), many=True)
 
 
 ITEM_EXTRA_DATA = ItemExtraData.load_path(ITEM_ADDITIONAL_INFO_PATH)

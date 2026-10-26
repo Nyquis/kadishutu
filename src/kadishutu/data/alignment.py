@@ -1,17 +1,14 @@
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Self
 
-from dataclasses_json import DataClassJsonMixin
-
-from .tools.dataclasses_json import hex_int_config
+from .tools.json import JsonListMixin
 from .tools.path import TABLES_PATH
+from .tools.serialization import hex_int_config
 
 ALIGNMENT_DATA_PATH = TABLES_PATH / "alignment_data.json"
 
 
 @dataclass
-class AlignmentBit(DataClassJsonMixin):
+class AlignmentBit(JsonListMixin):
     bit: int
     alignment: str
     place: str
@@ -20,7 +17,7 @@ class AlignmentBit(DataClassJsonMixin):
 
 
 @dataclass
-class AlignmentByte(DataClassJsonMixin):
+class AlignmentByte(JsonListMixin):
     offset: int = field(
         metadata=hex_int_config(5),
     )
@@ -32,11 +29,6 @@ class AlignmentByte(DataClassJsonMixin):
         self.bitmap = {}
         for bitobj in bits:
             self.bitmap[bitobj.bit] = bitobj
-
-    @classmethod
-    def load_path(cls, path: Path) -> list[Self]:
-        with open(path) as file:
-            return cls.schema().loads(file.read(), many=True)
 
     def has_bit(self, bit: int) -> bool:
         try:

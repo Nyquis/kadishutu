@@ -1,18 +1,16 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from pathlib import Path
 from struct import Struct
 from typing import Self
-
-from dataclasses_json import DataClassJsonMixin
 
 from kadishutu.paths import APPDIRS
 from kadishutu.tools.eprint import printexcept
 from kadishutu.tools.tbbreader import Tbcr
 
-from .tools.dataclasses_json import hex_int_config
+from .tools.json import JsonListMixin
 from .tools.mapping import make_maps
 from .tools.path import TABLES_PATH
+from .tools.serialization import hex_int_config
 from .tools.unused import is_unused
 
 UMODEL_SAVED_PATH = APPDIRS.data_path / "game_data_saved"
@@ -67,17 +65,12 @@ except Exception as e:
 
 
 @dataclass
-class MiracleText(DataClassJsonMixin):
+class MiracleText(JsonListMixin):
     id: int = field(
         metadata=hex_int_config(2)
     )
     name: str
     desc: str | None = None
-
-    @classmethod
-    def load_path(cls, path: Path) -> list[Self]:
-        with open(path) as file:
-            return cls.schema().loads(file.read(), many=True)
 
 
 MIRACLE_TEXT_DATA = MiracleText.load_path(MIRACLE_DATA_PATH)

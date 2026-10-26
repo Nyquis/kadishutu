@@ -1,0 +1,14 @@
+{
+    "offset": "0x69cf5",
+    "bits": [
+        {
+            "bit": 2,
+            "alignment": "law",
+            "place": "The Empyrean",
+            "side_quest": null,
+            "text": [
+                "Choose the law choice (?)"
+            ]
+        }
+    ]
+}

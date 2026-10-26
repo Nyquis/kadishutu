@@ -53,6 +53,7 @@ environment:
 ```shell
 pixi run -e dev lint
 pixi run -e dev typecheck
+pixi run -e dev test
 pixi run -e dev build
 ```
 

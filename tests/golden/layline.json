@@ -1,0 +1,12 @@
+{
+    "id": "0xb",
+    "name": "Da'at: Minato - Tamachi",
+    "map_upper": "0x0000003d",
+    "map_lower": "0x00000000",
+    "coordinates": "f75144c54fc26647109c8844",
+    "rotation": "89f67fbfc0368b3c",
+    "unlock": {
+        "offset": "0x080a3",
+        "bit": 3
+    }
+}

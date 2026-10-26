@@ -23,6 +23,7 @@ ruff = ">=0.17.0,<0.18"
 
 [feature.dev.pypi-dependencies]
 mypy = ">=1.13.0,<2"
+pytest = ">=8,<9"
 pyinstaller = ">=6.11.0,<7"
 build = ">=1.2,<2"
 
@@ -30,6 +31,7 @@ build = ">=1.2,<2"
 lint = "ruff check ."
 lint-fix = "ruff check --fix ."
 typecheck = "mypy src"
+test = "pytest"
 build = "python src/build.py"
 
 [feature.example-late-bonuses.pypi-dependencies]
