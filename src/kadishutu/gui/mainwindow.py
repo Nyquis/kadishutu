@@ -46,7 +46,9 @@ from .shared import (
     SaveScreenMixin,
     SaveType,
     ScreenMixin,
+    refresh_screen,
 )
+from .shared import has_unapplied_edits as widget_has_unapplied_edits
 from .sys_save import SysSaveEditorScreen
 from .theme import ThemeController, ThemeMode
 
@@ -290,7 +292,7 @@ class ManagedStackWidget(QWidget):
 
     def stack_add(self, widget: QWidget):
         if isinstance(widget, ScreenMixin):
-            widget.stack_refresh()
+            refresh_screen(widget)
         widget.setParent(self)
         self.widget_stack.append(widget)
         self.stack.addWidget(widget)
@@ -510,8 +512,14 @@ class MainWindow(QMainWindow):
         for widget in self.inner.widget_stack:
             if not isinstance(widget, ScreenMixin):
                 continue
-            widget.stack_refresh()
+            refresh_screen(widget)
         self.update_status()
+
+    def has_unapplied_edits(self) -> bool:
+        return any(
+            widget_has_unapplied_edits(widget)
+            for widget in self.inner.widget_stack
+        )
 
     def on_save(self):
         if not self.inner.should_show_navigation:
@@ -555,7 +563,7 @@ class MainWindow(QMainWindow):
         widget = self.inner.top_widget
         if not isinstance(widget, ScreenMixin):
             raise NotImplementedError
-        widget.stack_refresh()
+        refresh_screen(widget)
         self.update_status()
 
     def alert_abandoning_modifications(self) -> bool:

@@ -1,23 +1,23 @@
 
-from PySide6.QtWidgets import QCheckBox, QGridLayout, QLabel, QWidget
+from PySide6.QtWidgets import QGridLayout, QLabel, QWidget
 
 from kadishutu.core.game_save.dlc import DLCS, DlcBitflags
 
-from ..shared import AppliableWidget
+from ..shared import AppliableWidget, MCheckBox
 from .shared import GameScreenMixin
 
 
 class DlcEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.widgets: dict[str, QCheckBox] = {}
+        self.widgets: dict[str, MCheckBox] = {}
 
         self.l = QGridLayout(self)
 
         for i, dlc in enumerate(DLCS.values()):
             label = QLabel(dlc)
             self.l.addWidget(label, i, 0)
-            dlc_box = QCheckBox()
+            dlc_box = MCheckBox()
             self.l.addWidget(dlc_box, i, 1)
             self.widgets[dlc] = dlc_box
 

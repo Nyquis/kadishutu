@@ -205,6 +205,12 @@ class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
         ):
             self.demon_button_refresh(demon_number, button)
 
+    def has_unapplied_changes(self) -> bool:
+        return self._new_demon_order is not None
+
+    def discard_unapplied_changes(self):
+        self._new_demon_order = None
+
     def on_apply_changes(self):
         if self._new_demon_order is not None:
             self.team.demon_order = self._new_demon_order

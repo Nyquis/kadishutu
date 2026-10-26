@@ -51,7 +51,6 @@ def editor(window, tmp_path: Path):
     return screen
 
 
-@NOT_IMPLEMENTED
 def test_editing_a_value_leaves_it_unapplied(window, editor):
     editor.macca.setValue(555)
 
@@ -59,7 +58,28 @@ def test_editing_a_value_leaves_it_unapplied(window, editor):
     assert editor.save.macca == 0
 
 
-@NOT_IMPLEMENTED
+def test_mirroring_the_save_is_not_an_edit(window, editor):
+    from kadishutu.gui.shared import refresh_screen
+
+    editor.save.macca = 999
+
+    refresh_screen(editor)
+
+    assert not window.has_unapplied_edits()
+
+
+def test_toggling_a_dlc_flag_counts_as_unapplied(window, editor):
+    from kadishutu.gui.game_save.dlc import DlcEditorScreen
+
+    screen = DlcEditorScreen(window)
+    window.stack_add(screen)
+    box = next(iter(screen.widgets.values()))
+
+    box.setChecked(not box.isChecked())
+
+    assert window.has_unapplied_edits()
+
+
 def test_apply_changes_copies_edits_into_the_save(window, editor):
     editor.macca.setValue(555)
 
@@ -183,7 +203,6 @@ def test_back_with_unapplied_edits_asks_first(
     assert len(window.inner.widget_stack) == count
 
 
-@NOT_IMPLEMENTED
 def test_revert_discards_unapplied_edits(window, editor):
     editor.macca.setValue(555)
 

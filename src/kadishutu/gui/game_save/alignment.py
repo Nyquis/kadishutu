@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 from PySide6.QtWidgets import (
-    QCheckBox,
     QGridLayout,
     QLabel,
     QScrollArea,
@@ -11,7 +10,7 @@ from PySide6.QtWidgets import (
 
 from kadishutu.data.alignment import ALIGNMENT_DATA, AlignmentBit
 
-from ..shared import AppliableWidget
+from ..shared import AppliableWidget, MCheckBox
 from .shared import GameScreenMixin
 
 
@@ -45,7 +44,7 @@ class AlignmentEditorScreen(QTabWidget, GameScreenMixin, AppliableWidget):
         super().__init__(*args, **kwargs)
         self.alignment = self.save.alignment
         self.tabmap: dict[str, AlignmentPacked] = {}
-        self.checkboxmap: dict[int, QCheckBox] = {}
+        self.checkboxmap: dict[int, MCheckBox] = {}
 
         for name in ["Main story", "Side quests"]:
             nameq = name.lower().replace(" ", "_")
@@ -69,7 +68,7 @@ class AlignmentEditorScreen(QTabWidget, GameScreenMixin, AppliableWidget):
             )
             for text in bit.text:
                 packed.add_widgets(QLabel(text))
-            box = QCheckBox(packed.inner)
+            box = MCheckBox(packed.inner)
             packed.layout.addWidget(box, packed.i - 1, 1)
             self.checkboxmap[offset * 8 + bit.bit] = box
 

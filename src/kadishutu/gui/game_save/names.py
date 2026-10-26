@@ -1,9 +1,9 @@
 
-from PySide6.QtWidgets import QLabel, QLineEdit, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 from kadishutu.core.game_save.player import NameEdit, NameManager
 
-from ..shared import AppliableWidget
+from ..shared import AppliableWidget, MLineEdit
 from .shared import GameScreenMixin
 
 OVERWRITTEN_WARN = "WARNING: This is overwritten with \"First name\" when saving"
@@ -18,7 +18,7 @@ class NameEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, names: NameManager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.names = names
-        self.widgets: list[tuple[NameEdit, QLineEdit]] = []
+        self.widgets: list[tuple[NameEdit, MLineEdit]] = []
 
         self.l = QVBoxLayout(self)
 
@@ -30,7 +30,7 @@ class NameEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
                 label = QLabel(OVERWRITTEN_WARN, self)
                 self.l.addWidget(label)
             editor: NameEdit = names.__getattribute__(name)
-            box = QLineEdit(self)
+            box = MLineEdit(self)
             box.setMaxLength(editor.length)
             self.l.addWidget(box)
             self.widgets.append((editor, box))

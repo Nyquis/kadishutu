@@ -88,7 +88,7 @@ class SkillBox(AbstractStrIntMap, ModifiedMixin):
         self.str_box.setCurrentText(skill_name)
 
     def apply_changes(self):
-        if self.get_modified:
+        if self.get_modified():
             self.skill.id = self.int_box.value()
             self.set_modified(False)
 

@@ -1,14 +1,17 @@
 from abc import abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any, TypeVar
 
+from PySide6.QtCore import QObject, Signal
 from PySide6.QtWidgets import (
     QBoxLayout,
     QCheckBox,
     QComboBox,
     QHBoxLayout,
+    QLineEdit,
     QSpinBox,
     QWidget,
 )
@@ -33,6 +36,25 @@ class AppliableWidget:
         raise NotImplementedError
 
 
+class EditEvents(QObject):
+    changed = Signal()
+
+
+EDIT_EVENTS = EditEvents()
+_untracked_depth = 0
+
+
+@contextmanager
+def untracked_updates() -> Iterator[None]:
+    """Ignore edit flags raised while the GUI mirrors the save into controls."""
+    global _untracked_depth
+    _untracked_depth += 1
+    try:
+        yield
+    finally:
+        _untracked_depth -= 1
+
+
 class ModifiedMixin:
     _modified: bool = False
 
@@ -40,7 +62,12 @@ class ModifiedMixin:
         return self._modified
 
     def set_modified(self, modified: bool):
+        if modified and _untracked_depth:
+            return
+        if self._modified == modified:
+            return
         self._modified = modified
+        EDIT_EVENTS.changed.emit()
 
     def flag_as_modified(self):
         self.set_modified(True)
@@ -107,6 +134,39 @@ class MComboBox(QComboBox, ModifiedMixin):
 
     def get_value(self) -> str:
         return self.currentText()
+
+
+class MLineEdit(QLineEdit, ModifiedMixin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.textEdited.connect(self.flag_as_modified)
+
+    def get_value(self) -> str:
+        return self.text()
+
+
+def has_unapplied_edits(widget: QWidget) -> bool:
+    """True if any tracked control under widget has an unapplied user edit."""
+    children: list[Any] = list(widget.findChildren(QObject))
+    for child in children:
+        if isinstance(child, ModifiedMixin) and child.get_modified():
+            return True
+    checker = getattr(widget, "has_unapplied_changes", None)
+    return bool(checker and checker())
+
+
+def refresh_screen(screen: "ScreenMixin") -> None:
+    """Mirror the save into a screen and clear its unapplied-edit state."""
+    reset = getattr(screen, "discard_unapplied_changes", None)
+    if reset is not None:
+        reset()
+    with untracked_updates():
+        screen.stack_refresh()
+    if isinstance(screen, QWidget):
+        children: list[Any] = list(screen.findChildren(QObject))
+        for child in children:
+            if isinstance(child, ModifiedMixin):
+                child.set_modified(False)
 
 
 T = TypeVar("T", bound=QBoxLayout)
