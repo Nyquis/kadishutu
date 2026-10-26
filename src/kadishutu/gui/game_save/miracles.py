@@ -113,12 +113,12 @@ class MiracleEditorWidget(QScrollArea, GameScreenMixin):
                 handle_image_loading_error(e, "element", icon)
             else:
                 pix = pak.pixmap.scaled(pak.size_div(2))
-                icon = QLabel()
-                icon.setFixedSize(pix.size())
-                icon.setPixmap(pix)
+                icon_label = QLabel()
+                icon_label.setFixedSize(pix.size())
+                icon_label.setPixmap(pix)
                 if desc is not None:
-                    icon.setToolTip(desc)
-                self.l.addWidget(icon, i, 0)
+                    icon_label.setToolTip(desc)
+                self.l.addWidget(icon_label, i, 0)
             boxes = MiracleCheckboxes(miracle, i, self.l)
             self.widgets.append(boxes)
 

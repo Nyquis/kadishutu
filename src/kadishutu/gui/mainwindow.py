@@ -44,16 +44,18 @@ MAIN_WINDOW: "MainWindow"
 class FileSelector(QWidget):
     _path: Path
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.setLayout(QHBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        layout = self.layout()
+        assert layout is not None
+        layout.setContentsMargins(0, 0, 0, 0)
         self.file_path_display = QLineEdit(self)
         self.file_path_display.setReadOnly(True)
-        self.layout().addWidget(self.file_path_display)
+        layout.addWidget(self.file_path_display)
         self.file_open_button = QPushButton("Select", self)
         self.file_open_button.clicked.connect(self.on_select_clicked)
-        self.layout().addWidget(self.file_open_button)
+        layout.addWidget(self.file_open_button)
 
     @property
     def path(self) -> Path:
@@ -77,17 +79,19 @@ class FileSelectorPreview(QWidget):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        layout = self.layout()
+        assert layout is not None
+        layout.setContentsMargins(0, 0, 0, 0)
         self.name = QLabel(self)
-        self.layout().addWidget(self.name)
+        layout.addWidget(self.name)
         self.location = QLabel(self)
-        self.layout().addWidget(self.location)
+        layout.addWidget(self.location)
         self.difficulty = QLabel(self)
-        self.layout().addWidget(self.difficulty)
+        layout.addWidget(self.difficulty)
         self.play_time = QLabel(self)
-        self.layout().addWidget(self.play_time)
+        layout.addWidget(self.play_time)
         self.date = QLabel(self)
-        self.layout().addWidget(self.date)
+        layout.addWidget(self.date)
         self.empty()
 
     def empty(self):
@@ -97,7 +101,7 @@ class FileSelectorPreview(QWidget):
         self.play_time.setText("Play Time: N/A")
         self.date.setText("Date: N/A")
 
-    def update(self, save: GameSaveEditor):
+    def update_preview(self, save: GameSaveEditor):
         self.name.setText("Name: " + save.player.names.save_name.get())
         try:
             save_loc = SAVE_LOCS[save.position.title_save_location]
@@ -115,21 +119,23 @@ class FileSelectorMenu(QWidget):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.setLayout(QVBoxLayout())
+        layout = self.layout()
+        assert layout is not None
         self.file_path = FileSelector(self)
         file_path_display = self.file_path.file_path_display
         file_path_display.textChanged.connect(self.file_selected)
-        self.layout().addWidget(self.file_path)
+        layout.addWidget(self.file_path)
         self.file_type = QComboBox(self)
         self.file_type.addItems([ty.name for ty in SaveType])
         self.file_type.setCurrentText(SaveType.GameSave.name)
         self.file_type.currentTextChanged.connect(self.on_type_changed)
-        self.layout().addWidget(self.file_type)
+        layout.addWidget(self.file_type)
         self.file_preview = FileSelectorPreview(self)
-        self.layout().addWidget(self.file_preview)
+        layout.addWidget(self.file_preview)
         self.file_open = QPushButton("Open", self)
         self.file_open.setEnabled(False)
         self.file_open.clicked.connect(self.on_file_open)
-        self.layout().addWidget(self.file_open)
+        layout.addWidget(self.file_open)
 
     def on_file_open(self):
         assert self.raw
@@ -153,7 +159,7 @@ class FileSelectorMenu(QWidget):
             self.ty = SaveType.GameSave
             self.file_type.setCurrentText(self.ty.name)
             save = GameSaveEditor(raw)
-            self.file_preview.update(save)
+            self.file_preview.update_preview(save)
         else:
             self.file_type.setDisabled(False)
             self.raw = None
@@ -172,7 +178,9 @@ class LocationBar(QScrollArea):
         self.inner = QWidget(self)
         self.setWidget(self.inner)
         self.inner.setLayout(QHBoxLayout())
-        self.inner.layout().setContentsMargins(0, 0, 0, 0)
+        inner_layout = self.inner.layout()
+        assert inner_layout is not None
+        inner_layout.setContentsMargins(0, 0, 0, 0)
         #self.scroll_bar = QScrollBar(QtCore.Orientation.Horizontal, self.scrolla)
         #self.scrolla.setHorizontalScrollBar(self.scroll_bar)
         #self.scrolla.horizontalScrollBar().setEnabled(True)
@@ -186,7 +194,7 @@ class LocationBar(QScrollArea):
             txt = chr(64 + i + 1) * 6
             b = QPushButton(txt, self.inner)
             b.setContentsMargins(0, 0, 0, 0)
-            self.inner.layout().addWidget(b)
+            inner_layout.addWidget(b)
         #self.a = QLabel("aaaaa", self)
         #self.addWidget(self.a)
 
@@ -194,16 +202,18 @@ class LocationBar(QScrollArea):
 class ManagedStackWidget(QWidget):
     widget_stack: list[QWidget]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.widget_stack = []
         self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        layout = self.layout()
+        assert layout is not None
+        layout.setContentsMargins(0, 0, 0, 0)
         # TODO
         #self.location_bar = LocationBar(self)
         #self.layout().addWidget(self.location_bar)
         self.stack = QStackedWidget(self)
-        self.layout().addWidget(self.stack)
+        layout.addWidget(self.stack)
 
     @property
     def should_show_navigation(self) -> bool:

@@ -63,8 +63,8 @@ class DemonLikeEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             button.clicked.connect(self.spawner(fun))
             self.side_panel_widgets.append(button)
 
-        for button in self.side_panel_widgets:
-            self.dl_layout.addWidget(button)
+        for widget in self.side_panel_widgets:
+            self.dl_layout.addWidget(widget)
         self.dl_layout.addStretch()
 
     def stack_refresh(self):

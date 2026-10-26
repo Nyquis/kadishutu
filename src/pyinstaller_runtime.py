@@ -3,8 +3,8 @@ import kadishutu.tools.depinstall.generic
 def likelyness() -> float:
     return 0.0
 
-for i in kadishutu.tools.depinstall.generic.INSTALL_HANDLERS:
-    i.likelyness = likelyness
+for handler in kadishutu.tools.depinstall.generic.INSTALL_HANDLERS:
+    handler.likelyness = staticmethod(likelyness)  # type: ignore[method-assign]
 
 kadishutu.tools.depinstall.generic.INSTALL_HANDLERS = []
 
@@ -13,7 +13,7 @@ def get_install_handler():
         "Install handlers are unsupported on pyinstaller"
     )
 
-kadishutu.tools.depinstall.generic.get_install_handler = get_install_handler
+kadishutu.tools.depinstall.generic.get_install_handler = get_install_handler  # type: ignore[assignment]
 
 
 import kadishutu.gui.prompt_install
@@ -26,4 +26,4 @@ def handle_no_qt() -> int:
     )
     return 1
 
-kadishutu.gui.prompt_install.handle_no_qt = handle_no_qt
+kadishutu.gui.prompt_install.handle_no_qt = handle_no_qt  # type: ignore[assignment]
