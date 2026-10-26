@@ -15,6 +15,26 @@ class SaveVerificationError(RuntimeError):
     pass
 
 
+class SaveFormatError(ValueError):
+    pass
+
+
+AES_BLOCK_SIZE = 16
+MAX_SAVE_SIZE = 16 * 1024 * 1024
+
+
+def _read_save_bytes(path: Path) -> bytearray:
+    size = path.stat().st_size
+    if size == 0:
+        raise SaveFormatError(f"The save file {path} is empty.")
+    if size > MAX_SAVE_SIZE:
+        raise SaveFormatError(
+            f"The save file {path} is too large ({size} bytes)."
+        )
+    with open(path, "rb") as file:
+        return bytearray(file.read())
+
+
 def is_save_decrypted(data: bytearray) -> bool:
     return data[0x40:0x44] == b"GVAS"
 
@@ -108,24 +128,26 @@ class RawSave:
 class EncryptedSave(RawSave):
     @classmethod
     def open(cls, path: Path) -> Self:
-        with open(path, "rb") as file:
-            return cls(bytearray(file.read()))
+        return cls(_read_save_bytes(path))
 
     def decrypt(self) -> "DecryptedSave":
         assert not self.is_save_decrypted(), "Save not encrypted"
+        if len(self.data) % AES_BLOCK_SIZE:
+            raise SaveFormatError(
+                f"Encrypted save length {len(self.data)} is not a multiple "
+                f"of {AES_BLOCK_SIZE} bytes."
+            )
         return DecryptedSave(bytearray(decrypt(self.data)))
 
 
 class DecryptedSave(RawSave):
     @classmethod
     def open(cls, path: Path) -> Self:
-        with open(path, "rb") as file:
-            return cls(bytearray(file.read()))
+        return cls(_read_save_bytes(path))
 
     @classmethod
     def auto_open(cls, path: Path) -> "DecryptedSave":
-        with open(path, "rb") as file:
-            data = bytearray(file.read())
+        data = _read_save_bytes(path)
         if not is_save_decrypted(data):
             return EncryptedSave(data).decrypt()
         else:
