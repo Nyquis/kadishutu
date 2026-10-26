@@ -77,6 +77,7 @@ class QuestData(Destructable):
     id: int
     unknown_data: bytes = field(repr=False)
 
+    @staticmethod
     def get_format(*args, **kwargs) -> str | bytes:
         return struct_padded("<H", TABLE_ROW_SIZE)
 

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Any, Self
 
 from .affinity import Affinity
@@ -78,17 +78,17 @@ class DemonAffinities:
     dark: Affinity
     almighty: Affinity
     poison: Affinity
-    _: Affinity
+    _vertigo: Affinity
     confusion: Affinity
     charm: Affinity
     sleep: Affinity
     seal: Affinity
-    _: Affinity
-    _: Affinity
-    _: Affinity
-    _: Affinity
-    _: Affinity
-    _: Affinity
+    _stray: Affinity
+    _burn: Affinity
+    _freeze: Affinity
+    _shock: Affinity
+    _laceration: Affinity
+    _stone: Affinity
     mirage: Affinity
 
     @classmethod
@@ -114,7 +114,7 @@ class DemonAffinities:
             Affinity(i)
             for i in extracted
         ]
-        return cls(*aff[:len(cls.__annotations__)])
+        return cls(*aff[:len(fields(cls))])
 
 
 @dataclass

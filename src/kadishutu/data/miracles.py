@@ -22,6 +22,7 @@ MIRACLE_NO_NAME = "NOT USED:GP_NAME_{}"
 
 
 class Destructable:
+    @staticmethod
     def get_format(*args, **kwargs) -> str | bytes:
         raise NotImplementedError
 
@@ -52,6 +53,7 @@ class MiracleData(Destructable):
     toggleable: bool
     _pad2: bytes
 
+    @staticmethod
     def get_format(*args, **kwargs) -> str | bytes:
         return "<HIB5sH?5s"
 

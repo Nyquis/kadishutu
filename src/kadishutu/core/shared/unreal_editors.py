@@ -41,14 +41,15 @@ class FEngineVersionEditor(StructEditor):
     fmt = "<HHHIi"
 
     def read(self) -> FEngineVersion:
-        args = list(self.struct_obj.unpack_from(self.data, self.offset))
+        major, minor, patch, change_list, branch_len = (
+            self.struct_obj.unpack_from(self.data, self.offset)
+        )
         txt = extract_fstring(
             self.data,
             self.offset + self.struct_obj.size,
-            args.pop(),
+            branch_len,
         )
-        assert len(args) == 4
-        return FEngineVersion(*args, txt)
+        return FEngineVersion(major, minor, patch, change_list, txt)
 
     def write(self, v):
         raise NotImplementedError("This type of data should not be written")

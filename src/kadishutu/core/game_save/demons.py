@@ -109,31 +109,33 @@ class DemonManager(BaseStaticEditor):
         demon.demon_id = meta.id
         demon.level = meta.level
         stats = demon.stats
-        for stat in STATS_NAMES:
-            stat = stat.lower()
+        for stat_name in STATS_NAMES:
+            stat = stat_name.lower()
             stats.base.__setattr__(stat, meta.stats.__getattribute__(stat))
         stats.recalculate()
-        for i, skill in enumerate(meta.skills):
-            demon.skills.slot(i).id = skill.id
+        for slot, skill in enumerate(meta.skills):
+            demon.skills.slot(slot).id = skill.id
         demon.innate_skill.id = meta.innate_skill.id
         affinities = demon.affinities
         orig_elem = affinities.original_elemental
         cur_elem = affinities.current_elemental
-        for i in ELEMENTAL_AFFINITY_NAMES:
-            i = i.lower()
-            aff = meta.affinities.__getattribute__(i)
-            orig_elem.__setattr__(i, aff)
-            cur_elem.__setattr__(i, aff)
+        for element_name in ELEMENTAL_AFFINITY_NAMES:
+            affinity_name = element_name.lower()
+            aff = meta.affinities.__getattribute__(affinity_name)
+            orig_elem.__setattr__(affinity_name, aff)
+            cur_elem.__setattr__(affinity_name, aff)
         cur_ailm = affinities.ailment
-        for i in AILMENT_AFFINITY_NAMES:
-            i = i.lower()
-            aff = meta.affinities.__getattribute__(i)
-            cur_ailm.__setattr__(i, aff)
+        for ailment_name in AILMENT_AFFINITY_NAMES:
+            affinity_name = ailment_name.lower()
+            aff = meta.affinities.__getattribute__(affinity_name)
+            cur_ailm.__setattr__(affinity_name, aff)
         potentials = demon.potentials
-        for i in PotentialType:
+        for potential_type in PotentialType:
             potentials.write(
-                i,
-                meta.potentials.__getattribute__(i.name.lower())
+                potential_type,
+                meta.potentials.__getattribute__(
+                    potential_type.name.lower()
+                )
             )
         return demon
 

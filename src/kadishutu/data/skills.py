@@ -115,19 +115,20 @@ class Skill:
 NEW_SKILLS: list[Skill] = []
 
 
-for skill in ACTION_SKILLS:
-    if is_unused(skill.name):
+for action_skill in ACTION_SKILLS:
+    if is_unused(action_skill.name):
         continue
     NEW_SKILLS.append(Skill(
-        skill.name, skill.id, skill.mp_cost, skill.icon
+        action_skill.name, action_skill.id, action_skill.mp_cost,
+        action_skill.icon
     ))
 
 
-for skill in AUTO_SKILLS:
-    if is_unused(skill.name):
+for auto_skill in AUTO_SKILLS:
+    if is_unused(auto_skill.name):
         continue
     NEW_SKILLS.append(Skill(
-        skill.name, skill.id, 0, Element.Passive
+        auto_skill.name, auto_skill.id, 0, Element.Passive
     ))
 
 
