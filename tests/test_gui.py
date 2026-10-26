@@ -141,6 +141,20 @@ def test_main_window_has_toolbar_and_status_bar(main_window):
     assert main_window.back_button in actions
 
 
+def test_toolbar_shows_only_most_used_actions(main_window):
+    actions = [
+        action
+        for action in main_window.toolbar.actions()
+        if not action.isSeparator()
+    ]
+
+    assert actions == [
+        main_window.save_button,
+        main_window.apply_button,
+        main_window.back_button,
+    ]
+
+
 def test_main_window_has_keyboard_shortcuts(main_window):
     assert main_window.save_button.shortcut().toString() == "Ctrl+S"
     assert main_window.save_as_button.shortcut().toString() == "Ctrl+Shift+S"

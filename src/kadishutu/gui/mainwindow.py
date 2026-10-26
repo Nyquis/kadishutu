@@ -451,13 +451,9 @@ class MainWindow(QMainWindow):
         )
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolbar)
         self.toolbar.addAction(self.save_button)
-        self.toolbar.addAction(self.save_as_button)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.apply_button)
         self.toolbar.addAction(self.back_button)
-        self.toolbar.addAction(self.undo_button)
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(self.close_button)
 
     def _build_status_bar(self) -> None:
         self.status_bar = QStatusBar(self)

@@ -199,8 +199,8 @@ QMenu::separator {
 QToolBar {
     background-color: $surface;
     border-bottom: 1px solid $border;
-    padding: 6px 10px;
-    spacing: 6px;
+    padding: 3px 8px;
+    spacing: 4px;
 }
 
 QToolBar::separator {
