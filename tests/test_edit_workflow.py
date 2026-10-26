@@ -1,0 +1,211 @@
+import os
+from pathlib import Path
+
+import pytest
+
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+pytest.importorskip("PySide6")
+
+from PySide6.QtWidgets import QApplication, QMessageBox, QWidget
+
+from kadishutu.core.game_save import GameSaveEditor
+from kadishutu.core.shared.file_handling import DecryptedSave
+
+GAME_SAVE_SIZE = 0x6DC90
+NOT_IMPLEMENTED = pytest.mark.xfail(
+    strict=True,
+    reason="apply/save workflow not implemented yet",
+)
+
+
+@pytest.fixture(scope="module")
+def qapp() -> QApplication:
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication([])
+    return app
+
+
+@pytest.fixture
+def window(qapp: QApplication):
+    from kadishutu.gui import mainwindow
+
+    win = mainwindow.MainWindow()
+    mainwindow.MAIN_WINDOW = win
+    yield win
+    win.hide()
+    win.deleteLater()
+    qapp.processEvents()
+
+
+@pytest.fixture
+def editor(window, tmp_path: Path):
+    from kadishutu.gui.game_save.game_save import GameSaveEditorScreen
+
+    path = tmp_path / "save.sav"
+    raw = DecryptedSave(bytearray(GAME_SAVE_SIZE))
+    raw.data[0x40:0x44] = b"GVAS"
+    raw.save_finished(path, backup=False)
+    screen = GameSaveEditorScreen(path, DecryptedSave.auto_open(path), window)
+    window.stack_add(screen)
+    return screen
+
+
+@NOT_IMPLEMENTED
+def test_editing_a_value_leaves_it_unapplied(window, editor):
+    editor.macca.setValue(555)
+
+    assert window.has_unapplied_edits()
+    assert editor.save.macca == 0
+
+
+@NOT_IMPLEMENTED
+def test_apply_changes_copies_edits_into_the_save(window, editor):
+    editor.macca.setValue(555)
+
+    window.on_apply()
+
+    assert editor.save.macca == 555
+    assert not window.has_unapplied_edits()
+    assert editor.modified
+
+
+def test_save_writes_only_applied_changes(window, editor):
+    editor.macca.setValue(555)
+    window.on_apply()
+
+    window.on_save()
+
+    reopened = GameSaveEditor(DecryptedSave.auto_open(editor.path))
+    assert reopened.macca == 555
+    assert not editor.modified
+
+
+@NOT_IMPLEMENTED
+def test_save_refuses_while_edits_are_unapplied(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    shown: list[object] = []
+    monkeypatch.setattr(
+        QMessageBox,
+        "information",
+        lambda *args, **kwargs: shown.append(args),
+    )
+    before = editor.path.read_bytes()
+    editor.macca.setValue(555)
+
+    window.on_save()
+
+    assert editor.path.read_bytes() == before
+    assert shown
+    assert editor.save.macca == 0
+
+
+def test_failed_save_keeps_applied_changes_marked_unsaved(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    def fail_save(self, path, **kwargs):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(DecryptedSave, "save_finished", fail_save)
+    monkeypatch.setattr(
+        QMessageBox, "critical", lambda *args, **kwargs: None
+    )
+    editor.macca.setValue(555)
+    window.on_apply()
+
+    window.on_save()
+
+    assert editor.modified
+
+
+@NOT_IMPLEMENTED
+def test_closing_with_applied_unsaved_changes_asks_first(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(
+        QMessageBox,
+        "question",
+        lambda *args, **kwargs: QMessageBox.StandardButton.No,
+    )
+    editor.macca.setValue(555)
+    window.on_apply()
+
+    assert window.confirm_leaving(include_applied=True) is False
+
+
+@NOT_IMPLEMENTED
+def test_closing_with_unapplied_edits_asks_first(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(
+        QMessageBox,
+        "question",
+        lambda *args, **kwargs: QMessageBox.StandardButton.No,
+    )
+    editor.macca.setValue(555)
+
+    assert window.confirm_leaving(include_applied=True) is False
+
+
+@NOT_IMPLEMENTED
+def test_opening_another_screen_with_unapplied_edits_asks_first(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(
+        QMessageBox,
+        "question",
+        lambda *args, **kwargs: QMessageBox.StandardButton.No,
+    )
+    editor.macca.setValue(555)
+    count = len(window.inner.widget_stack)
+
+    window.stack_add(QWidget())
+
+    assert len(window.inner.widget_stack) == count
+
+
+@NOT_IMPLEMENTED
+def test_back_with_unapplied_edits_asks_first(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(
+        QMessageBox,
+        "question",
+        lambda *args, **kwargs: QMessageBox.StandardButton.No,
+    )
+    window.stack_add(QWidget())
+    editor.macca.setValue(555)
+    count = len(window.inner.widget_stack)
+
+    window.on_back()
+
+    assert len(window.inner.widget_stack) == count
+
+
+@NOT_IMPLEMENTED
+def test_revert_discards_unapplied_edits(window, editor):
+    editor.macca.setValue(555)
+
+    window.on_undo()
+
+    assert editor.macca.value() == 0
+    assert not window.has_unapplied_edits()
+
+
+@NOT_IMPLEMENTED
+def test_status_text_follows_the_apply_then_save_sequence(window, editor):
+    editor.macca.setValue(555)
+    assert "Apply Changes" in window.status_label.text()
+
+    window.on_apply()
+    assert "Save to Disk" in window.status_label.text()
+
+    window.on_save()
+    assert "saved" in window.status_label.text().lower()
+
+
+@NOT_IMPLEMENTED
+def test_toolbar_labels_name_the_two_steps(window):
+    assert window.apply_button.text() == "Apply Changes"
+    assert window.save_button.text() == "Save to Disk"
