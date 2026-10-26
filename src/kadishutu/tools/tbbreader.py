@@ -16,8 +16,14 @@ class Tbl:
 
     @property
     def row_amount(self) -> int:
+        if self.row_size <= 0:
+            raise ValueError(f"Invalid table row size {self.row_size}")
         (res, chk) = divmod(self.table_size, self.row_size)
-        assert chk == 0
+        if chk != 0:
+            raise ValueError(
+                f"Table size {self.table_size} is not a multiple of "
+                f"row size {self.row_size}"
+            )
         return res
 
     @classmethod
@@ -26,11 +32,11 @@ class Tbl:
             file.seek(offset)
         file.assert_magic(cls.MAGIC)
         table_size = file.read_u32_le()
-        row_size = int.from_bytes(file.read(4), byteorder="little")
+        row_size = file.read_u32_le()
         file.skip(4)
         this = cls(table_size, row_size, [])
         for _ in range(this.row_amount):
-            this.rows.append(file.read(this.row_size))
+            this.rows.append(file.read_exact(this.row_size))
         return this
 
 

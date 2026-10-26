@@ -40,19 +40,37 @@ class ExtIO(BinaryIO, WrapperClass):
     ):
         if isinstance(magic, str):
             magic = magic.encode(encoding)
-        assert isinstance(magic, bytes)
-        data = self.read(len(magic))
-        assert data == magic, f"Invalid magic {data!r} instead of {magic!r}"
+        data = self.read_exact(len(magic))
+        if data != magic:
+            raise ValueError(f"Invalid magic {data!r} instead of {magic!r}")
+
+    def read_exact(self, amount: int) -> bytes:
+        data = self.read(amount)
+        if len(data) != amount:
+            raise ValueError(
+                f"Data is truncated: wanted {amount} bytes, got {len(data)}"
+            )
+        return data
 
     def read_u32_le(self) -> int:
-        return int.from_bytes(self.read(4), byteorder="little")
+        return int.from_bytes(self.read_exact(4), byteorder="little")
 
     def read_chars(self, amount: int, encoding: str = ENCODING) -> str:
-        return self.read(amount).decode(encoding)
+        return self.read_exact(amount).decode(encoding)
+
+    def _read_until_terminator(self, terminator: bytes) -> bytes:
+        width = len(terminator)
+        chunks: list[bytes] = []
+        while True:
+            chunk = self.read(width)
+            if len(chunk) != width:
+                raise ValueError("Unterminated string")
+            if chunk == terminator:
+                return b"".join(chunks)
+            chunks.append(chunk)
 
     def read_until_null(self) -> str:
-        return b''.join(iter(lambda: self.read(1), b'\0')).decode()
+        return self._read_until_terminator(b"\0").decode()
 
     def read_utf16_le_until_null(self) -> str:
-        return b''.join(iter(lambda: self.read(2), b'\0\0')) \
-            .decode("UTF-16-LE")
+        return self._read_until_terminator(b"\0\0").decode("UTF-16-LE")
