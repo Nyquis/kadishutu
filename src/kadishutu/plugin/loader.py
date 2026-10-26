@@ -1,24 +1,34 @@
 
+from os import getenv
 from pathlib import Path
 
 from kadishutu.paths import APPDIRS
 from kadishutu.tools.eprint import eprintf
 from kadishutu.tools.singleton import AbstractSingleton
 
-from .meta import Plugin
+from .meta import Plugin, PluginError
 
 PLUGINS_PATH = APPDIRS.data_path / "plugins"
+# Set to 1 to skip loading plugins entirely. Plugins are arbitrary Python.
+DISABLE_ENV = "KADISHUTU_DISABLE_PLUGINS"
 
 
 class PluginManager(AbstractSingleton):
     plugins: list[Plugin] = []
 
     def reload(self):
+        if getenv(DISABLE_ENV, "") not in ("", "0"):
+            self.plugins = []
+            return
         if not PLUGINS_PATH.exists():
             return
 
-        def loadp(path: Path):
-            plugin = Plugin.try_load(path)
+        def loadp(path: Path) -> Plugin | None:
+            try:
+                plugin = Plugin.try_load(path)
+            except PluginError as exc:
+                eprintf("Skipping plugin {}: {}", path.name, exc)
+                return None
             if plugin is None:
                 eprintf("Failed to load plugin {}", path.name)
             return plugin

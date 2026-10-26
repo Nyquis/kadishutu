@@ -1,4 +1,5 @@
 import json
+import re
 from dataclasses import dataclass
 from importlib.machinery import ModuleSpec, SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
@@ -11,6 +12,11 @@ from mashumaro.mixins.json import DataClassJSONMixin
 from kadishutu.tools.eprint import printexcept
 
 ENCODING = "UTF-8"
+PLUGIN_NAME_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+
+
+class PluginError(ValueError):
+    pass
 
 
 class PathJsonMixin(DataClassJSONMixin):
@@ -58,7 +64,17 @@ class Plugin:
 
     @classmethod
     def load(cls, path: PluginPaths) -> Self:
-        manifest = PluginInfo.from_path(path.manifest)
+        try:
+            manifest = PluginInfo.from_path(path.manifest)
+        except Exception as exc:
+            raise PluginError(
+                f"Invalid manifest {path.manifest}: {exc}"
+            ) from exc
+        if not PLUGIN_NAME_RE.fullmatch(manifest.name):
+            raise PluginError(
+                f"Invalid plugin name {manifest.name!r}: names may only "
+                "contain letters, digits, and underscores"
+            )
         return cls(
             path,
             manifest,

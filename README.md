@@ -177,6 +177,16 @@ game.items.from_name("Big Glory Crystal").amount = 99
 savefile.save_finished(path)
 ```
 
+### Plugins and scripts are trusted code
+
+Plugins in the app data `plugins` directory and scripts passed to
+`run_script` are arbitrary Python and run with your full user permissions.
+Only install plugins and run scripts from sources you trust.
+
+Plugin names must be plain identifiers (letters, digits, and underscores).
+Broken plugins are skipped with a warning. To start the app without loading
+any plugins, set `KADISHUTU_DISABLE_PLUGINS=1`.
+
 ## What works?
 
 NOTE: This is tested with the Switch version of the game (`010069C01AB82000`
