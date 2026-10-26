@@ -2,7 +2,8 @@ import sys
 from argparse import Namespace
 from pathlib import Path
 
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QCloseEvent, QGuiApplication
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -37,6 +38,7 @@ from .shared import (
     ScreenMixin,
 )
 from .sys_save import SysSaveEditorScreen
+from .theme import ThemeController
 
 MAIN_WINDOW: "MainWindow"
 
@@ -413,7 +415,14 @@ class MainWindow(QMainWindow):
 
 def gui_main(args: Namespace):
     PLUGIN_MANAGER.exec("gui")
+    QGuiApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+    )
     app = QApplication()
+    app.setApplicationName("Kadishutu")
+    app.setApplicationDisplayName("Kadishutu")
+    app.setOrganizationName("kadishutu")
+    ThemeController(app, parent=app)
     widget = MainWindow()
     global MAIN_WINDOW
     MAIN_WINDOW = widget

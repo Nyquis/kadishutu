@@ -119,3 +119,91 @@ def test_save_overview_builds_category_buttons(
 
     assert screen.macca.value() == 123
     assert screen.glory.value() == 456
+
+
+def test_theme_mode_resolution():
+    from PySide6.QtCore import Qt
+
+    from kadishutu.gui.theme import ThemeMode, resolve_theme_mode
+
+    assert (
+        resolve_theme_mode(ThemeMode.SYSTEM, Qt.ColorScheme.Dark)
+        is ThemeMode.DARK
+    )
+    assert (
+        resolve_theme_mode(ThemeMode.SYSTEM, Qt.ColorScheme.Light)
+        is ThemeMode.LIGHT
+    )
+    assert (
+        resolve_theme_mode(ThemeMode.LIGHT, Qt.ColorScheme.Dark)
+        is ThemeMode.LIGHT
+    )
+
+
+def test_theme_settings_round_trip(tmp_path: Path):
+    from PySide6.QtCore import QSettings
+
+    from kadishutu.gui.theme import (
+        ThemeMode,
+        load_theme_mode,
+        save_theme_mode,
+    )
+
+    settings = QSettings(
+        str(tmp_path / "settings.ini"),
+        QSettings.Format.IniFormat,
+    )
+    save_theme_mode(ThemeMode.DARK, settings)
+    settings.sync()
+
+    assert load_theme_mode(settings) is ThemeMode.DARK
+
+
+def test_apply_theme_updates_palette_and_stylesheet(qapp: QApplication):
+    from PySide6.QtGui import QPalette
+
+    from kadishutu.gui.theme import (
+        ThemeMode,
+        apply_theme,
+        build_palette,
+        build_stylesheet,
+    )
+
+    palette = build_palette(ThemeMode.DARK)
+    assert palette.color(QPalette.ColorRole.Window).name() == "#0f1115"
+    assert "QPushButton#CategoryCard" in build_stylesheet(ThemeMode.LIGHT)
+
+    try:
+        resolved = apply_theme(qapp, ThemeMode.DARK)
+        assert resolved is ThemeMode.DARK
+        assert "#8b5cf6" in qapp.styleSheet()
+    finally:
+        apply_theme(qapp, ThemeMode.SYSTEM)
+
+
+def test_theme_controller_persists_mode(qapp: QApplication, tmp_path: Path):
+    from PySide6.QtCore import QSettings
+
+    from kadishutu.gui.theme import (
+        ThemeController,
+        ThemeMode,
+        apply_theme,
+        load_theme_mode,
+    )
+
+    settings = QSettings(
+        str(tmp_path / "settings.ini"),
+        QSettings.Format.IniFormat,
+    )
+    controller = ThemeController(qapp, settings=settings)
+    try:
+        controller.set_mode(ThemeMode.LIGHT)
+        settings.sync()
+
+        assert controller.mode is ThemeMode.LIGHT
+        assert controller.resolved_mode is ThemeMode.LIGHT
+        assert load_theme_mode(settings) is ThemeMode.LIGHT
+    finally:
+        controller.deleteLater()
+        qapp.processEvents()
+        apply_theme(qapp, ThemeMode.SYSTEM)
