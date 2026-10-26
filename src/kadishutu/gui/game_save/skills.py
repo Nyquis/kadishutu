@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from typing import List, Tuple
 
 from PySide6.QtWidgets import (
     QComboBox,
@@ -22,7 +21,7 @@ BAD_OR_UNKNOWN_SKILL = "???"
 
 
 class AbstractStrIntMap(QWidget, ModifiedMixin):
-    def __init__(self, items: List[str], *args, **kwargs):
+    def __init__(self, items: list[str], *args, **kwargs):
         super().__init__(*args, **kwargs)
         ModifiedMixin.__init__(self)
 
@@ -117,7 +116,7 @@ class SkillEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     ):
         super().__init__(*args, **kwargs)
         self.skills = skills
-        self.widgets: List[Tuple[SkillBox, QU32]] = []
+        self.widgets: list[tuple[SkillBox, QU32]] = []
 
         self.l = QGridLayout(self)
 

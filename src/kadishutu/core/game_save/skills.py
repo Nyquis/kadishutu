@@ -1,4 +1,3 @@
-from typing import Optional, Tuple, Union
 
 from kadishutu.data.skills import SKILL_ID_MAP, Skill
 
@@ -11,7 +10,7 @@ from ..shared.editors import (
 
 class SkillEditor(BaseDynamicEditor, BaseStructAsFieldEditor):
     struct = "<I"
-    _meta: Optional[Skill] = None
+    _meta: Skill | None = None
 
     @property
     def meta(self) -> Skill:
@@ -33,7 +32,7 @@ class SkillManager(BaseDynamicEditor, BaseStructAsFieldEditor):
     def slot(self, no: int) -> SkillEditor:
         return self.field_dispatch(SkillEditor, no)
 
-    def __getitem__(self, indices: Union[int, Tuple[int, ...]]) -> SkillEditor:
+    def __getitem__(self, indices: int | tuple[int, ...]) -> SkillEditor:
         if isinstance(indices, tuple):
             raise NotImplementedError
         return self.slot(indices)

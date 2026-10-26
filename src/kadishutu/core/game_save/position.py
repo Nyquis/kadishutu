@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from struct import calcsize
-from typing import Tuple
-
-from typing_extensions import Self
+from typing import Self
 
 from kadishutu.data.laylines import Layline
 
@@ -14,7 +12,7 @@ from ..shared.editors import (
     U32Editor,
 )
 
-FLOAT_SET = Tuple[float, float, float]
+FLOAT_SET = tuple[float, float, float]
 
 
 @dataclass
@@ -57,10 +55,10 @@ class Vector3Editor(FloatSetEditor):
 class RotationEditor(StructEditor):
     fmt = "<ff"
 
-    def read(self) -> Tuple[float, float]:
+    def read(self) -> tuple[float, float]:
         return super().read()
 
-    def write(self, v: Tuple[float, float]):
+    def write(self, v: tuple[float, float]):
         super().write(v)
 
 

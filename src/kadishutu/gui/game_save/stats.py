@@ -1,4 +1,3 @@
-from typing import Dict
 
 from PySide6.QtWidgets import QGridLayout, QLabel, QPushButton, QWidget
 
@@ -26,7 +25,7 @@ class StatEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.stats = stats
         self.healable = healable
         self.labels = []
-        self.widgets: Dict[str, Dict[str, QU16]] = {}
+        self.widgets: dict[str, dict[str, QU16]] = {}
 
         self.l = QGridLayout(self)
 

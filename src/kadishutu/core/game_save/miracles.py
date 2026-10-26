@@ -1,5 +1,4 @@
 from enum import IntFlag, auto
-from typing import Optional
 
 from kadishutu.data.miracles import (
     MIRACLE_ID_MAP,
@@ -31,9 +30,9 @@ class MiracleState(IntFlag):
 
 class MiracleEditor(BaseDynamicEditor, BaseStructAsSingularValueEditor):
     struct = "<B"
-    _meta: Optional[Miracle] = None
+    _meta: Miracle | None = None
 
-    def __init__(self, *args, meta: Optional[Miracle] = None, **kwargs):
+    def __init__(self, *args, meta: Miracle | None = None, **kwargs):
         super().__init__(*args, **kwargs)
         self._meta = meta
 

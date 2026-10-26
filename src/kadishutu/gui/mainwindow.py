@@ -1,7 +1,6 @@
 import sys
 from argparse import Namespace
 from pathlib import Path
-from typing import List, Optional
 
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
@@ -111,7 +110,7 @@ class FileSelectorPreview(QWidget):
 
 
 class FileSelectorMenu(QWidget):
-    raw: Optional[DecryptedSave] = None
+    raw: DecryptedSave | None = None
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -193,7 +192,7 @@ class LocationBar(QScrollArea):
 
 
 class ManagedStackWidget(QWidget):
-    widget_stack: List[QWidget]
+    widget_stack: list[QWidget]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
+from typing import Self
 from uuid import UUID
-
-from typing_extensions import Self
 
 UE_SAVEGAME_FILE_TYPE_TAG = b"SAVG"
 UE_SAVEGAME_FILE_TYPE_TAG_INT = int.from_bytes(UE_SAVEGAME_FILE_TYPE_TAG, "big")

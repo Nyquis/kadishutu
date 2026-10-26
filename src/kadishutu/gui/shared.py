@@ -1,7 +1,8 @@
 from abc import abstractmethod
+from collections.abc import Callable
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from PySide6.QtWidgets import (
     QBoxLayout,

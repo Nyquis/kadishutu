@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .element_icons import Element
 from .tools.csv import FromCsv, extract_from_str
@@ -90,7 +90,7 @@ class AutoSkill(FromCsv):
     id: int
 
     @classmethod
-    def converter_data(cls) -> Optional[Dict[str, Dict[str, Any]]]:
+    def converter_data(cls) -> dict[str, dict[str, Any]] | None:
         return {
             "name": {
                 "field_name": "Name",
@@ -112,7 +112,7 @@ class Skill:
     icon: Element
 
 
-NEW_SKILLS: List[Skill] = []
+NEW_SKILLS: list[Skill] = []
 
 
 for skill in ACTION_SKILLS:

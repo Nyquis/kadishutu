@@ -1,4 +1,3 @@
-from typing import List
 
 from ..shared.editors import (
     BaseStaticEditor,
@@ -88,7 +87,7 @@ class CustomVersionsEditor(BaseStaticEditor):
     offset = 0x71
     length = U32Editor(0)
 
-    def versions(self) -> List[FCustomVersion]:
+    def versions(self) -> list[FCustomVersion]:
         ENTRY_SIZE = 0x14
         return [
             FCustomVersion.from_bytearray(self.data[

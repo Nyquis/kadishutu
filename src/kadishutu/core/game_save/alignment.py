@@ -1,4 +1,3 @@
-from typing import Optional, Union
 
 from kadishutu.data.alignment import ALIGNMENT_OFFSET_MAP, AlignmentByte
 
@@ -6,7 +5,7 @@ from ..shared.editors import BaseDynamicEditor, BaseStaticEditor
 
 
 class AlignmentEditor(BaseDynamicEditor):
-    schema: Optional[AlignmentByte]
+    schema: AlignmentByte | None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -51,13 +50,13 @@ class AlignmentEditor(BaseDynamicEditor):
         else:
             self.byte &= ~flag
 
-    def __getitem__(self, index: Union[int, str]) -> bool:
+    def __getitem__(self, index: int | str) -> bool:
         if isinstance(index, int):
             return self.get_flag(index)
         elif isinstance(index, str):
             raise NotImplementedError
 
-    def __setitem__(self, index: Union[int, str], value: bool):
+    def __setitem__(self, index: int | str, value: bool):
         if isinstance(index, int):
             self.set_flag(index, value)
         elif isinstance(index, str):

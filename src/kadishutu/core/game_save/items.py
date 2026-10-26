@@ -1,4 +1,3 @@
-from typing import Dict, Optional
 
 from kadishutu.data.items import (
     ITEM_ID_MAP,
@@ -17,7 +16,7 @@ from ..shared.editors import (
 class ItemEditor(BaseDynamicEditor, BaseStructAsSingularValueEditor):
     struct = "<B"
 
-    def __init__(self, *args, meta: Optional[Item] = None, **kwargs):
+    def __init__(self, *args, meta: Item | None = None, **kwargs):
         super().__init__(*args, **kwargs)
         self._meta = meta
 
@@ -28,7 +27,7 @@ class ItemEditor(BaseDynamicEditor, BaseStructAsSingularValueEditor):
         return self._meta
 
     @property
-    def name_table(self) -> Dict[int, str]:
+    def name_table(self) -> dict[int, str]:
         raise NotImplementedError
 
     @property

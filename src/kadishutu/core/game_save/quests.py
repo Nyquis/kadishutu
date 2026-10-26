@@ -1,5 +1,4 @@
 from enum import Enum, auto
-from typing import Optional
 
 from kadishutu.data.quests import (
     QUEST_ENTRY_SIZE,
@@ -81,7 +80,7 @@ class QuestEditor(BaseDynamicEditor, BaseStructEditor):
         self.in_progress = True
         self.report = v == QuestState.Report
 
-    def __init__(self, *args, meta: Optional[Quest] = None, **kwargs):
+    def __init__(self, *args, meta: Quest | None = None, **kwargs):
         super().__init__(*args, **kwargs)
         self._meta = meta
 

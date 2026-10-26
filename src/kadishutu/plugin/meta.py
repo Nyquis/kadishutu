@@ -4,10 +4,9 @@ from importlib.machinery import ModuleSpec, SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
 from pathlib import Path
 from types import ModuleType
-from typing import Optional
+from typing import Self
 
 from dataclasses_json import DataClassJsonMixin
-from typing_extensions import Self
 
 from kadishutu.tools.eprint import printexcept
 
@@ -51,7 +50,7 @@ class PluginMod:
 class Plugin:
     path: PluginPaths
     manifest: PluginInfo
-    source: Optional[PluginMod] = None
+    source: PluginMod | None = None
 
     @property
     def pyname(self) -> str:
@@ -66,7 +65,7 @@ class Plugin:
         )
 
     @classmethod
-    def try_load(cls, path: Path) -> Optional[Self]:
+    def try_load(cls, path: Path) -> Self | None:
         paths = PluginPaths(path)
         if not paths.manifest.exists():
             return None

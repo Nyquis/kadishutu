@@ -1,9 +1,7 @@
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, Dict, List
-
-from typing_extensions import Self
+from typing import BinaryIO, Self
 
 from .extio import ExtIO
 
@@ -41,9 +39,9 @@ class UExpOffsets:
 
 @dataclass
 class UExpTranslationFile:
-    ids: List[str]
-    textl: List[str]
-    textmap: Dict[str, str]
+    ids: list[str]
+    textl: list[str]
+    textmap: dict[str, str]
 
     @classmethod
     def _open(cls, file: ExtIO) -> Self:

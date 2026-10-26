@@ -1,4 +1,3 @@
-from typing import Dict
 
 from PySide6.QtWidgets import QGridLayout, QLabel, QWidget
 
@@ -19,8 +18,8 @@ class AffinityEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, affinities: AffinityManager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.affinities = affinities
-        self.ail_aff_map: Dict[str, MComboBox] = {}
-        self.elem_aff_map: Dict[str, MComboBox] = {}
+        self.ail_aff_map: dict[str, MComboBox] = {}
+        self.elem_aff_map: dict[str, MComboBox] = {}
 
         self.l = QGridLayout(self)
         cb_items = list(AFFINITY_MAP.keys())

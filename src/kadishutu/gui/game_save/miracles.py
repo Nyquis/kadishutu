@@ -1,4 +1,3 @@
-from typing import List, Tuple
 
 from PySide6.QtWidgets import (
     QGridLayout,
@@ -55,7 +54,9 @@ class MiracleCheckboxes:
 
     def refresh(self):
         state = self.miracle.state
-        for state_i, box in zip(MiracleState.all(), self.boxes):
+        for state_i, box in zip(
+            MiracleState.all(), self.boxes, strict=False
+        ):
             value = bool(state & state_i)
             box.setChecked(value)
             box.set_modified(False)
@@ -67,7 +68,9 @@ class MiracleCheckboxes:
             self.enabled_box.get_modified()):
             return
         state = MiracleState.none()
-        for state_i, box in zip(MiracleState.all(), self.boxes):
+        for state_i, box in zip(
+            MiracleState.all(), self.boxes, strict=False
+        ):
             if box.isEnabled() & box.isChecked():
                 state |= state_i
             box.set_modified(False)
@@ -75,9 +78,9 @@ class MiracleCheckboxes:
 
 
 class MiracleEditorWidget(QScrollArea, GameScreenMixin):
-    def __init__(self, miracles: List[Miracle], *args, **kwargs):
+    def __init__(self, miracles: list[Miracle], *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.widgets: List[MiracleCheckboxes] = []
+        self.widgets: list[MiracleCheckboxes] = []
 
         self.setWidgetResizable(True)
         self.inner = QWidget()
@@ -132,7 +135,7 @@ class MiracleUnlockerWidget(QScrollArea, GameScreenMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.unlocks = self.save.miracle_unlocks
-        self.widgets: List[Tuple[MiracleUnlockEditor, MCheckBox]] = []
+        self.widgets: list[tuple[MiracleUnlockEditor, MCheckBox]] = []
 
         self.setWidgetResizable(True)
         self.inner = QWidget()
@@ -178,7 +181,7 @@ class MiracleUnlockerWidget(QScrollArea, GameScreenMixin):
 class MiracleEditorScreen(QTabWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.miracle_tabs: List[MiracleEditorWidget] = []
+        self.miracle_tabs: list[MiracleEditorWidget] = []
 
         if MIRACLE_DATA:
             categorized_miracles = [

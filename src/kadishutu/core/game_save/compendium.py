@@ -1,4 +1,3 @@
-from typing import Optional, Tuple, Union
 
 from kadishutu.core.game_save.affinities import AffinityManager
 from kadishutu.core.game_save.potentials import PotentialEditor
@@ -46,14 +45,14 @@ class CompSkillManager(BaseDynamicEditor, BaseStructAsFieldEditor):
     def slot(self, no: int) -> CompSkillEditor:
         return self.field_dispatch(CompSkillEditor, no)
 
-    def __getitem__(self, indices: Union[int, Tuple[int, ...]]):
+    def __getitem__(self, indices: int | tuple[int, ...]):
         if isinstance(indices, tuple):
             raise NotImplementedError
         return self.slot(indices)
 
 
 class RegisteredDemonEditor(BaseDynamicEditor):
-    def __init__(self, *args, meta: Optional[Demon] = None, **kwargs):
+    def __init__(self, *args, meta: Demon | None = None, **kwargs):
         super().__init__(*args, **kwargs)
         self._meta = meta
 

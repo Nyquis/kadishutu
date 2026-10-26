@@ -21,7 +21,7 @@ if __name__ == "__main__":
 # EDIT FROM HERE
 
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from kadishutu import DecryptedSave, GameSaveEditor
 from kadishutu.tools.eprint import eprint
@@ -41,7 +41,7 @@ ENDINGS = [
 ]
 
 
-def main(path: Path, file: DecryptedSave, _: List[str]):
+def main(path: Path, file: DecryptedSave, _: list[str]):
     game = GameSaveEditor(file)
 
     print("Quick note: Carrying over demons is not supported. Sorry :(")
@@ -59,10 +59,10 @@ def main(path: Path, file: DecryptedSave, _: List[str]):
     ]
     answers_maybe = inquirer.prompt(questions)
     assert answers_maybe is not None
-    answers: Dict[str, Any] = answers_maybe
-    endings: List[str] = answers["endings"]
+    answers: dict[str, Any] = answers_maybe
+    endings: list[str] = answers["endings"]
 
-    item_changes: List[Tuple[str, int]] = [
+    item_changes: list[tuple[str, int]] = [
         ("Large Glory Crystal", 1),
         ("Medicine", 20),
         ("Chakra Drop", 5),
@@ -70,7 +70,7 @@ def main(path: Path, file: DecryptedSave, _: List[str]):
         ("Spyglass", 20),
         ("Smoke Ball", 5),
     ]
-    essence_changes: List[int] = []
+    essence_changes: list[int] = []
     if "NEUTRAL" in endings:
         # Nuwa
         essence_changes.extend([361, 435])

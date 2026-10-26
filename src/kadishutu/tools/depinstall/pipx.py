@@ -1,6 +1,5 @@
 import re
 import sys
-from typing import List
 
 from .generic_early import CommandInstallHandler
 
@@ -27,7 +26,7 @@ class PipxInstallHandler(CommandInstallHandler):
         assert m, "Pipx virtual environment regex match failed"
         return m.group(1)
 
-    def install(self, deps: List[str]):
+    def install(self, deps: list[str]):
         self.run([
             "inject", self.install_venv, *deps,
         ])

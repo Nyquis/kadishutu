@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Self
 
 from dataclasses_json import DataClassJsonMixin
-from typing_extensions import Self
 
 from .tools.dataclasses_json import hex_int_config
 from .tools.path import TABLES_PATH
@@ -16,8 +15,8 @@ class AlignmentBit(DataClassJsonMixin):
     bit: int
     alignment: str
     place: str
-    side_quest: Optional[str]
-    text: List[str]
+    side_quest: str | None
+    text: list[str]
 
 
 @dataclass
@@ -25,9 +24,9 @@ class AlignmentByte(DataClassJsonMixin):
     offset: int = field(
         metadata=hex_int_config(5),
     )
-    bits: List[AlignmentBit]
+    bits: list[AlignmentBit]
 
-    def __init__(self, offset: int, bits: List[AlignmentBit]):
+    def __init__(self, offset: int, bits: list[AlignmentBit]):
         self.offset = offset
         self.bits = bits
         self.bitmap = {}
@@ -35,7 +34,7 @@ class AlignmentByte(DataClassJsonMixin):
             self.bitmap[bitobj.bit] = bitobj
 
     @classmethod
-    def load_path(cls, path: Path) -> List[Self]:
+    def load_path(cls, path: Path) -> list[Self]:
         with open(path) as file:
             return cls.schema().loads(file.read(), many=True)
 
@@ -51,7 +50,7 @@ class AlignmentByte(DataClassJsonMixin):
 ALIGNMENT_DATA = AlignmentByte.load_path(ALIGNMENT_DATA_PATH)
 
 
-def make_alignment_map() -> Dict[int, AlignmentByte]:
+def make_alignment_map() -> dict[int, AlignmentByte]:
     res = {}
     for byte in ALIGNMENT_DATA:
         res[byte.offset] = byte

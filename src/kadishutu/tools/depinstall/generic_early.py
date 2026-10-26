@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from subprocess import Popen
-from typing import ClassVar, List
+from typing import ClassVar
 
 from .pyproj import get_opt_depends
 
@@ -12,7 +12,7 @@ class InstallHandler(ABC):
     @abstractmethod
     def likelyness(cls) -> float: ...
     @abstractmethod
-    def install(self, deps: List[str]): ...
+    def install(self, deps: list[str]): ...
 
     def install_group(self, group: str):
         self.install(get_opt_depends(group))

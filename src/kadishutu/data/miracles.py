@@ -2,10 +2,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from struct import Struct
-from typing import List, Optional, Union
+from typing import Self
 
 from dataclasses_json import DataClassJsonMixin
-from typing_extensions import Self
 
 from kadishutu.paths import APPDIRS
 from kadishutu.tools.eprint import printexcept
@@ -25,7 +24,7 @@ MIRACLE_NO_NAME = "NOT USED:GP_NAME_{}"
 
 
 class Destructable:
-    def get_format(*args, **kwargs) -> Union[str, bytes]:
+    def get_format(*args, **kwargs) -> str | bytes:
         raise NotImplementedError
 
     @classmethod
@@ -37,7 +36,7 @@ class Destructable:
         return cls(*cls.get_struct(*args, **kwargs).unpack(data))
 
     @classmethod
-    def from_array_of_bytes(cls, data: List[bytes], *args, **kwargs) -> List[Self]:
+    def from_array_of_bytes(cls, data: list[bytes], *args, **kwargs) -> list[Self]:
         struct = cls.get_struct(*args, **kwargs)
         return [
             cls(*struct.unpack(i))
@@ -55,7 +54,7 @@ class MiracleData(Destructable):
     toggleable: bool
     _pad2: bytes
 
-    def get_format(*args, **kwargs) -> Union[str, bytes]:
+    def get_format(*args, **kwargs) -> str | bytes:
         return "<HIB5sH?5s"
 
 
@@ -73,10 +72,10 @@ class MiracleText(DataClassJsonMixin):
         metadata=hex_int_config(2)
     )
     name: str
-    desc: Optional[str] = None
+    desc: str | None = None
 
     @classmethod
-    def load_path(cls, path: Path) -> List[Self]:
+    def load_path(cls, path: Path) -> list[Self]:
         with open(path) as file:
             return cls.schema().loads(file.read(), many=True)
 
@@ -95,12 +94,12 @@ class MiracleCategory(Enum):
 @dataclass
 class Miracle:
     id: int
-    order_id: Optional[int]
-    category: Optional[MiracleCategory]
-    cost: Optional[int]
-    toggleable: Optional[bool]
+    order_id: int | None
+    category: MiracleCategory | None
+    cost: int | None
+    toggleable: bool | None
     name: str
-    desc: Optional[str] = None
+    desc: str | None = None
 
     @property
     def offset(self) -> int:

@@ -1,7 +1,8 @@
 import os
 import sys
+from collections.abc import Callable
 from enum import Enum, auto
-from typing import Callable, NoReturn
+from typing import NoReturn
 
 from kadishutu.tools.depinstall import get_install_handler
 

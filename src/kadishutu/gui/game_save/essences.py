@@ -1,4 +1,3 @@
-from typing import List, Tuple
 
 from PySide6.QtWidgets import QGridLayout, QLabel, QScrollArea, QWidget
 
@@ -14,7 +13,7 @@ from .shared import GameScreenMixin
 class EssenceEditorScreen(QScrollArea, GameScreenMixin, AppliableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.essences: List[Tuple[EssenceEditor, QLabel, MCheckBox, QU16]] = []
+        self.essences: list[tuple[EssenceEditor, QLabel, MCheckBox, QU16]] = []
 
         self.setWidgetResizable(True)
         self.inner = QWidget()

@@ -1,4 +1,3 @@
-from typing import Optional
 
 from kadishutu.data.miracle_unlocks import (
     MIRACLE_UNLOCK_NAME_MAP,
@@ -15,9 +14,9 @@ from ..shared.editors import (
 
 class MiracleUnlockEditor(BaseDynamicEditor, BaseStructAsSingularValueEditor):
     struct = "<B"
-    _meta: Optional[MiracleUnlock] = None
+    _meta: MiracleUnlock | None = None
 
-    def __init__(self, *args, meta: Optional[MiracleUnlock] = None, **kwargs):
+    def __init__(self, *args, meta: MiracleUnlock | None = None, **kwargs):
         super().__init__(*args, **kwargs)
         self._meta = meta
 

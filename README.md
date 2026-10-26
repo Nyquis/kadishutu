@@ -26,8 +26,8 @@ pipx upgrade kadishutu
 but because they're built with pyinstaller, they might get flagged by your
 antivirus.
 
-(fun fact, this project also works on Windows 7 (the best version) with VxKex
-and Python 3.9)
+This fork targets Windows 11 and requires Python 3.11 or newer. Linux and
+macOS support is best-effort.
 
 ### Development
 

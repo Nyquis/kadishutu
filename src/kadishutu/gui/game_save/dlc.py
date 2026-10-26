@@ -1,4 +1,3 @@
-from typing import Dict
 
 from PySide6.QtWidgets import QCheckBox, QGridLayout, QLabel, QWidget
 
@@ -11,7 +10,7 @@ from .shared import GameScreenMixin
 class DlcEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.widgets: Dict[str, QCheckBox] = {}
+        self.widgets: dict[str, QCheckBox] = {}
 
         self.l = QGridLayout(self)
 

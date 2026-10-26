@@ -1,4 +1,3 @@
-from typing import List, Tuple
 
 from PySide6.QtWidgets import QLabel, QLineEdit, QVBoxLayout, QWidget
 
@@ -19,7 +18,7 @@ class NameEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, names: NameManager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.names = names
-        self.widgets: List[Tuple[NameEdit, QLineEdit]] = []
+        self.widgets: list[tuple[NameEdit, QLineEdit]] = []
 
         self.l = QVBoxLayout(self)
 

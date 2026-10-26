@@ -1,7 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from math import floor
 from pathlib import Path
-from typing import Optional
 
 from kadishutu.core.game_save import GameSaveEditor
 from kadishutu.core.game_save.dlc import DlcBitflags
@@ -31,7 +30,7 @@ def edit_dlc(args: Namespace, game: GameSaveEditor):
 
 
 def edit_glory(args: Namespace, game: GameSaveEditor):
-    value: Optional[int] = args.value
+    value: int | None = args.value
     if value is not None:
         game.glory = value
     else:
@@ -51,7 +50,7 @@ def edit_play_time(_: Namespace, game: GameSaveEditor):
 
 
 def edit_macca(args: Namespace, game: GameSaveEditor):
-    value: Optional[int] = args.value
+    value: int | None = args.value
     if value is not None:
         game.macca = value
     else:

@@ -7,15 +7,10 @@ from typing import (
     Any,
     ClassVar,
     Generic,
-    Optional,
-    Tuple,
-    Type,
+    Self,
     TypeVar,
-    Union,
     overload,
 )
-
-from typing_extensions import Self
 
 from kadishutu.tools.fdatetime import (
     python_to_unreal_datetime,
@@ -33,7 +28,7 @@ class AbstractEditor(ABC):
     @abstractmethod
     def dispatch(
         self,
-        cls: Type[TBaseEditor],
+        cls: type[TBaseEditor],
         *args,
         **kwargs
     ) -> TBaseEditor:
@@ -57,7 +52,7 @@ class BaseMasterEditor(AbstractEditor, ABC):
 
     def dispatch(
         self,
-        cls: Type[TBaseEditor],
+        cls: type[TBaseEditor],
         *args,
         **kwargs
     ) -> TBaseEditor:
@@ -77,7 +72,7 @@ class BaseEditor(AbstractEditor, ABC):
 
     def dispatch(
         self,
-        cls: Type[TBaseEditor],
+        cls: type[TBaseEditor],
         *args,
         **kwargs
     ) -> "TBaseEditor":
@@ -100,7 +95,7 @@ class BaseOffsetEditor(BaseEditor, ABC):
 
     def relative_dispatch(
         self,
-        cls: Type[TBaseDynamicEditor],
+        cls: type[TBaseDynamicEditor],
         relative_offset: int,
         *args,
         **kwargs
@@ -140,7 +135,7 @@ class BaseDynamicEditor(BaseOffsetEditor, ABC):
 
 
 class BaseStructEditor(BaseOffsetEditor, ABC):
-    struct: Union[str, bytes] = NotImplemented
+    struct: str | bytes = NotImplemented
 
     @classmethod
     def __init_subclass__(cls):
@@ -178,7 +173,7 @@ class BaseStructAsFieldEditor(BaseStructEditor, ABC):
 
     def field_dispatch(
         self,
-        cls: Type[TBaseDynamicEditor],
+        cls: type[TBaseDynamicEditor],
         field_offset: int,
         *args,
         **kwargs
@@ -207,7 +202,7 @@ TAbstractEditor = TypeVar("TAbstractEditor", bound=AbstractEditor)
 
 class EditorGetter(Generic[T, TAbstractEditor], ABC):
     roffset: int
-    _editor: Optional[TAbstractEditor]
+    _editor: TAbstractEditor | None
 
     def __init__(self, offset: int):
         self.roffset = offset
@@ -262,7 +257,7 @@ TBaseEditor = TypeVar("TBaseEditor", bound=BaseEditor)
 
 
 class AbsoulteDispatcher(EditorGetter, Generic[TBaseEditor]):
-    def __init__(self, ed_cls: Type[TBaseEditor], *args, **kwargs):
+    def __init__(self, ed_cls: type[TBaseEditor], *args, **kwargs):
         self.ed_cls = ed_cls
         self.args = args
         self.kwargs = kwargs
@@ -288,11 +283,11 @@ TBaseDynamicEditor = TypeVar("TBaseDynamicEditor", bound=BaseDynamicEditor)
 
 
 class RelativeDispatcher(AbsoulteDispatcher, Generic[TBaseDynamicEditor]):
-    ed_cls: Type[TBaseDynamicEditor]
+    ed_cls: type[TBaseDynamicEditor]
 
     def __init__(
         self,
-        ed_cls: Type[TBaseDynamicEditor],
+        ed_cls: type[TBaseDynamicEditor],
         relative_offset: int,
         *args,
         **kwargs
@@ -317,11 +312,11 @@ class RelativeDispatcher(AbsoulteDispatcher, Generic[TBaseDynamicEditor]):
 
 
 class FieldDispatcher(AbsoulteDispatcher, Generic[TBaseDynamicEditor]):
-    ed_cls: Type[TBaseDynamicEditor]
+    ed_cls: type[TBaseDynamicEditor]
 
     def __init__(
         self,
-        ed_cls: Type[TBaseDynamicEditor],
+        ed_cls: type[TBaseDynamicEditor],
         field: int,
         *args,
         **kwargs
@@ -388,7 +383,7 @@ class BitEditor(EditorGetter):
         self.data[self.offset] = res
 
 
-STRUCT_FMT = Union[str, bytes]
+STRUCT_FMT = str | bytes
 
 
 class StructEditor(EditorGetter):
@@ -398,10 +393,10 @@ class StructEditor(EditorGetter):
     def struct_obj(self) -> Struct:
         return Struct(self.fmt)
 
-    def read(self) -> Tuple[Any, ...]:
+    def read(self) -> tuple[Any, ...]:
         return self.struct_obj.unpack_from(self.data, self.offset)
 
-    def write(self, v: Tuple[Any, ...]):
+    def write(self, v: tuple[Any, ...]):
         self.struct_obj.pack_into(self.data, self.offset, *v)
 
 
@@ -453,7 +448,7 @@ TEnum = TypeVar("TEnum", bound=Enum)
 
 
 class EnumEditor(SingularStructEditor, Generic[TEnum]):
-    def __init__(self, offset: int, enum: Type[TEnum], fmt: STRUCT_FMT = "<B"):
+    def __init__(self, offset: int, enum: type[TEnum], fmt: STRUCT_FMT = "<B"):
         super().__init__(offset)
         self.fmt = fmt
         self.enum = enum

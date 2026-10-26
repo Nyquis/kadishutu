@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import Self
 
 from dataclasses_json import DataClassJsonMixin
-from typing_extensions import Self
 
 from .element_icons import Element
 from .tools.csv import FromCsv
@@ -48,12 +47,12 @@ ANY_ITEMS = AnyItem.from_csv_headerless(ITEM_NAMES_TABLE_PATH, 1)
 @dataclass
 class ItemExtraData(DataClassJsonMixin):
     id: int
-    limit: Optional[int] = None
-    icon: Optional[Element] = None
-    desc: Optional[str] = None
+    limit: int | None = None
+    icon: Element | None = None
+    desc: str | None = None
 
     @classmethod
-    def load_path(cls, path: Path) -> List[Self]:
+    def load_path(cls, path: Path) -> list[Self]:
         with open(path) as file:
             return cls.schema().loads(file.read(), many=True)
 
@@ -75,9 +74,9 @@ def guess_icon(id: int) -> Element:
 class Item:
     id: int
     name: str
-    _limit: Optional[int]
+    _limit: int | None
     icon: Element
-    desc: Optional[str]
+    desc: str | None
 
     @property
     def limit(self) -> int:
@@ -95,7 +94,7 @@ class Item:
         return ITEM_TABLE_OFFSET + self.id
 
     @classmethod
-    def combined(cls) -> List[Self]:
+    def combined(cls) -> list[Self]:
         items = []
         for id in TOTAL_ITEM_RANGE:
             name = [
@@ -126,7 +125,7 @@ class Item:
 ITEMS = Item.combined()
 
 
-def items_from(*args: range) -> List[Item]:
+def items_from(*args: range) -> list[Item]:
     return [
         item
         for item in ITEMS
@@ -137,7 +136,7 @@ def items_from(*args: range) -> List[Item]:
     ]
 
 
-def items_except_for(*args: range) -> List[Item]:
+def items_except_for(*args: range) -> list[Item]:
     return [
         item
         for item in ITEMS

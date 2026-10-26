@@ -1,4 +1,5 @@
-from typing import Any, Dict, Protocol, Sequence, Tuple, TypeVar
+from collections.abc import Sequence
+from typing import Any, Protocol, TypeVar
 
 
 class RandType(Protocol):
@@ -13,9 +14,9 @@ class RandType(Protocol):
 T = TypeVar("T", bound=RandType)
 
 
-def make_maps(objs: Sequence[T]) -> Tuple[Dict[int, T], Dict[str, T]]:
-    id_to_name_map: Dict[int, Any] = {}
-    name_to_id_map: Dict[str, Any] = {}
+def make_maps(objs: Sequence[T]) -> tuple[dict[int, T], dict[str, T]]:
+    id_to_name_map: dict[int, Any] = {}
+    name_to_id_map: dict[str, Any] = {}
     for obj in objs:
         id_to_name_map[obj.id] = obj
         if obj.name in name_to_id_map:

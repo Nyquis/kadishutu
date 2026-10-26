@@ -21,7 +21,6 @@ if __name__ == "__main__":
 # EDIT FROM HERE
 
 
-from typing import List
 
 from kadishutu import DecryptedSave, GameSaveEditor
 from kadishutu.core.game_save.compendium import COMPENDIUM_ENTRY_SIZE
@@ -67,7 +66,7 @@ def modify(game: GameSaveEditor):
     erase_compendium(game)
 
 
-def main(path: Path, file: DecryptedSave, args: List[str]):
+def main(path: Path, file: DecryptedSave, args: list[str]):
     game = GameSaveEditor(file)
     non_clear = False
     for arg in args:

@@ -1,6 +1,5 @@
 
 from pathlib import Path
-from typing import List
 
 from kadishutu.paths import APPDIRS
 from kadishutu.tools.eprint import eprintf
@@ -12,7 +11,7 @@ PLUGINS_PATH = APPDIRS.data_path / "plugins"
 
 
 class PluginManager(AbstractSingleton):
-    plugins: List[Plugin] = []
+    plugins: list[Plugin] = []
 
     def reload(self):
         if not PLUGINS_PATH.exists():
@@ -33,7 +32,7 @@ class PluginManager(AbstractSingleton):
             if plugin is not None
         ]
 
-    def which_have_stage(self, stage: str) -> List[Plugin]:
+    def which_have_stage(self, stage: str) -> list[Plugin]:
         return [
             plugin
             for plugin in self.plugins

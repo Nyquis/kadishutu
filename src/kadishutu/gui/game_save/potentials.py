@@ -1,4 +1,3 @@
-from typing import Dict
 
 from PySide6.QtWidgets import QGridLayout, QLabel, QSpinBox, QWidget
 
@@ -25,7 +24,7 @@ class PotentialEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, potentials: PotentialEditor, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.potentials = potentials
-        self.potential_map: Dict[PotentialType, QPotentialBox] = {}
+        self.potential_map: dict[PotentialType, QPotentialBox] = {}
 
         self.l = QGridLayout(self)
 

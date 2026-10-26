@@ -1,5 +1,4 @@
 from struct import pack_into, unpack_from
-from typing import List, Optional, Tuple
 
 from ..shared.editors import BaseStaticEditor, StructEditor, U8Editor
 from .demons import DEMON_TABLE_SIZE
@@ -7,7 +6,7 @@ from .demons import DEMON_TABLE_SIZE
 SUMMONED_DEMONS_OFFSET = 0x3d2e
 
 
-TEAM_TUPLE = Tuple[Optional[int], Optional[int], Optional[int]]
+TEAM_TUPLE = tuple[int | None, int | None, int | None]
 
 
 def array_of_fmt(fmt: str, length: int, endianness: str = "<") -> str:
@@ -20,16 +19,16 @@ SUMMONED_DEMONS_FMT = array_of_fmt("B", 3)
 class DemonOrderEditor(StructEditor):
     fmt = array_of_fmt("B", DEMON_TABLE_SIZE)
 
-    def __get__(self, instance, _) -> List[int]:
+    def __get__(self, instance, _) -> list[int]:
         return super().__get__(instance, _)
 
-    def __set__(self, instance, value: List[int]):
+    def __set__(self, instance, value: list[int]):
         return super().__set__(instance, value)
 
-    def read(self) -> List[int]:
+    def read(self) -> list[int]:
         return list(super().read())
 
-    def write(self, v: List[int]):
+    def write(self, v: list[int]):
         super().write(tuple(v))
 
 
@@ -57,7 +56,7 @@ class TeamEditor(BaseStaticEditor):
             demon = demon_mgr.in_slot(i)
             demon.is_summoned = 0
 
-        demon_list: List[int] = []
+        demon_list: list[int] = []
         #demon_icons: List[Tuple[int, int]] = []
         for i in demons:
             if i is None:

@@ -11,7 +11,7 @@ platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 
 [dependencies]
 # Keep in sync with `requires-python` in pyproject.toml.
-python = ">=3.9,<3.14"
+python = ">=3.11,<3.14"
 
 # The application itself is installed in editable mode, so its runtime and GUI
 # dependencies are read from pyproject.toml instead of being duplicated here.
@@ -23,7 +23,6 @@ ruff = ">=0.17.0,<0.18"
 
 [feature.dev.pypi-dependencies]
 mypy = ">=1.13.0,<2"
-types-toml = ">=0.10.8.20240310"
 pyinstaller = ">=6.11.0,<7"
 build = ">=1.2,<2"
 

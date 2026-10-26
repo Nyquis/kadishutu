@@ -1,8 +1,6 @@
 from dataclasses import dataclass, field
 from struct import calcsize
-from typing import List, Union
-
-from typing_extensions import Self
+from typing import Self
 
 from kadishutu.tools.eprint import printexcept
 from kadishutu.tools.groupobj import group_objects
@@ -32,7 +30,7 @@ class QuestStrings:
     PATH = "Game/L10N/en/Blueprints/Gamedata/BinTable/Mission/MissionInfo.uexp"
 
     @classmethod
-    def _data_fixup(cls, uexp: UExpTranslationFile) -> List[str]:
+    def _data_fixup(cls, uexp: UExpTranslationFile) -> list[str]:
         lcopy = uexp.textl[3:]
 
         def insert_at(i: int, j: str, txt: str = ""):
@@ -44,7 +42,7 @@ class QuestStrings:
         return lcopy
 
     @classmethod
-    def from_uexp(cls, uexp: UExpTranslationFile) -> List[Self]:
+    def from_uexp(cls, uexp: UExpTranslationFile) -> list[Self]:
         strlist = cls._data_fixup(uexp)
         return [
             cls(*i)
@@ -52,7 +50,7 @@ class QuestStrings:
         ]
 
     @classmethod
-    def from_path(cls) -> List[Self]:
+    def from_path(cls) -> list[Self]:
         path = UMODEL_SAVED_PATH / cls.PATH
         try:
             uexp = UExpTranslationFile.from_path(path)
@@ -79,7 +77,7 @@ class QuestData(Destructable):
     id: int
     unknown_data: bytes = field(repr=False)
 
-    def get_format(*args, **kwargs) -> Union[str, bytes]:
+    def get_format(*args, **kwargs) -> str | bytes:
         return struct_padded("<H", TABLE_ROW_SIZE)
 
 
@@ -97,12 +95,12 @@ class Quest:
     strings: QuestStrings
 
     @classmethod
-    def load_quests(cls) -> List[Self]:
+    def load_quests(cls) -> list[Self]:
         if not QUEST_STRINGS or not QUEST_DATA:
             return []
         return [
             cls(*i)
-            for i in list(zip(QUEST_DATA, QUEST_STRINGS))
+            for i in list(zip(QUEST_DATA, QUEST_STRINGS, strict=False))
         ]
 
     @property

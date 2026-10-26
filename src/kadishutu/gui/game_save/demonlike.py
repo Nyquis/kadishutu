@@ -1,4 +1,3 @@
-from typing import List
 
 from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
@@ -26,7 +25,7 @@ class DemonLikeEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.demon = demon
         self.dl_layout = QVBoxLayout()
 
-        self.side_panel_widgets: List[QWidget] = []
+        self.side_panel_widgets: list[QWidget] = []
 
         level_label = QLabel(f"Level ({WARN_EMOJI})")
         level_label.setToolTip(LEVEL_MUT_WARNING)

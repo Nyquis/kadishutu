@@ -1,4 +1,3 @@
-from typing import List, Tuple
 
 from PySide6.QtWidgets import (
     QGridLayout,
@@ -24,9 +23,9 @@ from .shared import GameScreenMixin
 
 
 class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
-    def __init__(self, items: List[Item], *args, **kwargs):
+    def __init__(self, items: list[Item], *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.items: List[Tuple[ItemEditor, QLabel, QU8]] = []
+        self.items: list[tuple[ItemEditor, QLabel, QU8]] = []
 
         self.setWidgetResizable(True)
         self.inner = QWidget()
@@ -75,7 +74,7 @@ class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
 class ItemEditorScreen(QTabWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.tabs: List[ItemEditorWidget] = []
+        self.tabs: list[ItemEditorWidget] = []
 
         for name, item_ranges in [
             ("Consumables", [CONSUMABLES_RANGE]),

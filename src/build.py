@@ -8,12 +8,10 @@ import os
 import platform
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 from tarfile import TarFile, TarInfo
-from typing import Dict, Optional
 from zipfile import ZIP_DEFLATED, ZipFile
-
-import toml
 
 ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = ROOT / "pyproject.toml"
@@ -67,7 +65,7 @@ def build() -> Path:
     return dist_path / NAME
 
 
-def tar_anonymize(info: TarInfo) -> Optional[TarInfo]:
+def tar_anonymize(info: TarInfo) -> TarInfo | None:
     info.uid = 1000
     info.uname = "build"
     info.gid = 1000
@@ -97,7 +95,7 @@ def sevenz_files(source: Path, target: Path):
         print("Archiving failed for 7z:", repr(e))
 
 
-def archive(source: Path, config: Dict) -> None:
+def archive(source: Path, config: dict) -> None:
     target_dir = source.parent
     name = config["archive_name"].format(
         name=NAME,
@@ -120,8 +118,8 @@ def archive(source: Path, config: Dict) -> None:
 
 
 def main() -> None:
-    with PYPROJECT.open("r", encoding="UTF-8") as file:
-        config = toml.load(file)["tool"][TOOL_NAME]
+    with PYPROJECT.open("rb") as file:
+        config = tomllib.load(file)["tool"][TOOL_NAME]
     archive(build(), config)
 
 

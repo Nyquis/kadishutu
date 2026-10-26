@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Dict
 
 from .cli import cmd_decrypt, cmd_encrypt, cmd_inspect, cmd_run_script, cmd_update_hash
 from .editor_cli import argparse_edit
@@ -13,7 +12,7 @@ def cmd_gui(args):
     gui_main(args)
 
 
-SUBPARSERS: Dict[str, ArgumentParser] = {}
+SUBPARSERS: dict[str, ArgumentParser] = {}
 
 
 def cmd_help(parser: ArgumentParser, args: Namespace):

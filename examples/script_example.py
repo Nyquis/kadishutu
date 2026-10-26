@@ -21,12 +21,11 @@ if __name__ == "__main__":
 # EDIT FROM HERE
 
 
-from typing import List
 
 from kadishutu import DecryptedSave, GameSaveEditor
 
 
-def main(path: Path, file: DecryptedSave, _: List[str]):
+def main(path: Path, file: DecryptedSave, _: list[str]):
     game = GameSaveEditor(file)
     print(f"Healing player {game.player.names.first_name}")
     stats = game.player.stats.current

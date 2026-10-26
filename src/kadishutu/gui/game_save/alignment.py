@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -45,14 +44,14 @@ class AlignmentEditorScreen(QTabWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.alignment = self.save.alignment
-        self.tabmap: Dict[str, AlignmentPacked] = {}
-        self.checkboxmap: Dict[int, QCheckBox] = {}
+        self.tabmap: dict[str, AlignmentPacked] = {}
+        self.checkboxmap: dict[int, QCheckBox] = {}
 
         for name in ["Main story", "Side quests"]:
             nameq = name.lower().replace(" ", "_")
             self.tabmap[nameq] = AlignmentPacked.from_parent(self, name)
 
-        self.flat_data: List[Tuple[int, AlignmentBit]] = []
+        self.flat_data: list[tuple[int, AlignmentBit]] = []
 
         for byte in ALIGNMENT_DATA:
             for bit in byte.bits:

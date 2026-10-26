@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
+from typing import Self
 
 from dataclasses_json import DataClassJsonMixin
-from typing_extensions import Self
 
 from .miracles import MIRACLE_NAME_MAP, Miracle
 from .tools.dataclasses_json import hex_int_config
@@ -19,15 +18,15 @@ class MiracleUnlock(DataClassJsonMixin):
         metadata=hex_int_config(4)
     )
     name: str
-    miracles: List[str]
+    miracles: list[str]
 
     @classmethod
-    def load_path(cls, path: Path) -> List[Self]:
+    def load_path(cls, path: Path) -> list[Self]:
         with open(path) as file:
             return cls.schema().loads(file.read(), many=True)
 
     @property
-    def miracles_obj(self) -> List[Miracle]:
+    def miracles_obj(self) -> list[Miracle]:
         return [
             MIRACLE_NAME_MAP[i]
             for i in self.miracles

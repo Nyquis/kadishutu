@@ -1,4 +1,4 @@
-from typing import Callable, Dict
+from collections.abc import Callable
 
 from PySide6.QtWidgets import QGridLayout, QLabel, QWidget
 
@@ -11,7 +11,7 @@ from .shared import GameScreenMixin
 class CrossCycleEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.ending_map: Dict[Endings, MCheckBox] = {}
+        self.ending_map: dict[Endings, MCheckBox] = {}
 
         self.l = QGridLayout(self)
         i = 0

@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
-
-from typing_extensions import Self
+from typing import Any, Self
 
 from .affinity import Affinity
 from .demon_race import DemonRace
@@ -26,7 +24,7 @@ class DemonStats:
     luck: int
 
     @classmethod
-    def from_data(cls, data: Dict[str, str]) -> Self:
+    def from_data(cls, data: dict[str, str]) -> Self:
         NAMES = [
             "HP", "MP", "Strength", "Vitality", "Magic", "Agility", "Luck",
         ]
@@ -43,7 +41,7 @@ class LearnedSkill:
     level: int
 
     @classmethod
-    def from_data(cls, data: Dict[str, str], i: int) -> Optional[Self]:
+    def from_data(cls, data: dict[str, str], i: int) -> Self | None:
         skill_level_k = f"Skill Level {i}"
         skill_at_level_k = f"Skill at Skill Level {i}"
         try:
@@ -57,7 +55,7 @@ class LearnedSkill:
         return learned_skill
 
     @classmethod
-    def list_from_data(cls, data: Dict[str, str]) -> List[Self]:
+    def list_from_data(cls, data: dict[str, str]) -> list[Self]:
         learned_skills = [
             cls.from_data(data, i + 1)
             for i in range(12)
@@ -94,7 +92,7 @@ class DemonAffinities:
     mirage: Affinity
 
     @classmethod
-    def from_data(cls, data: Dict[str, str]) -> Self:
+    def from_data(cls, data: dict[str, str]) -> Self:
         NAMES = [
             "Phys", "Fire", "Ice", "Elec", "Force", "Light", "Dark",
             "Almighty", "Poison", "Vertigo", "Confusion", "Charm", "Sleep",
@@ -134,7 +132,7 @@ class DemonPotentials:
     recovery: int
 
     @classmethod
-    def from_data(cls, data: Dict[str, str]) -> Self:
+    def from_data(cls, data: dict[str, str]) -> Self:
         NAMES = [
             "PotPhys", "PotFire", "PotIce", "PotElec", "PotForce", "PotLight",
             "PotDark", "PotAlmighty", "PotAilment", "PotSupport", "PotHeal",
@@ -146,7 +144,7 @@ class DemonPotentials:
         return cls(*stats)
 
 
-def d_to_skills(data: Dict[str, str]) -> List[Skill]:
+def d_to_skills(data: dict[str, str]) -> list[Skill]:
     skills = []
     for i in range(12):
         i += 1
@@ -160,7 +158,7 @@ def d_to_skills(data: Dict[str, str]) -> List[Skill]:
     return skills
 
 
-def d_to_innate_skill(data: Dict[str, str]) -> Skill:
+def d_to_innate_skill(data: dict[str, str]) -> Skill:
     innate_skill_txt = data["Innate Skill"]
     (_, skill_id) = reverse_extractor(innate_skill_txt)
     return SKILL_ID_MAP[skill_id]
@@ -174,14 +172,14 @@ class DemonDataTab(FromCsv):
     race: DemonRace
     level: int
     stats: DemonStats
-    skills: List[Skill]
-    learned_skills: List[LearnedSkill]
+    skills: list[Skill]
+    learned_skills: list[LearnedSkill]
     innate_skill: Skill
     affinities: DemonAffinities
     potentials: DemonPotentials
 
     @classmethod
-    def filter_data(cls, item: Dict[str, str]) -> bool:
+    def filter_data(cls, item: dict[str, str]) -> bool:
         return not (
             is_unused(item["Name"])
             or (
@@ -235,11 +233,11 @@ NEW_DEMONS = DemonDataTab.from_csv(DEMON_DATA_PATH, 1)
 @dataclass
 class OldDemonData:
     id: int
-    name: Optional[str]
-    lore: Optional[str]
+    name: str | None
+    lore: str | None
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> Self:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
         try:
             name = data["name"]
         except KeyError:
@@ -263,11 +261,11 @@ class Demon:
     name: str
     level: int
     stats: DemonStats
-    skills: List[Skill]
+    skills: list[Skill]
     innate_skill: Skill
     affinities: DemonAffinities
     potentials: DemonPotentials
-    lore: Optional[str] = None
+    lore: str | None = None
 
     @classmethod
     def from_new(cls, demon: DemonDataTab) -> Self:

@@ -1,11 +1,10 @@
 import os
 from functools import cache
-from typing import List, Type
 
 from .generic_early import InstallHandler
 from .pipx import PipxInstallHandler
 
-INSTALL_HANDLERS: List[Type[InstallHandler]] = [
+INSTALL_HANDLERS: list[type[InstallHandler]] = [
     PipxInstallHandler,
 ]
 

@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Self
 
 from dataclasses_json import DataClassJsonMixin
-from typing_extensions import Self
 
 from .tools.dataclasses_json import bytes_config, hex_int_config
 from .tools.path import TABLES_PATH
@@ -40,20 +39,20 @@ class Layline(DataClassJsonMixin):
     rotation: bytes = field(
         metadata=bytes_config(8)
     )
-    unlock: Optional[LaylineUnlock] = None
+    unlock: LaylineUnlock | None = None
 
     @staticmethod
-    def unlock_data_from_id(id: int) -> Tuple[int, int]:
+    def unlock_data_from_id(id: int) -> tuple[int, int]:
         (offset, bit) = divmod(id, 8)
         offset += LAYLINE_UNLOCK_OFFSET
         return (offset, bit)
 
     @property
-    def unlock_data(self) -> Tuple[int, int]:
+    def unlock_data(self) -> tuple[int, int]:
         return self.unlock_data_from_id(self.id)
 
     @classmethod
-    def load_path(cls, path: Path) -> List[Self]:
+    def load_path(cls, path: Path) -> list[Self]:
         with open(path) as file:
             return cls.schema().loads(file.read(), many=True)
 
@@ -69,7 +68,7 @@ LAYLINE_DATA = Layline.load_path(LAYLINE_DATA_PATH)
 #    assert layline.unlock.bit == layline.unlock_data[1]
 
 
-def make_alignment_map() -> Tuple[Dict[int, Layline], Dict[str, Layline]]:
+def make_alignment_map() -> tuple[dict[int, Layline], dict[str, Layline]]:
     id_map = {}
     name_map = {}
     for layline in LAYLINE_DATA:

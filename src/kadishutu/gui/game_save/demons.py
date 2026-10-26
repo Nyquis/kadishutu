@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from PySide6.QtWidgets import (
     QComboBox,
@@ -121,14 +122,14 @@ CIDS = Callable[[int, DemonEditor], "SupportsRichComparison"]
 
 
 class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
-    _new_demon_order: Optional[List[int]] = None
+    _new_demon_order: list[int] | None = None
     NO_DEMON = 0xff
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.demons = self.save.demons
         self.team = team = self.save.team
-        self.widgets: List[QPushButton] = []
+        self.widgets: list[QPushButton] = []
 
         self.l = QGridLayout(self)
         for i, demon_number in enumerate(team.demon_order):
@@ -138,7 +139,7 @@ class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
             self.widgets.append(sel)
 
         self.sort_menu = sort_menu = QMenu("Sort", self)
-        sort_types_list: List[Tuple[str, Optional[CIDS]]] = [
+        sort_types_list: list[tuple[str, CIDS | None]] = [
             ("by slot", lambda x, _: x),
             ("by demon ID", lambda _, x: x.demon_id),
             ("separator", None),
@@ -161,7 +162,7 @@ class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.l.addWidget(self.sort_button, 8, 0)
 
     @property
-    def demon_order(self) -> List[int]:
+    def demon_order(self) -> list[int]:
         if self._new_demon_order:
             return self._new_demon_order
         return self.team.demon_order
@@ -199,7 +200,9 @@ class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
             button.setIconSize(icon.size_div(2))
 
     def stack_refresh(self):
-        for demon_number, button in zip(self.demon_order, self.widgets):
+        for demon_number, button in zip(
+            self.demon_order, self.widgets, strict=False
+        ):
             self.demon_button_refresh(demon_number, button)
 
     def on_apply_changes(self):

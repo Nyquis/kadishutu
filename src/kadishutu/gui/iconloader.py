@@ -1,13 +1,12 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
+from typing import Self
 
 from PIL.Image import Image
 from PIL.Image import open as open_image
 from PIL.ImageQt import ImageQt
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QIcon, QPixmap
-from typing_extensions import Self
 
 from kadishutu.data.element_icons import Element
 from kadishutu.paths import APPDIRS
@@ -79,10 +78,10 @@ class IconLoader:
             return
         self.disabled = False
         self.paths = IconLoaderPaths()
-        self.char_icon_map: Dict[int, ImagePak] = {}
-        self.mini_char_icon_map: Dict[int, ImagePak] = {}
-        self.element_icon_map: Dict[Element, ImagePak] = {}
-        self.loading_char_icon_map: Dict[int, ImagePak] = {}
+        self.char_icon_map: dict[int, ImagePak] = {}
+        self.mini_char_icon_map: dict[int, ImagePak] = {}
+        self.element_icon_map: dict[Element, ImagePak] = {}
+        self.loading_char_icon_map: dict[int, ImagePak] = {}
 
     def assert_not_disabled(self):
         if self.disabled:

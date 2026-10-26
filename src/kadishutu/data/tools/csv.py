@@ -1,27 +1,21 @@
 import csv
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import (
     Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    Type,
+    Self,
     TypeVar,
 )
-
-from typing_extensions import Self
 
 
 def csvread_headerless(
     path: Path,
     skip_lines: int = 0,
-    encoding: Optional[str] = None,
-) -> List[List[str]]:
+    encoding: str | None = None,
+) -> list[list[str]]:
     with open(path, encoding=encoding) as file:
         while skip_lines > 0:
             if file.read(1) == "\n":
@@ -35,8 +29,8 @@ def csvread_headerless(
 def csvread(
     path: Path,
     skip_lines: int = 0,
-    encoding: Optional[str] = None,
-) -> List[Dict[str, str]]:
+    encoding: str | None = None,
+) -> list[dict[str, str]]:
     with open(path, encoding=encoding) as file:
         while skip_lines > 0:
             if file.read(1) == "\n":
@@ -50,11 +44,11 @@ def csvread(
 @dataclass
 class FromCsv:
     @classmethod
-    def filter_data(cls, item: Dict[str, str]) -> bool:
+    def filter_data(cls, item: dict[str, str]) -> bool:
         return True
 
     @classmethod
-    def converter_data(cls) -> Optional[Dict[str, Dict[str, Any]]]:
+    def converter_data(cls) -> dict[str, dict[str, Any]] | None:
         ...
 
     @classmethod
@@ -62,8 +56,8 @@ class FromCsv:
         cls,
         path: Path,
         skip_lines: int = 0,
-        encoding: Optional[str] = None,
-    ) -> List[Self]:
+        encoding: str | None = None,
+    ) -> list[Self]:
         csv_data = csvread_headerless(path, skip_lines)
         res = []
         conversion_info = cls.converter_data()
@@ -94,8 +88,8 @@ class FromCsv:
         cls,
         path: Path,
         skip_lines: int = 0,
-        encoding: Optional[str] = None,
-    ) -> List[Self]:
+        encoding: str | None = None,
+    ) -> list[Self]:
         csv_data = csvread(path, skip_lines)
         res = []
         conversion_info = cls.converter_data()
@@ -112,7 +106,7 @@ class FromCsv:
                     except KeyError:
                         k_info = {}
                 try:
-                    fun: Callable[[Dict[str, str]], Any] = k_info["eval"]
+                    fun: Callable[[dict[str, str]], Any] = k_info["eval"]
                 except KeyError:
                     pass
                 else:
@@ -138,7 +132,7 @@ class FromCsv:
 EXTRACTOR_RE = re.compile(r"(\d+) \((.+)\)")
 
 
-def extractor(text: str) -> Tuple[int, str]:
+def extractor(text: str) -> tuple[int, str]:
     res = EXTRACTOR_RE.match(text)
     assert res
     g = res.groups()
@@ -148,7 +142,7 @@ def extractor(text: str) -> Tuple[int, str]:
 REVERSE_EXTRACTOR_RE = re.compile(r"(.+) \((\d+)\)")
 
 
-def reverse_extractor(text: str) -> Tuple[str, int]:
+def reverse_extractor(text: str) -> tuple[str, int]:
     res = REVERSE_EXTRACTOR_RE.match(text)
     assert res
     g = res.groups()
@@ -158,6 +152,6 @@ def reverse_extractor(text: str) -> Tuple[str, int]:
 T = TypeVar("T", bound=Enum)
 
 
-def extract_from_str(cls: Type[T], text: str) -> T:
+def extract_from_str(cls: type[T], text: str) -> T:
     (num, _) = extractor(text)
     return cls(num)

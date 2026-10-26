@@ -1,8 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import BinaryIO, Generic, TypeVar, Union
-
-from typing_extensions import Self
+from typing import BinaryIO, Generic, Self, TypeVar
 
 MAGIC_ENCODING = "ascii"
 ENCODING = "UTF-16"
@@ -37,7 +35,7 @@ class ExtIO(BinaryIO, WrapperClass):
 
     def assert_magic(
         self,
-        magic: Union[str, bytes],
+        magic: str | bytes,
         encoding: str = MAGIC_ENCODING
     ):
         if isinstance(magic, str):

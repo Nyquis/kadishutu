@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, List
-
-from typing_extensions import Self
+from typing import BinaryIO, Self
 
 from .extio import ExtIO
 
@@ -13,7 +11,7 @@ UEXP_OFFSET = 0x25
 class Tbl:
     table_size: int
     row_size: int
-    rows: List[bytes]
+    rows: list[bytes]
     MAGIC = "TBL1"
 
     @property
@@ -38,7 +36,7 @@ class Tbl:
 
 @dataclass
 class Tbcr:
-    tables: List[Tbl]
+    tables: list[Tbl]
     MAGIC = "TBCR"
 
     @classmethod
