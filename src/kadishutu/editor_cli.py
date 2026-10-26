@@ -7,7 +7,9 @@ from kadishutu.core.game_save import GameSaveEditor
 from kadishutu.core.game_save.dlc import DlcBitflags
 from kadishutu.core.game_save.game import DlcEditor
 from kadishutu.core.shared.file_handling import (
-    DecryptedSave, EncryptedSave, is_save_decrypted,
+    DecryptedSave,
+    EncryptedSave,
+    is_save_decrypted,
 )
 
 
@@ -61,10 +63,7 @@ def cmd_edit(args: Namespace):
     with open(path, "rb") as f:
         data = bytearray(f.read())
     reencrypt = not is_save_decrypted(data)
-    if reencrypt:
-        file = EncryptedSave(data).decrypt()
-    else:
-        file = DecryptedSave(data)
+    file = EncryptedSave(data).decrypt() if reencrypt else DecryptedSave(data)
     game = GameSaveEditor(file)
     args.func_x(args, game)
     file.hash_update()

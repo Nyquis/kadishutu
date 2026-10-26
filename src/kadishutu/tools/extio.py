@@ -4,7 +4,6 @@ from typing import BinaryIO, Generic, TypeVar, Union
 
 from typing_extensions import Self
 
-
 MAGIC_ENCODING = "ascii"
 ENCODING = "UTF-16"
 

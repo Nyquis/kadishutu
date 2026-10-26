@@ -4,7 +4,6 @@ from typing import Dict
 from kadishutu.data.tools.path import TABLES_PATH
 from kadishutu.encodings import ENCODING
 
-
 SAVE_LOCS_PATH = TABLES_PATH / "save_locs.json"
 with SAVE_LOCS_PATH.open("rt", encoding=ENCODING) as file:
     SAVE_LOCS: Dict[int, str] = {

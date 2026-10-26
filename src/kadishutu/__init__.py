@@ -1,5 +1,5 @@
-from .core.shared.file_handling import DecryptedSave, EncryptedSave
 from .core.game_save.game import GameSaveEditor
+from .core.shared.file_handling import DecryptedSave, EncryptedSave
 from .main import main
 
 __all__ = [

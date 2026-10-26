@@ -1,0 +1,49 @@
+# Kopia ignore rules for the kadishutu repository.
+#
+# This file only affects Kopia snapshots taken from this directory; it has no
+# effect on git. The goal is to keep the backup small by skipping reproducible
+# environments and build output while still backing up source, docs, locks and
+# the git history.
+
+# pixi environments and caches (large and fully reproducible from pixi.lock)
+.pixi/
+
+# Python virtual environments and bytecode
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.pylint.d/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+
+# Build and packaging output
+build/
+dist/
+*.egg-info/
+*.spec
+
+# PyInstaller / local portable app data
+_appdata/
+
+# Logs and temporary files produced by local tooling
+*.log
+*.tmp
+*.bak
+
+# Editor and OS metadata
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini

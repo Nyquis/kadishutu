@@ -1,20 +1,18 @@
+import contextlib
 import importlib
-from importlib.machinery import SourceFileLoader
 import importlib.util
+from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from types import FunctionType, MethodType
 from typing import Any
 
-from kadishutu.core.shared.file_handling import DecryptedSave, EncryptedSave
 from kadishutu.core.game_save import GameSaveEditor
+from kadishutu.core.shared.file_handling import DecryptedSave, EncryptedSave
 
 
 def cmd_decrypt(args):
     source = args.source
-    if args.destination:
-        destination = args.destination
-    else:
-        destination = source
+    destination = args.destination or source
     print(f"Opening {source}")
     savefile = EncryptedSave.open(source)
     assert not savefile.is_save_decrypted(), "Save file already decrypted"
@@ -28,10 +26,7 @@ def cmd_decrypt(args):
 
 def cmd_encrypt(args):
     source = args.source
-    if args.destination:
-        destination = args.destination
-    else:
-        destination = source
+    destination = args.destination or source
     print(f"Opening {source}")
     savefile = DecryptedSave.open(source)
     assert savefile.is_save_decrypted, "Save file already encrypted"
@@ -58,12 +53,10 @@ def cmd_inspect(args):
             skip -= 1
             continue
         this = this.__getattribute__(txt)
-        if isinstance(this, MethodType) or isinstance(this, FunctionType):
+        if isinstance(this, (MethodType, FunctionType)):
             arglist = this.__annotations__
-            try:
+            with contextlib.suppress(KeyError):
                 arglist.pop("return")
-            except KeyError:
-                pass
             skip = len(arglist)
             arglistd = []
             for k, v in enumerate(arglist.values()):

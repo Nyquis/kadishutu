@@ -8,7 +8,6 @@ from typing_extensions import Self
 from .tools.dataclasses_json import bytes_config, hex_int_config
 from .tools.path import TABLES_PATH
 
-
 LAYLINE_DATA_PATH = TABLES_PATH / "laylines.json"
 
 
@@ -55,7 +54,7 @@ class Layline(DataClassJsonMixin):
 
     @classmethod
     def load_path(cls, path: Path) -> List[Self]:
-        with open(path, "rt") as file:
+        with open(path) as file:
             return cls.schema().loads(file.read(), many=True)
 
 

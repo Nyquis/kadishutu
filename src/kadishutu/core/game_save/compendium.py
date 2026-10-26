@@ -6,11 +6,14 @@ from kadishutu.data.demons import DEMON_ID_MAP, DEMON_NAME_MAP, Demon
 from kadishutu.data.skills import SKILL_ID_MAP, Skill
 
 from ..shared.editors import (
-    BaseDynamicEditor, BaseStaticEditor, BaseStructAsFieldEditor, BoolEditor,
-    U16Editor, U8Editor,
+    BaseDynamicEditor,
+    BaseStaticEditor,
+    BaseStructAsFieldEditor,
+    BoolEditor,
+    U8Editor,
+    U16Editor,
 )
 from .stats import StatsEditor
-
 
 COMPENDIUM_OFFSET = 0x18272
 COMPENDIUM_ENTRY_SIZE = 0xe0

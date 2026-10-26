@@ -7,7 +7,6 @@ from kadishutu.core.game_save.player import NameEdit, NameManager
 from ..shared import AppliableWidget
 from .shared import GameScreenMixin
 
-
 OVERWRITTEN_WARN = "WARNING: This is overwritten with \"First name\" when saving"
 
 

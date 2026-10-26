@@ -1,10 +1,17 @@
 import csv
+import re
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-import re
 from typing import (
-    Any, Callable, Dict, List, Optional, Tuple, Type, TypeVar,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
 )
 
 from typing_extensions import Self
@@ -15,7 +22,7 @@ def csvread_headerless(
     skip_lines: int = 0,
     encoding: Optional[str] = None,
 ) -> List[List[str]]:
-    with open(path, "rt", encoding=encoding) as file:
+    with open(path, encoding=encoding) as file:
         while skip_lines > 0:
             if file.read(1) == "\n":
                 skip_lines -= 1
@@ -30,7 +37,7 @@ def csvread(
     skip_lines: int = 0,
     encoding: Optional[str] = None,
 ) -> List[Dict[str, str]]:
-    with open(path, "rt", encoding=encoding) as file:
+    with open(path, encoding=encoding) as file:
         while skip_lines > 0:
             if file.read(1) == "\n":
                 skip_lines -= 1

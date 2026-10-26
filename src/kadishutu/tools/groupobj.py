@@ -1,6 +1,5 @@
 from typing import List, Tuple, TypeVar
 
-
 T = TypeVar('T')
 
 

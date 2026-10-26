@@ -1,7 +1,10 @@
 from pathlib import Path
 
 from PySide6.QtWidgets import (
-    QLabel, QPushButton, QVBoxLayout, QWidget,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
 from kadishutu.core.game_save import GameSaveEditor
@@ -9,7 +12,10 @@ from kadishutu.core.shared.file_handling import DecryptedSave
 from kadishutu.plugin.loader import PLUGIN_MANAGER
 
 from ..shared import (
-    QU32, AppliableWidget, SaveScreenMixin, hboxed,
+    QU32,
+    AppliableWidget,
+    SaveScreenMixin,
+    hboxed,
 )
 from .alignment import AlignmentEditorScreen
 from .cross_cycle import CrossCycleEditorScreen

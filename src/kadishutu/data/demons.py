@@ -12,7 +12,6 @@ from .tools.mapping import make_maps
 from .tools.path import TABLES_PATH
 from .tools.unused import is_unused
 
-
 DEMON_DATA_PATH = TABLES_PATH / "SMT5V NKM Base Table_Navi Devil Data - Players.csv"
 
 

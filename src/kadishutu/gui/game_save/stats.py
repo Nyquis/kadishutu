@@ -3,7 +3,9 @@ from typing import Dict
 from PySide6.QtWidgets import QGridLayout, QLabel, QPushButton, QWidget
 
 from kadishutu.core.game_save.stats import (
-    STATS_NAMES, HealableEditor, StatBlockEditor,
+    STATS_NAMES,
+    HealableEditor,
+    StatBlockEditor,
 )
 
 from ..shared import QU16, AppliableWidget
@@ -30,15 +32,15 @@ class StatEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
         for i in range(0, 4):
             text = self.STAT_TYPES[i]
-            l = QLabel(text)
-            self.l.addWidget(l, 0, i + 1)
-            self.labels.append(l)
+            label = QLabel(text)
+            self.l.addWidget(label, 0, i + 1)
+            self.labels.append(label)
             self.widgets[text.lower()] = {}
 
         for i, stat in enumerate(STATS_NAMES, 1):
-            l = QLabel(stat)
-            self.labels.append(l)
-            self.l.addWidget(l, i, 0)
+            label = QLabel(stat)
+            self.labels.append(label)
+            self.l.addWidget(label, i, 0)
             stat = stat.lower()
             for j in range(1, 4):
                 widget = QU16()

@@ -1,9 +1,10 @@
 from kadishutu.data.affinity import Affinity
 
 from ..shared.editors import (
-    BaseDynamicEditor, BaseStructAsFieldEditor, U16Editor,
+    BaseDynamicEditor,
+    BaseStructAsFieldEditor,
+    U16Editor,
 )
-
 
 ELEMENTAL_AFFINITY_NAMES = [
     "Physical", "Fire", "Ice", "Electric", "Force", "Light", "Dark",

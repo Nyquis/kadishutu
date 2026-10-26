@@ -6,7 +6,6 @@ from typing_extensions import Self
 
 from .extio import ExtIO
 
-
 UEXP_OFFSET = 0x25
 
 

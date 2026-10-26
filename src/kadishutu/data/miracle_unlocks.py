@@ -10,7 +10,6 @@ from .tools.dataclasses_json import hex_int_config
 from .tools.mapping import make_maps
 from .tools.path import TABLES_PATH
 
-
 MIRACLE_UNLOCKS_DATA_PATH = TABLES_PATH / "miracle_unlocks.json"
 
 
@@ -24,7 +23,7 @@ class MiracleUnlock(DataClassJsonMixin):
 
     @classmethod
     def load_path(cls, path: Path) -> List[Self]:
-        with open(path, "rt") as file:
+        with open(path) as file:
             return cls.schema().loads(file.read(), many=True)
 
     @property

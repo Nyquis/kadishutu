@@ -18,7 +18,7 @@ def make_maps(objs: Sequence[T]) -> Tuple[Dict[int, T], Dict[str, T]]:
     name_to_id_map: Dict[str, Any] = {}
     for obj in objs:
         id_to_name_map[obj.id] = obj
-        if obj.name in name_to_id_map.keys():
+        if obj.name in name_to_id_map:
             new_name = f"{obj.name} ({obj.id})"
             name_to_id_map[new_name] = obj
             obj.name = new_name

@@ -8,7 +8,6 @@ from kadishutu.tools.singleton import AbstractSingleton
 
 from .meta import Plugin
 
-
 PLUGINS_PATH = APPDIRS.data_path / "plugins"
 
 

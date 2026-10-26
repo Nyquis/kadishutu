@@ -1,4 +1,4 @@
-from ..shared.editors import AbsoulteDispatcher, U64Editor, U8Editor
+from ..shared.editors import AbsoulteDispatcher, U8Editor, U64Editor
 from .affinities import AffinityManager
 from .potentials import PotentialEditor
 from .skills import InnateSkillEditor, SkillManager

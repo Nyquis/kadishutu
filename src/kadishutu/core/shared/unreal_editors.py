@@ -1,22 +1,25 @@
 from typing import List
 
 from ..shared.editors import (
-    BaseStaticEditor, EditorGetter, SingularStructEditor, StructEditor, U32Editor,
+    BaseStaticEditor,
+    EditorGetter,
+    SingularStructEditor,
+    StructEditor,
+    U32Editor,
 )
 from ..shared.unreal import (
-    UE_SAVEGAME_FILE_TYPE_TAG_INT, FCustomVersion, FEngineVersion,
+    UE_SAVEGAME_FILE_TYPE_TAG_INT,
+    FCustomVersion,
+    FEngineVersion,
     extract_fstring,
 )
-
 
 CUSTOM_VERSION_FORMAT = 3
 CUSTOM_VERSIONS = 0x37
 
 
 def assert_equal_hex(assumed: int, actual: int):
-    assert assumed == actual, "{} != {}".format(
-        hex(assumed), hex(actual)
-    )
+    assert assumed == actual, f"{hex(assumed)} != {hex(actual)}"
 
 
 class FStringEditor(SingularStructEditor):

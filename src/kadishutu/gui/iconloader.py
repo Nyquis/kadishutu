@@ -2,16 +2,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict
 
-from typing_extensions import Self
+from PIL.Image import Image
+from PIL.Image import open as open_image
+from PIL.ImageQt import ImageQt
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QIcon, QPixmap
-from PIL.Image import Image, open as open_image
-from PIL.ImageQt import ImageQt
+from typing_extensions import Self
 
 from kadishutu.data.element_icons import Element
 from kadishutu.paths import APPDIRS
 from kadishutu.tools.eprint import eprint, printexcept
-
 
 UMODEL_EXPORT_PATH = APPDIRS.data_path / "game_data_export"
 
@@ -39,9 +39,7 @@ class ImagePak:
         height = size.height()
         if (width % x != 0 or
             height % x != 0):
-            raise ValueError("Bad scale {} for width {} height {}".format(
-                x, width, height
-            ))
+            raise ValueError(f"Bad scale {x} for width {width} height {height}")
         return QSize(width // x, height // x)
 
 
@@ -75,8 +73,8 @@ class IconLoader:
         if not UMODEL_EXPORT_PATH.exists():
             self.disabled = True
             print(
-                "{} does not exist. The image loader is disabled."
-                .format(UMODEL_EXPORT_PATH)
+                f"{UMODEL_EXPORT_PATH} does not exist. The image loader is disabled."
+
             )
             return
         self.disabled = False

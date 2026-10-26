@@ -1,7 +1,9 @@
 from enum import Enum, auto
 
 from ..shared.editors import (
-    BaseDynamicEditor, BaseStructAsFieldEditor, I16Editor,
+    BaseDynamicEditor,
+    BaseStructAsFieldEditor,
+    I16Editor,
 )
 
 

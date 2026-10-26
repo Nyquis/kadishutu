@@ -3,7 +3,9 @@ from typing import Optional, Tuple, Union
 from kadishutu.data.skills import SKILL_ID_MAP, Skill
 
 from ..shared.editors import (
-    BaseDynamicEditor, BaseStructAsFieldEditor, U32Editor,
+    BaseDynamicEditor,
+    BaseStructAsFieldEditor,
+    U32Editor,
 )
 
 

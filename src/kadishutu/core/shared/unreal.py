@@ -3,7 +3,6 @@ from uuid import UUID
 
 from typing_extensions import Self
 
-
 UE_SAVEGAME_FILE_TYPE_TAG = b"SAVG"
 UE_SAVEGAME_FILE_TYPE_TAG_INT = int.from_bytes(UE_SAVEGAME_FILE_TYPE_TAG, "big")
 
@@ -17,13 +16,7 @@ class FEngineVersion:
     branch: str
 
     def __str__(self) -> str:
-        return "{}.{}.{}-{}{}".format(
-            self.major,
-            self.minor,
-            self.patch,
-            self.change_list,
-            self.branch[1:],
-        )
+        return f"{self.major}.{self.minor}.{self.patch}-{self.change_list}{self.branch[1:]}"
 
 
 @dataclass
@@ -46,8 +39,5 @@ def extract_fstring(data: bytearray, offset: int, size: int) -> str:
         wide = True
     text_data = data[offset:offset + size * char_size]
     assert text_data[-1] == 0
-    if wide:
-        text = text_data.decode("UTF-16")
-    else:
-        text = text_data.decode()
+    text = text_data.decode("UTF-16") if wide else text_data.decode()
     return text

@@ -1,14 +1,12 @@
-from functools import cache
 import os
+from functools import cache
 from typing import List, Type
 
 from .generic_early import InstallHandler
 from .pipx import PipxInstallHandler
-from .poetry import PoetryInstallHandler
-
 
 INSTALL_HANDLERS: List[Type[InstallHandler]] = [
-    PipxInstallHandler, PoetryInstallHandler,
+    PipxInstallHandler,
 ]
 
 
@@ -22,7 +20,7 @@ def get_install_handler() -> InstallHandler:
         pass
     else:
         for handler in INSTALL_HANDLERS:
-            if handler.IDENT != handler_var:
+            if handler_var != handler.IDENT:
                 continue
             return handler()
         raise ValueError("Invalid install handler")

@@ -8,7 +8,6 @@ from typing_extensions import Self
 from .tools.dataclasses_json import hex_int_config
 from .tools.path import TABLES_PATH
 
-
 ALIGNMENT_DATA_PATH = TABLES_PATH / "alignment_data.json"
 
 
@@ -37,7 +36,7 @@ class AlignmentByte(DataClassJsonMixin):
 
     @classmethod
     def load_path(cls, path: Path) -> List[Self]:
-        with open(path, "rt") as file:
+        with open(path) as file:
             return cls.schema().loads(file.read(), many=True)
 
     def has_bit(self, bit: int) -> bool:

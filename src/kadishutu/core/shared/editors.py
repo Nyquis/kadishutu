@@ -4,17 +4,25 @@ from datetime import datetime, timedelta
 from enum import Enum
 from struct import Struct
 from typing import (
-    Any, ClassVar, Generic, Optional, Tuple, Type, TypeVar, Union, overload,
+    Any,
+    ClassVar,
+    Generic,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    overload,
 )
 
 from typing_extensions import Self
 
 from kadishutu.tools.fdatetime import (
-    python_to_unreal_datetime, unreal_to_python_datetime
+    python_to_unreal_datetime,
+    unreal_to_python_datetime,
 )
 
 from .file_handling import DecryptedSave
-
 
 TBaseEditor = TypeVar("TBaseEditor", bound="BaseEditor")
 
@@ -112,7 +120,7 @@ class BaseStaticEditor(BaseOffsetEditor, ABC):
     def __init_subclass__(cls):
         if issubclass(cls, ABC):
             return
-        if getattr(cls, "offset") == NotImplemented:
+        if cls.offset == NotImplemented:
             raise NotImplementedError(
                 f"Class {cls} lacks required offset class attribute"
             )
@@ -138,7 +146,7 @@ class BaseStructEditor(BaseOffsetEditor, ABC):
     def __init_subclass__(cls):
         if issubclass(cls, ABC):
             return
-        if getattr(cls, "struct") == NotImplemented:
+        if cls.struct == NotImplemented:
             raise NotImplementedError(
                 f"Class {cls} lacks required offset class attribute"
             )
@@ -376,10 +384,7 @@ class BitEditor(EditorGetter):
 
     def write(self, value: bool):
         raw = self.data[self.offset]
-        if value:
-            res = raw | self.bit_value
-        else:
-            res = raw & self.inverse_bit_value
+        res = raw | self.bit_value if value else raw & self.inverse_bit_value
         self.data[self.offset] = res
 
 

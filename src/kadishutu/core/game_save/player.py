@@ -1,14 +1,18 @@
 from struct import unpack_from
 
 from ..shared.editors import (
-    BaseDynamicEditor, BaseStaticEditor, BaseStructEditor, U16Editor, U64Editor, U8Editor,
+    BaseDynamicEditor,
+    BaseStaticEditor,
+    BaseStructEditor,
+    U8Editor,
+    U16Editor,
+    U64Editor,
 )
 from .affinities import AffinityManager
 from .demonlike import DemonLikeEditor
 from .potentials import PotentialEditor
 from .skills import InnateSkillEditor, SkillManager
 from .stats import HealableEditor, StatBlockEditor
-
 
 ENCODING = "UTF-16LE"
 NAME_LENGTH = 8

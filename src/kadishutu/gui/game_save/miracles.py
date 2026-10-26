@@ -1,20 +1,29 @@
 from typing import List, Tuple
 
 from PySide6.QtWidgets import (
-    QGridLayout, QHBoxLayout, QLabel, QListWidget, QScrollArea, QTabWidget,
-    QVBoxLayout, QWidget,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QScrollArea,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
 )
 
-from kadishutu.core.game_save.miracles import MiracleEditor, MiracleState
 from kadishutu.core.game_save.miracle_unlocks import MiracleUnlockEditor
+from kadishutu.core.game_save.miracles import MiracleEditor, MiracleState
 from kadishutu.data.element_icons import Element
-from kadishutu.data.miracles import (
-    MIRACLE_DATA, MIRACLES, Miracle, MiracleCategory,
-)
 from kadishutu.data.miracle_unlocks import MIRACLE_UNLOCKS
+from kadishutu.data.miracles import (
+    MIRACLE_DATA,
+    MIRACLES,
+    Miracle,
+    MiracleCategory,
+)
 
-from ..shared import AppliableWidget, MCheckBox
 from ..iconloader import ICON_LOADER, handle_image_loading_error
+from ..shared import AppliableWidget, MCheckBox
 from .shared import GameScreenMixin
 
 

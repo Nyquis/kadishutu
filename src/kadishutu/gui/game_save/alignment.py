@@ -2,7 +2,12 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 from PySide6.QtWidgets import (
-    QCheckBox, QGridLayout, QLabel, QScrollArea, QTabWidget, QWidget,
+    QCheckBox,
+    QGridLayout,
+    QLabel,
+    QScrollArea,
+    QTabWidget,
+    QWidget,
 )
 
 from kadishutu.data.alignment import ALIGNMENT_DATA, AlignmentBit

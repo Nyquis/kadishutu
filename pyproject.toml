@@ -1,59 +1,81 @@
-[tool.poetry]
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
 name = "kadishutu"
 version = "0.1.13"
 description = "A save editor for Shin Megami Tensei V: Vengeance."
-authors = ["fnrir"]
-license = "MIT"
 readme = "README.md"
-build = "src/pre-build.py"
-include = [
-    "src/kadishutu/tools/depinstall/pyproject.toml"
+requires-python = ">=3.9,<3.14"
+license = "MIT"
+authors = [
+    { name = "fnrir", email = "stepien241@gmail.com" },
+]
+dependencies = [
+    "dataclasses-json>=0.6.7,<0.7",
+    "pycryptodome>=3.21.0,<4",
+    "toml>=0.10.2,<0.11",
+    "typing-extensions>=4.12.2,<5",
+    "xdg>=6.0.0,<7; sys_platform == 'linux'",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<3.14"
-dataclasses-json = "^0.6.7"
-pycryptodome = "^3.21.0"
-semver = "^3.0.2"
-toml = "^0.10.2"
-typing-extensions = "^4.12.2"
+[project.optional-dependencies]
+gui = [
+    "pillow>=10.4.0,<11",
+    "pyside6>=6.8.0,<6.9",
+]
+dev = [
+    "mypy>=1.13.0,<2",
+    "ruff>=0.17.0,<0.18",
+    "types-toml>=0.10.8.20240310",
+    "pyinstaller>=6.11.0,<7",
+    "build>=1.2,<2",
+]
+example-late-bonuses = [
+    "inquirer>=3.4.0,<4",
+]
 
-[tool.poetry.dependencies.xdg]
-version = "^6.0.0"
-markers = "sys_platform == 'linux'"
-
-[tool.poetry.scripts]
+[project.scripts]
 kadishutu = "kadishutu:main"
 
-[tool.poetry.group.gui.dependencies]
-pillow = "^10.4.0"
-pyside6 = "^6.8.0"
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
 
-[tool.poetry.group.dev.dependencies]
-mypy = "^1.13.0"
-pylint = "^3.3.0"
-flake8 = "^7.1.0"
-types-toml = "^0.10.8.20240310"
+[tool.setuptools.packages.find]
+where = ["src"]
 
-[tool.poetry.group.example-late_bonuses.dependencies]
-inquirer = "^3.4.0"
-
-[tool.poetry-pyinstaller-plugin]
-post-build = "src/post-build:post_build"
-
-[tool.poetry-pyinstaller-plugin.scripts.kadishutu]
-runtime_hooks = [
-    "src/pyinstaller_runtime.py"
+[tool.setuptools.package-data]
+kadishutu = [
+    "data/tables/*",
+    "plugin/*.json",
 ]
-source = "src/kadishutu/__main__.py"
 
-[tool.poetry-pyinstaller-plugin.package]
-"README.md" = "."
-"docs" = "."
-"examples" = "."
+[tool.ruff]
+# Bump to py311 together with the Python baseline change.
+target-version = "py39"
+line-length = 88
+extend-exclude = [
+    ".pixi",
+    "build",
+    "dist",
+]
 
-[tool.poetry-pyinstaller-plugin.include]
-"src/kadishutu/data/tables" = "kadishutu/data/tables"
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "SIM"]
+# Formatting is intentionally out of scope for now.
+# UP006/UP035 rewrite typing.List/Dict to built-in generics; enable these with
+# the Python baseline bump instead of mixing them into the lint-only change.
+ignore = ["E501", "UP006", "UP035"]
+
+[tool.ruff.lint.per-file-ignores]
+# The examples have a self-reexec header that has to stay above the imports.
+"examples/*.py" = ["E402"]
+# pyinstaller_runtime.py intentionally imports after patching the handlers.
+"src/pyinstaller_runtime.py" = ["E402", "I001"]
+# Trailing spaces are inside the lore strings in this generated data file.
+"src/kadishutu/data/old_demon_data.py" = ["W291"]
 
 [tool.pyinstaller-archiver]
 archive_name = "{name}-{platform}-{commit}"
@@ -61,7 +83,4 @@ archive_name = "{name}-{platform}-{commit}"
 [tool.pyinstaller-archiver.formats]
 linux = ["xz", "7z"]
 windows = ["zip"]
-
-[build-system]
-requires = ["poetry-core", "toml"]
-build-backend = "poetry.core.masonry.api"
+macos = ["zip"]

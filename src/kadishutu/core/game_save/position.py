@@ -7,9 +7,12 @@ from typing_extensions import Self
 from kadishutu.data.laylines import Layline
 
 from ..shared.editors import (
-    BaseStaticEditor, BytesEditor, StructEditor, U32Editor, U8Editor,
+    BaseStaticEditor,
+    BytesEditor,
+    StructEditor,
+    U8Editor,
+    U32Editor,
 )
-
 
 FLOAT_SET = Tuple[float, float, float]
 

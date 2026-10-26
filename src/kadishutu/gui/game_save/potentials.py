@@ -2,11 +2,11 @@ from typing import Dict
 
 from PySide6.QtWidgets import QGridLayout, QLabel, QSpinBox, QWidget
 
-from kadishutu.core.game_save.potentials import PotentialType, PotentialEditor
+from kadishutu.core.game_save.potentials import PotentialEditor, PotentialType
 from kadishutu.data.element_icons import Element
 
-from ..shared import AppliableWidget, ModifiedMixin
 from ..iconloader import ICON_LOADER, handle_image_loading_error
+from ..shared import AppliableWidget, ModifiedMixin
 from .shared import GameScreenMixin
 
 
@@ -35,10 +35,7 @@ class PotentialEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             potential_box = QPotentialBox()
             self.l.addWidget(potential_box, i, 2)
             self.potential_map[ptype] = potential_box
-            if ptype.name == "_UNKNOWN":
-                elname = Element.Misc
-            else:
-                elname = Element[ptype.name]
+            elname = Element.Misc if ptype.name == "_UNKNOWN" else Element[ptype.name]
             try:
                 pak = ICON_LOADER.element_icon(elname)
             except Exception as e:
@@ -58,5 +55,5 @@ class PotentialEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def on_apply_changes(self):
         for ptype, potential_box in self.potential_map.items():
             potential_box.update_if_modified(
-                lambda x: self.potentials.write(ptype, x)
+                lambda x, ptype=ptype: self.potentials.write(ptype, x)
             )

@@ -1,1 +1,2 @@
-poetry run kadishutu
+@echo off
+pixi run kadishutu %*

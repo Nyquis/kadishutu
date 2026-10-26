@@ -4,14 +4,13 @@ from typing import List, Union
 
 from typing_extensions import Self
 
-from kadishutu.tools.groupobj import group_objects
 from kadishutu.tools.eprint import printexcept
+from kadishutu.tools.groupobj import group_objects
 from kadishutu.tools.tbbreader import Tbcr
 from kadishutu.tools.uexp_extract import UExpTranslationFile
 
 from .miracles import UMODEL_SAVED_PATH, Destructable
 from .tools.mapping import make_maps
-
 
 QUEST_TABLE_OFFSET = 0x59d52
 QUEST_ENTRY_SIZE = 26

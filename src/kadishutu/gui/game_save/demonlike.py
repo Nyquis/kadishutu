@@ -4,13 +4,12 @@ from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
 from kadishutu.core.game_save.demonlike import DemonLikeEditor
 
-from ..shared import QU32, QU8, AppliableWidget, hboxed
+from ..shared import QU8, QU32, AppliableWidget, hboxed
 from .affinities import AffinityEditorScreen
 from .potentials import PotentialEditorScreen
 from .shared import GameScreenMixin
 from .skills import SkillEditorScreen
 from .stats import StatEditorScreen
-
 
 LEVEL_MUT_WARNING = """WARNING: Changing the level from here is ill-advised.
 This editor DOES NOT emulate the changes that would occur within the game \

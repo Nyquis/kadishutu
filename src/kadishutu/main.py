@@ -3,9 +3,7 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Dict
 
-from .cli import (
-    cmd_decrypt, cmd_encrypt, cmd_inspect, cmd_run_script, cmd_update_hash
-)
+from .cli import cmd_decrypt, cmd_encrypt, cmd_inspect, cmd_run_script, cmd_update_hash
 from .editor_cli import argparse_edit
 from .plugin.loader import PLUGIN_MANAGER
 

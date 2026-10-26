@@ -4,11 +4,15 @@ from pathlib import Path
 from typing import Any, Callable, TypeVar
 
 from PySide6.QtWidgets import (
-    QBoxLayout, QCheckBox, QComboBox, QHBoxLayout, QSpinBox, QWidget,
+    QBoxLayout,
+    QCheckBox,
+    QComboBox,
+    QHBoxLayout,
+    QSpinBox,
+    QWidget,
 )
 
 from kadishutu.core.shared.file_handling import DecryptedSave
-
 
 U16_MAX = 2 ** 16 - 1
 # RuntimeWarning: libshiboken: Overflow: Value 7378697629483820646 exceeds

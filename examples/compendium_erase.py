@@ -1,6 +1,3 @@
-# flake8: noqa: F402
-# Ignore "module level import not at top of file" error
-
 # SELF-REEXEC HEADER
 # DO NOT EDIT
 from pathlib import Path
@@ -8,9 +5,9 @@ from typing import NoReturn
 
 
 def run_through_kadishutu() -> NoReturn:
-    from argparse import ArgumentParser
     import os
     import sys
+    from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument("file", type=Path)
     args = parser.parse_args()
@@ -24,10 +21,11 @@ if __name__ == "__main__":
 # EDIT FROM HERE
 
 
+from typing import List
+
 from kadishutu import DecryptedSave, GameSaveEditor
 from kadishutu.core.game_save.compendium import COMPENDIUM_ENTRY_SIZE
 from kadishutu.tools.eprint import eprint
-from typing import List
 
 
 def erase(game: GameSaveEditor, offset: int, size: int):
@@ -58,7 +56,7 @@ def erase_compendium(game: GameSaveEditor):
         try:
             name = demon.meta.name
         except KeyError:
-            name = f"??? (i)"
+            name = "??? (i)"
         print("De-registering from compendium:", name)
         demon.registered = False
         erase(game, demon.offset, COMPENDIUM_ENTRY_SIZE)

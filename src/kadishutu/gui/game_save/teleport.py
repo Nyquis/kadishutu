@@ -1,12 +1,16 @@
 from PySide6.QtWidgets import (
-    QCheckBox, QComboBox, QLabel, QPushButton, QVBoxLayout, QWidget
+    QCheckBox,
+    QComboBox,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
 from kadishutu.data.laylines import LAYLINE_DATA, LAYLINE_NAME_MAP
 
 from ..shared import AppliableWidget
 from .shared import GameScreenMixin
-
 
 NOTE_MSG = "NOTE: The save location is not changed."
 

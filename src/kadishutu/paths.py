@@ -1,6 +1,6 @@
+import sys
 from os import getenv
 from pathlib import Path
-import sys
 
 from kadishutu.tools.singleton import AbstractSingleton
 

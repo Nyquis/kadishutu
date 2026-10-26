@@ -1,7 +1,8 @@
 from ..shared.editors import (
-    BaseDynamicEditor, BaseStructAsFieldEditor, U16Editor,
+    BaseDynamicEditor,
+    BaseStructAsFieldEditor,
+    U16Editor,
 )
-
 
 STATS_NAMES = ["HP", "MP", "Strength", "Vitality", "Magic", "Agility", "Luck"]
 

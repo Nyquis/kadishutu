@@ -1,12 +1,11 @@
 from typing import Callable, Dict
 
-from PySide6.QtWidgets import QLabel, QGridLayout, QWidget
+from PySide6.QtWidgets import QGridLayout, QLabel, QWidget
 
 from kadishutu.core.game_save.game import Endings
 
 from ..shared import QU8, AppliableWidget, MCheckBox
 from .shared import GameScreenMixin
-
 
 
 class CrossCycleEditorScreen(QWidget, GameScreenMixin, AppliableWidget):

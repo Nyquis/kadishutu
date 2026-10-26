@@ -1,18 +1,24 @@
 from enum import Enum, IntFlag, auto
 
 from ..shared.editors import (
-    BaseMasterEditor, BoolEditor, EnumEditor, TimeDeltaEditor, U16Editor, U32Editor,
-    U8Editor, UnrealTimeEditor,
+    BaseMasterEditor,
+    BoolEditor,
+    EnumEditor,
+    TimeDeltaEditor,
+    U8Editor,
+    U16Editor,
+    U32Editor,
+    UnrealTimeEditor,
 )
 from ..shared.unreal_editors import UnrealInternalEditor
 from .alignment import AlignmentManager
 from .compendium import CompendiumManager
-from .dlc import DlcEditor
 from .demons import DemonManager
+from .dlc import DlcEditor
 from .essences import EssenceManager
 from .items import ItemManager
-from .miracles import MiracleManager
 from .miracle_unlocks import MiracleUnlockManager
+from .miracles import MiracleManager
 from .player import PlayerEditor
 from .position import PositionEditor
 from .quests import QuestManager
@@ -64,7 +70,6 @@ class GameSaveEditor(BaseMasterEditor):
     endings = EnumEditor(0x6a08b, Endings)
 
     def erase_demon(self, slot: int, skip_if_free: bool = True):
-        from .demons import DEMON_ENTRY_SIZE
 
         demon = self.demons.in_slot(slot)
         if skip_if_free and demon.is_free:

@@ -3,13 +3,15 @@ from typing import Dict
 from PySide6.QtWidgets import QGridLayout, QLabel, QWidget
 
 from kadishutu.core.game_save.affinities import (
-    AILMENT_AFFINITY_NAMES, ELEMENTAL_AFFINITY_NAMES, AffinityManager,
+    AILMENT_AFFINITY_NAMES,
+    ELEMENTAL_AFFINITY_NAMES,
+    AffinityManager,
 )
 from kadishutu.data.affinity import AFFINITY_MAP, Affinity
 from kadishutu.data.element_icons import Element
 
-from ..shared import AppliableWidget, MComboBox
 from ..iconloader import ICON_LOADER, handle_image_loading_error
+from ..shared import AppliableWidget, MComboBox
 from .shared import GameScreenMixin
 
 

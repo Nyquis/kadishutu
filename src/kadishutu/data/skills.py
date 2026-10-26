@@ -8,7 +8,6 @@ from .tools.mapping import make_maps
 from .tools.path import TABLES_PATH
 from .tools.unused import is_unused
 
-
 ACTION_SKILLS_PATH = TABLES_PATH / "SMT5V Skill Data Tables - ActionSkills.csv"
 AUTO_SKILLS_PATH = TABLES_PATH / "SMT5V Skill Data Tables - AutoSkills.csv"
 

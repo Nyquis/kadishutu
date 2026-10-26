@@ -1,8 +1,5 @@
-from abc import ABC
-
-
-class AbstractSingleton(ABC):
+class AbstractSingleton:
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            cls.instance = super(AbstractSingleton, cls).__new__(cls)
+            cls.instance = super().__new__(cls)
         return cls.instance

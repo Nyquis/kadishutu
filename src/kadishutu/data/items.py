@@ -11,7 +11,6 @@ from .tools.mapping import make_maps
 from .tools.path import TABLES_PATH
 from .tools.unused import is_unused
 
-
 ITEM_NAMES_TABLE_PATH = TABLES_PATH / "SMT5V NKM Base Table_Navi Devil Data - Item Names.csv"
 ITEM_ADDITIONAL_INFO_PATH = TABLES_PATH / "item_extra_data.json"
 
@@ -55,7 +54,7 @@ class ItemExtraData(DataClassJsonMixin):
 
     @classmethod
     def load_path(cls, path: Path) -> List[Self]:
-        with open(path, "rt") as file:
+        with open(path) as file:
             return cls.schema().loads(file.read(), many=True)
 
 
@@ -118,10 +117,7 @@ class Item:
                 desc = None
             else:
                 limit = extra.limit
-                if extra.icon:
-                    icon = extra.icon
-                else:
-                    icon = guess_icon(id)
+                icon = extra.icon or guess_icon(id)
                 desc = extra.desc
             items.append(cls(id, name, limit, icon, desc))
         return items

@@ -29,6 +29,43 @@ antivirus.
 (fun fact, this project also works on Windows 7 (the best version) with VxKex
 and Python 3.9)
 
+### Development
+
+The project uses [pixi](https://pixi.sh) for dependency management and
+reproducible development environments. Install pixi, then run:
+
+```shell
+pixi install
+```
+
+This installs the runtime dependencies and the GUI (PySide6, Pillow) into the
+default environment. Run the app with:
+
+```shell
+pixi run kadishutu
+# or, explicitly:
+pixi run gui
+```
+
+The developer tools (ruff, mypy, PyInstaller) live in the `dev`
+environment:
+
+```shell
+pixi run -e dev lint
+pixi run -e dev typecheck
+pixi run -e dev build
+```
+
+On Windows, `setup.bat` and `run.bat` are thin wrappers around the commands
+above.
+
+The optional dependencies for the `examples/late_bonuses.py` script are in the
+`example-late-bonuses` environment:
+
+```shell
+pixi run -e example-late-bonuses python examples/late_bonuses.py
+```
+
 ### Additional setup
 
 Some data is not bundled with the editor. While not strictly necesary, adding
@@ -109,12 +146,12 @@ Available subcommands:
 ### As a library
 
 ```python
-from kadishutu import DecryptedSave, GameSaveEditor
+from kadishutu import EncryptedSave, GameSaveEditor
 from pathlib import Path
 
 path = Path(...)
 savefile = EncryptedSave.open(path).decrypt()
-game = SaveEditor(savefile)
+game = GameSaveEditor(savefile)
 
 stats = game.player.stats
 stats.max_with_sbis()

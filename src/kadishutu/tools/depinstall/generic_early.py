@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from subprocess import Popen
-from typing import Any, ClassVar, Dict, List
+from typing import ClassVar, List
 
 from .pyproj import get_opt_depends
 
@@ -12,7 +12,7 @@ class InstallHandler(ABC):
     @abstractmethod
     def likelyness(cls) -> float: ...
     @abstractmethod
-    def install(self, deps: Dict[str, Any]): ...
+    def install(self, deps: List[str]): ...
 
     def install_group(self, group: str):
         self.install(get_opt_depends(group))
@@ -30,15 +30,6 @@ class CommandInstallHandler(InstallHandler, ABC):
         except FileNotFoundError:
             return False
         return True
-
-    def constraint_conv(self, k: str, v: Any) -> str:
-        return k
-
-    def into_constrained(self, deps: Dict[str, Any]) -> List[str]:
-        return [
-            self.constraint_conv(k, v)
-            for k, v in deps.items()
-        ]
 
     def run(self, aargs, *args, **kwargs):
         p = Popen([self.IDENT] + aargs, *args, **kwargs)

@@ -4,7 +4,6 @@ from typing import List, Optional, Tuple
 from ..shared.editors import BaseStaticEditor, StructEditor, U8Editor
 from .demons import DEMON_TABLE_SIZE
 
-
 SUMMONED_DEMONS_OFFSET = 0x3d2e
 
 

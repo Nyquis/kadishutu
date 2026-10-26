@@ -1,17 +1,25 @@
 from typing import List, Tuple
 
 from PySide6.QtWidgets import (
-    QGridLayout, QLabel, QScrollArea, QTabWidget, QWidget,
+    QGridLayout,
+    QLabel,
+    QScrollArea,
+    QTabWidget,
+    QWidget,
 )
 
 from kadishutu.core.game_save.items import ItemEditor
 from kadishutu.data.items import (
-    CONSUMABLES_RANGE, KEY_ITEMS_RANGE, RELICS_RANGE_1, RELICS_RANGE_2, Item,
+    CONSUMABLES_RANGE,
+    KEY_ITEMS_RANGE,
+    RELICS_RANGE_1,
+    RELICS_RANGE_2,
+    Item,
     items_from,
 )
 
-from ..shared import QU8, AppliableWidget
 from ..iconloader import ICON_LOADER, handle_image_loading_error
+from ..shared import QU8, AppliableWidget
 from .shared import GameScreenMixin
 
 

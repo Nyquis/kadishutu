@@ -6,8 +6,8 @@ from kadishutu.core.game_save.essences import EssenceEditor, EssenceMetadata
 from kadishutu.data.element_icons import Element
 from kadishutu.data.items import ESSENCES_RANGE, items_from
 
-from ..shared import QU16, AppliableWidget, MCheckBox
 from ..iconloader import ICON_LOADER, handle_image_loading_error
+from ..shared import QU16, AppliableWidget, MCheckBox
 from .shared import GameScreenMixin
 
 
@@ -55,7 +55,10 @@ class EssenceEditorScreen(QScrollArea, GameScreenMixin, AppliableWidget):
         for essence, _, owned_box, meta_box in self.essences:
             owned_box.setattr_if_modified(essence, "owned")
 
-            def ess_set(essence_val: int):
+            def ess_set(
+                essence_val: int,
+                essence: EssenceEditor = essence,
+            ):
                 essence.metadata = EssenceMetadata(essence_val)
 
             meta_box.update_if_modified(ess_set)

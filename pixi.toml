@@ -1,0 +1,47 @@
+[workspace]
+name = "kadishutu"
+# Keep in sync with `version` in pyproject.toml.
+version = "0.1.13"
+description = "A save editor for Shin Megami Tensei V: Vengeance."
+authors = ["fnrir"]
+license = "MIT"
+readme = "README.md"
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+
+[dependencies]
+# Keep in sync with `requires-python` in pyproject.toml.
+python = ">=3.9,<3.14"
+
+# The application itself is installed in editable mode, so its runtime and GUI
+# dependencies are read from pyproject.toml instead of being duplicated here.
+[pypi-dependencies]
+kadishutu = { path = ".", editable = true, extras = ["gui"] }
+
+[feature.dev.dependencies]
+ruff = ">=0.17.0,<0.18"
+
+[feature.dev.pypi-dependencies]
+mypy = ">=1.13.0,<2"
+types-toml = ">=0.10.8.20240310"
+pyinstaller = ">=6.11.0,<7"
+build = ">=1.2,<2"
+
+[feature.dev.tasks]
+lint = "ruff check ."
+lint-fix = "ruff check --fix ."
+typecheck = "mypy src"
+build = "python src/build.py"
+
+[feature.example-late-bonuses.pypi-dependencies]
+inquirer = ">=3.4.0,<4"
+
+[environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+example-late-bonuses = { features = ["example-late-bonuses"], solve-group = "default" }
+
+[tasks]
+# `python -m kadishutu` opens the GUI when no subcommand is given.
+run = "python -m kadishutu"
+gui = "python -m kadishutu gui"

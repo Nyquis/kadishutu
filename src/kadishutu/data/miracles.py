@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from struct import Struct
 from pathlib import Path
+from struct import Struct
 from typing import List, Optional, Union
 
 from dataclasses_json import DataClassJsonMixin
@@ -15,7 +15,6 @@ from .tools.dataclasses_json import hex_int_config
 from .tools.mapping import make_maps
 from .tools.path import TABLES_PATH
 from .tools.unused import is_unused
-
 
 UMODEL_SAVED_PATH = APPDIRS.data_path / "game_data_saved"
 MIRACLE_DATA_PATH = TABLES_PATH / "miracles.json"
@@ -78,7 +77,7 @@ class MiracleText(DataClassJsonMixin):
 
     @classmethod
     def load_path(cls, path: Path) -> List[Self]:
-        with open(path, "rt") as file:
+        with open(path) as file:
             return cls.schema().loads(file.read(), many=True)
 
 

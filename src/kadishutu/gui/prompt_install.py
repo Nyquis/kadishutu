@@ -1,10 +1,9 @@
-from enum import Enum, auto
 import os
 import sys
+from enum import Enum, auto
 from typing import Callable, NoReturn
 
 from kadishutu.tools.depinstall import get_install_handler
-from kadishutu.tools.depinstall.poetry import PoetryInstallHandler
 
 
 class Result(Enum):
@@ -12,20 +11,12 @@ class Result(Enum):
     Rejected = auto()
 
 
-def cli_frontend(install_func: Callable[[], None]) -> Result:
-    ans = input("Install GUI dependencies? [y/N]: ")
-    if not ans.lower().startswith("y"):
-        return Result.Rejected
-    install_func()
-    print("Done. Everything should work now.")
-    return Result.Success
-
-
 def tk_frontend(install_func: Callable[[], None]) -> Result:
     from tkinter import messagebox
     if not messagebox.askyesno(
         "kadishutu: Additional dependencies",
-        "The GUI can't function without aditional dependencies. Do you want to install them?"
+        "The GUI can't function without additional dependencies. "
+        "Do you want to install them?"
     ):
         return Result.Rejected
     try:
@@ -33,7 +24,7 @@ def tk_frontend(install_func: Callable[[], None]) -> Result:
     except Exception as e:
         messagebox.showerror(
             "kadishutu",
-            f"The following error has occured: {repr(e)}"
+            f"The following error has occurred: {repr(e)}"
         )
         raise e
     messagebox.showinfo(
@@ -55,8 +46,6 @@ def handle_no_qt() -> int:
         print("Please install it before running the gui.")
         return 1
     handler_frontend = tk_frontend
-    if isinstance(handler, PoetryInstallHandler):
-        handler_frontend = cli_frontend
     res = handler_frontend(lambda: handler.install_group("gui"))
     if res == Result.Success:
         reexec_self()

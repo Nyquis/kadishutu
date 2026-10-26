@@ -1,17 +1,22 @@
 from kadishutu.data.demons import DEMON_ID_MAP, Demon
 
 from ..shared.editors import (
-    BaseDynamicEditor, BaseStaticEditor, U16Editor, U32Editor, U64Editor,
+    BaseDynamicEditor,
+    BaseStaticEditor,
     U8Editor,
+    U16Editor,
+    U32Editor,
+    U64Editor,
 )
 from .affinities import (
-    AILMENT_AFFINITY_NAMES, ELEMENTAL_AFFINITY_NAMES, AffinityManager,
+    AILMENT_AFFINITY_NAMES,
+    ELEMENTAL_AFFINITY_NAMES,
+    AffinityManager,
 )
 from .demonlike import DemonLikeEditor
-from .potentials import PotentialType, PotentialEditor
+from .potentials import PotentialEditor, PotentialType
 from .skills import InnateSkillEditor, SkillManager
 from .stats import STATS_NAMES, HealableEditor, StatBlockEditor
-
 
 DEMON_TABLE_OFFSET = 0xb60
 DEMON_ENTRY_SIZE = 424
