@@ -41,6 +41,7 @@ from kadishutu.plugin.loader import PLUGIN_MANAGER
 from .components import Card, PageHeader
 from .game_save import GameSaveEditorScreen
 from .shared import (
+    EDIT_EVENTS,
     AppliableWidget,
     OnStackRemovedHook,
     SaveScreenMixin,
@@ -339,9 +340,12 @@ class MainWindow(QMainWindow):
 
         self.file_menu = QMenu("File", self)
         self.save_button = self._make_action(
-            "Save",
+            "Save to Disk",
             QKeySequence.StandardKey.Save,
             self.on_save,
+        )
+        self.save_button.setToolTip(
+            "Write applied changes to the save file and create a backup."
         )
         self.save_as_button = self._make_action(
             "Save as",
@@ -367,14 +371,21 @@ class MainWindow(QMainWindow):
 
         self.edit_menu = QMenu("Edit", self)
         self.undo_button = self._make_action(
-            "Undo",
+            "Discard Unapplied Edits",
             QKeySequence.StandardKey.Undo,
             self.on_undo,
         )
+        self.undo_button.setToolTip(
+            "Reload this screen and discard edits that were not applied."
+        )
         self.apply_button = self._make_action(
-            "Apply",
+            "Apply Changes",
             QKeySequence("Ctrl+Return"),
             self.on_apply,
+        )
+        self.apply_button.setToolTip(
+            "Copy this screen's edits into the open save. Does not write to "
+            "disk."
         )
         self.edit_menu.addAction(self.undo_button)
         self.edit_menu.addAction(self.apply_button)
@@ -392,6 +403,7 @@ class MainWindow(QMainWindow):
         self._build_theme_menu()
         self._build_toolbar()
         self._build_status_bar()
+        EDIT_EVENTS.changed.connect(self.update_status)
 
         self.inner = ManagedStackWidget(self)
         self.inner.setObjectName("AppRoot")
@@ -497,9 +509,16 @@ class MainWindow(QMainWindow):
             self.setWindowTitle("Kadishutu Save Editor")
             return
         widget = self.inner.editor_widget
-        modified = " • modified" if widget.modified else ""
-        self.status_label.setText(f"{widget.path}{modified}")
-        marker = " •" if widget.modified else ""
+        if self.has_unapplied_edits():
+            state = "Unapplied edits — click Apply Changes first"
+            marker = " • unapplied"
+        elif widget.modified:
+            state = "Applied, not saved — click Save to Disk"
+            marker = " • unsaved"
+        else:
+            state = "Saved"
+            marker = ""
+        self.status_label.setText(f"{state} · {widget.path}")
         self.setWindowTitle(f"{widget.path.name}{marker} — Kadishutu")
 
     def on_back(self):

@@ -207,7 +207,6 @@ def test_revert_discards_unapplied_edits(window, editor):
     assert not window.has_unapplied_edits()
 
 
-@NOT_IMPLEMENTED
 def test_status_text_follows_the_apply_then_save_sequence(window, editor):
     editor.macca.setValue(555)
     assert "Apply Changes" in window.status_label.text()
@@ -219,7 +218,11 @@ def test_status_text_follows_the_apply_then_save_sequence(window, editor):
     assert "saved" in window.status_label.text().lower()
 
 
-@NOT_IMPLEMENTED
 def test_toolbar_labels_name_the_two_steps(window):
     assert window.apply_button.text() == "Apply Changes"
     assert window.save_button.text() == "Save to Disk"
+
+
+def test_actions_explain_the_two_steps(window):
+    assert "does not write" in window.apply_button.toolTip().lower()
+    assert "backup" in window.save_button.toolTip().lower()
