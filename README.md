@@ -10,8 +10,9 @@ Running from source requires Python 3.11–3.13.
 ### Prebuilt binary
 
 If a prebuilt binary is available for your platform, download it from the
-release page for this repository. The binaries are built with PyInstaller, so
-antivirus software may flag them even though they are not malicious.
+[release page](https://github.com/Nyquis/kadishutu/releases). The binaries are
+built with PyInstaller, so antivirus software may flag them even though they
+are not malicious.
 
 ### From source with Pixi
 
@@ -19,9 +20,11 @@ This is the recommended route for a local checkout. It installs the runtime
 dependencies and the GUI (PySide6 and Pillow) into a reproducible environment.
 
 1. Install [pixi](https://pixi.sh).
-2. From the repository root, run:
+2. Clone the repository and install the environment:
 
    ```shell
+   git clone https://github.com/Nyquis/kadishutu.git
+   cd kadishutu
    pixi install
    pixi run gui
    ```
@@ -332,6 +335,10 @@ The save-file documentation is in the `docs` folder:
 - [GameSave.md](docs/GameSave.md)
 - [SysSave.md](docs/SysSave.md)
 - [Troubleshooting.md](docs/Troubleshooting.md)
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ## Credits
 
