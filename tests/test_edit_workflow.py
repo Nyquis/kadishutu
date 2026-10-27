@@ -6,7 +6,13 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6")
 
-from PySide6.QtWidgets import QApplication, QMessageBox, QWidget
+from PySide6.QtGui import QCloseEvent
+from PySide6.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QMessageBox,
+    QWidget,
+)
 
 from kadishutu.core.game_save import GameSaveEditor
 from kadishutu.core.shared.file_handling import DecryptedSave
@@ -226,3 +232,87 @@ def test_toolbar_labels_name_the_two_steps(window):
 def test_actions_explain_the_two_steps(window):
     assert "does not write" in window.apply_button.toolTip().lower()
     assert "backup" in window.save_button.toolTip().lower()
+
+
+def test_save_as_refuses_while_edits_are_unapplied(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    shown: list[object] = []
+    monkeypatch.setattr(
+        QMessageBox,
+        "information",
+        lambda *args, **kwargs: shown.append(args),
+    )
+
+    def unexpected_dialog(*args, **kwargs):
+        raise AssertionError("file dialog should not open")
+
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", unexpected_dialog)
+    editor.macca.setValue(555)
+
+    window.on_save_as()
+
+    assert shown
+
+
+def test_cancelling_close_keeps_the_editor_open(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(
+        QMessageBox,
+        "question",
+        lambda *args, **kwargs: QMessageBox.StandardButton.No,
+    )
+    editor.macca.setValue(555)
+
+    window.on_file_close()
+
+    assert window.inner.top_widget is editor
+
+
+def test_confirming_close_returns_to_the_file_picker(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(
+        QMessageBox,
+        "question",
+        lambda *args, **kwargs: QMessageBox.StandardButton.Yes,
+    )
+    editor.macca.setValue(555)
+
+    window.on_file_close()
+
+    assert window.inner.top_widget is window.file_selector
+    assert not window.has_unapplied_edits()
+
+
+def test_confirming_discard_clears_unapplied_edits(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(
+        QMessageBox,
+        "question",
+        lambda *args, **kwargs: QMessageBox.StandardButton.Yes,
+    )
+    editor.macca.setValue(555)
+
+    assert window.confirm_leaving(include_applied=True)
+    assert not window.has_unapplied_edits()
+    assert editor.macca.value() == 0
+
+
+def test_quit_is_cancelled_on_request(
+    window, editor, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(
+        QMessageBox,
+        "question",
+        lambda *args, **kwargs: QMessageBox.StandardButton.No,
+    )
+    editor.macca.setValue(555)
+    window.on_apply()
+    event = QCloseEvent()
+
+    window.closeEvent(event)
+
+    assert not event.isAccepted()

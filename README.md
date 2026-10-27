@@ -124,6 +124,20 @@ variable. Then data is stored in/loaded from:
 You can open the GUI by running `kadishutu gui $OPTIONALLY_A_SAVE_FILE` in a
 terminal or by double-clicking the executable.
 
+#### Applying and saving
+
+Editing happens in two steps:
+
+1. **Apply Changes** copies the current screen's edits into the open save in
+   memory. It does not write to disk.
+2. **Save to Disk** writes applied changes to the save file and creates a
+   timestamped backup.
+
+Saving is refused while edits are still unapplied, and the status bar says
+which step is next. Leaving a screen, closing the save, or quitting asks
+before discarding unapplied edits; closing the save or app also warns about
+applied changes that were not written to disk.
+
 ### In a terminal
 
 Available subcommands:
