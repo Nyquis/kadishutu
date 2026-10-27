@@ -56,6 +56,7 @@ def build() -> Path:
         f"{ROOT / 'src' / 'kadishutu' / 'data' / 'tables'}{data_sep}"
         f"{NAME}/data/tables",
         "--add-data", f"{ROOT / 'README.md'}{data_sep}.",
+        "--add-data", f"{ROOT / 'LICENSE'}{data_sep}.",
         "--add-data", f"{ROOT / 'docs'}{data_sep}docs",
         "--add-data", f"{ROOT / 'examples'}{data_sep}examples",
         str(ROOT / "src" / "kadishutu" / "__main__.py"),
