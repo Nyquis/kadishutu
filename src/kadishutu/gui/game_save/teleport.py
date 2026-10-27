@@ -17,6 +17,7 @@ NOTE_MSG = "NOTE: The save location is not changed."
 
 class TeleporterScreen(QWidget, GameScreenMixin, AppliableWidget):
     NO_VALUE = "NONE"
+    applies_immediately = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

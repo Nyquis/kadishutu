@@ -101,7 +101,6 @@ def test_save_writes_only_applied_changes(window, editor):
     assert not editor.modified
 
 
-@NOT_IMPLEMENTED
 def test_save_refuses_while_edits_are_unapplied(
     window, editor, monkeypatch: pytest.MonkeyPatch
 ):
@@ -139,7 +138,6 @@ def test_failed_save_keeps_applied_changes_marked_unsaved(
     assert editor.modified
 
 
-@NOT_IMPLEMENTED
 def test_closing_with_applied_unsaved_changes_asks_first(
     window, editor, monkeypatch: pytest.MonkeyPatch
 ):
@@ -154,7 +152,6 @@ def test_closing_with_applied_unsaved_changes_asks_first(
     assert window.confirm_leaving(include_applied=True) is False
 
 
-@NOT_IMPLEMENTED
 def test_closing_with_unapplied_edits_asks_first(
     window, editor, monkeypatch: pytest.MonkeyPatch
 ):
@@ -168,7 +165,6 @@ def test_closing_with_unapplied_edits_asks_first(
     assert window.confirm_leaving(include_applied=True) is False
 
 
-@NOT_IMPLEMENTED
 def test_opening_another_screen_with_unapplied_edits_asks_first(
     window, editor, monkeypatch: pytest.MonkeyPatch
 ):
@@ -185,7 +181,6 @@ def test_opening_another_screen_with_unapplied_edits_asks_first(
     assert len(window.inner.widget_stack) == count
 
 
-@NOT_IMPLEMENTED
 def test_back_with_unapplied_edits_asks_first(
     window, editor, monkeypatch: pytest.MonkeyPatch
 ):

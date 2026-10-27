@@ -464,6 +464,8 @@ class MainWindow(QMainWindow):
         self.status_bar.addWidget(self.status_label)
 
     def stack_add(self, widget: QWidget):
+        if not self.confirm_leaving(include_applied=False):
+            return
         self.inner.stack_add(widget)
         self.refresh_nav_actions()
 
@@ -501,12 +503,20 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"{widget.path.name}{marker} — Kadishutu")
 
     def on_back(self):
+        if not self.confirm_leaving(include_applied=False):
+            return
         self.stack_remove()
 
     def on_apply(self):
         widget = self.inner.top_widget
         if not isinstance(widget, AppliableWidget):
             raise NotImplementedError
+        if not (
+            getattr(widget, "applies_immediately", False)
+            or widget_has_unapplied_edits(widget)
+        ):
+            self.statusBar().showMessage("No unapplied edits to apply.", 3000)
+            return
         self.inner.editor_widget.modified = True
         widget.on_apply_changes()
         for widget in self.inner.widget_stack:
@@ -525,7 +535,7 @@ class MainWindow(QMainWindow):
         if not self.inner.should_show_navigation:
             return
         widget = self.inner.editor_widget
-        if not widget.can_save:
+        if not widget.can_save or self._refuse_unapplied_save():
             return
         try:
             widget.raw_save.save_finished(widget.path)
@@ -535,7 +545,21 @@ class MainWindow(QMainWindow):
         widget.modified = False
         self.update_status()
 
+    def _refuse_unapplied_save(self) -> bool:
+        if not self.has_unapplied_edits():
+            return False
+        QMessageBox.information(
+            self,
+            "Apply changes first",
+            "You have edits that are not applied yet.\n\nClick Apply Changes "
+            "first, then Save to Disk. Unapplied edits are not written to the "
+            "save file.",
+        )
+        return True
+
     def on_save_as(self):
+        if self._refuse_unapplied_save():
+            return
         (pathstr, _) = QFileDialog.getSaveFileName(self)
         if not pathstr:
             return
@@ -553,8 +577,8 @@ class MainWindow(QMainWindow):
         self.update_status()
 
     def on_file_close(self):
-        if (isinstance(self.inner.widget_stack[1], SaveScreenMixin) and
-            self.alert_abandoning_modifications()):
+        if (self.inner.should_show_navigation and
+            not self.confirm_leaving(include_applied=True)):
             return
         while len(self.inner.widget_stack) > 1:
             self.stack_remove()
@@ -566,18 +590,47 @@ class MainWindow(QMainWindow):
         refresh_screen(widget)
         self.update_status()
 
-    def alert_abandoning_modifications(self) -> bool:
-        if not (self.inner.should_show_navigation and
-            self.inner.editor_widget.modified):
-            return False
-        prompt = QMessageBox.question(
-            self, "", "Discard changes?",
-            QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No
+    def discard_unapplied_edits(self) -> None:
+        for widget in self.inner.widget_stack:
+            if isinstance(widget, ScreenMixin):
+                refresh_screen(widget)
+        self.update_status()
+
+    def confirm_leaving(self, *, include_applied: bool) -> bool:
+        """Return True if the caller may proceed.
+
+        Unapplied edits are always discarded on confirmation. Applied but
+        unsaved changes are only checked when closing the save or the app,
+        since navigating within the open save keeps them in memory.
+        """
+        pending = self.has_unapplied_edits()
+        applied = (
+            include_applied
+            and self.inner.should_show_navigation
+            and self.inner.editor_widget.modified
         )
-        return prompt == QMessageBox.StandardButton.No.value
+        if not (pending or applied):
+            return True
+        reasons = []
+        if pending:
+            reasons.append("Unapplied edits will be discarded.")
+        if applied:
+            reasons.append("Applied changes that are not saved to disk will be lost.")
+        answer = QMessageBox.question(
+            self,
+            "Unsaved changes",
+            " ".join(reasons) + "\n\nContinue?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return False
+        if pending:
+            self.discard_unapplied_edits()
+        return True
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        if self.alert_abandoning_modifications():
+        if not self.confirm_leaving(include_applied=True):
             event.ignore()
             return
         return super().closeEvent(event)
