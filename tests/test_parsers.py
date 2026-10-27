@@ -3,6 +3,7 @@ import struct
 
 import pytest
 
+from kadishutu.tools import tbbreader
 from kadishutu.tools.extio import ExtIO
 from kadishutu.tools.tbbreader import Tbcr, Tbl
 
@@ -85,3 +86,83 @@ def test_tbcr_rejects_zero_row_size_in_file():
 
     with pytest.raises(ValueError, match="row size"):
         Tbcr.open(io.BytesIO(data))
+
+
+def test_tbcr_rejects_table_count_that_does_not_fit_file():
+    data = b"TBCR" + struct.pack("<II", HEADER_SIZE, 1000) + b"\0" * 16
+
+    with pytest.raises(ValueError, match="table count"):
+        Tbcr.open(io.BytesIO(data))
+
+
+def test_tbcr_rejects_table_count_above_cap(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(tbbreader, "MAX_TABLES", 2)
+    data = b"TBCR" + struct.pack("<II", HEADER_SIZE, 3) + b"\0" * 16
+
+    with pytest.raises(ValueError, match="table count"):
+        Tbcr.open(io.BytesIO(data))
+
+
+def test_tbcr_rejects_small_header_size():
+    data = b"TBCR" + struct.pack("<II", 8, 0) + b"\0" * 8
+
+    with pytest.raises(ValueError, match="header size"):
+        Tbcr.open(io.BytesIO(data))
+
+
+def test_tbcr_rejects_header_size_beyond_file():
+    data = b"TBCR" + struct.pack("<II", 0x1000, 0)
+
+    with pytest.raises(ValueError, match="header size"):
+        Tbcr.open(io.BytesIO(data))
+
+
+def test_tbcr_rejects_table_offset_beyond_file():
+    data = b"TBCR" + struct.pack("<III", HEADER_SIZE, 1, 0xFFFF)
+
+    with pytest.raises(ValueError, match="offset"):
+        Tbcr.open(io.BytesIO(data))
+
+
+def test_tbcr_rejects_table_size_beyond_file():
+    data = make_tbcr(table_size=100, row_size=4, rows=b"")
+
+    with pytest.raises(ValueError, match="truncated"):
+        Tbcr.open(io.BytesIO(data))
+
+
+def test_tbcr_rejects_table_size_above_cap(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(tbbreader, "MAX_TABLE_SIZE", 8)
+    data = make_tbcr(table_size=16, row_size=1, rows=b"\0" * 16)
+
+    with pytest.raises(ValueError, match="too large"):
+        Tbcr.open(io.BytesIO(data))
+
+
+def test_tbcr_rejects_row_count_above_cap(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(tbbreader, "MAX_TABLE_ROWS", 4)
+    data = make_tbcr(table_size=8, row_size=1, rows=b"\0" * 8)
+
+    with pytest.raises(ValueError, match="row count"):
+        Tbcr.open(io.BytesIO(data))
+
+
+def test_tbcr_rejects_row_size_larger_than_table():
+    data = make_tbcr(table_size=4, row_size=8, rows=b"\0" * 4)
+
+    with pytest.raises(ValueError, match="larger than table size"):
+        Tbcr.open(io.BytesIO(data))
+
+
+def test_tbcr_accepts_empty_table():
+    data = make_tbcr(table_size=0, row_size=4, rows=b"")
+
+    tbcr = Tbcr.open(io.BytesIO(data))
+
+    assert tbcr.tables[0].rows == []
