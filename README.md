@@ -338,7 +338,10 @@ The save-file documentation is in the `docs` folder:
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+This fork is licensed under the [Apache License 2.0](LICENSE).
+
+Portions inherited from the upstream project remain under the MIT License.
+See [LICENSES/MIT.txt](LICENSES/MIT.txt) and [NOTICE](NOTICE) for details.
 
 ## Credits
 

@@ -8,8 +8,8 @@ version = "0.1.13"
 description = "A save editor for Shin Megami Tensei V: Vengeance."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "LICENSES/MIT.txt"]
 authors = [
     { name = "fnrir", email = "stepien241@gmail.com" },
 ]
