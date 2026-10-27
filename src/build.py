@@ -6,6 +6,7 @@ environment).
 """
 import os
 import platform
+import shutil
 import subprocess
 import sys
 import tomllib
@@ -56,16 +57,17 @@ def build() -> Path:
         f"{ROOT / 'src' / 'kadishutu' / 'data' / 'tables'}{data_sep}"
         f"{NAME}/data/tables",
         "--add-data", f"{ROOT / 'README.md'}{data_sep}.",
-        "--add-data", f"{ROOT / 'LICENSE'}{data_sep}.",
-        "--add-data", f"{ROOT / 'NOTICE'}{data_sep}.",
-        "--add-data", f"{ROOT / 'LICENSES'}{data_sep}LICENSES",
         "--add-data", f"{ROOT / 'docs'}{data_sep}docs",
         "--add-data", f"{ROOT / 'examples'}{data_sep}examples",
         str(ROOT / "src" / "kadishutu" / "__main__.py"),
     ]
     print("Running:", " ".join(args))
     subprocess.run(args, cwd=ROOT, check=True)
-    return dist_path / NAME
+    app_path = dist_path / NAME
+    shutil.copy2(ROOT / "LICENSE", app_path)
+    shutil.copy2(ROOT / "NOTICE", app_path)
+    shutil.copytree(ROOT / "LICENSES", app_path / "LICENSES", dirs_exist_ok=True)
+    return app_path
 
 
 def tar_anonymize(info: TarInfo) -> TarInfo | None:
