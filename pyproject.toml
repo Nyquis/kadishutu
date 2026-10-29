@@ -68,8 +68,6 @@ ignore = ["E501"]
 [tool.ruff.lint.per-file-ignores]
 # The examples have a self-reexec header that has to stay above the imports.
 "examples/*.py" = ["E402"]
-# pyinstaller_runtime.py intentionally imports after patching the handlers.
-"src/pyinstaller_runtime.py" = ["E402", "I001"]
 # Trailing spaces are inside the lore strings in this generated data file.
 "src/kadishutu/data/old_demon_data.py" = ["W291"]
 

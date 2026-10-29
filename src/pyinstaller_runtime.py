@@ -1,29 +1,8 @@
-import kadishutu.tools.depinstall.generic
+"""PyInstaller runtime hook for the frozen-build tweaks.
 
-def likelyness() -> float:
-    return 0.0
+The patching itself lives in ``kadishutu._frozen`` so it can be exercised by
+tests without PyInstaller.
+"""
+from kadishutu._frozen import apply
 
-for handler in kadishutu.tools.depinstall.generic.INSTALL_HANDLERS:
-    handler.likelyness = staticmethod(likelyness)  # type: ignore[method-assign]
-
-kadishutu.tools.depinstall.generic.INSTALL_HANDLERS = []
-
-def get_install_handler():
-    raise NotImplementedError(
-        "Install handlers are unsupported on pyinstaller"
-    )
-
-kadishutu.tools.depinstall.generic.get_install_handler = get_install_handler  # type: ignore[assignment]
-
-
-import kadishutu.gui.prompt_install
-
-def handle_no_qt() -> int:
-    from tkinter import messagebox
-    messagebox.showerror(
-        "kadishutu",
-        "Something went wrong in the build process, making the GUI unusable."
-    )
-    return 1
-
-kadishutu.gui.prompt_install.handle_no_qt = handle_no_qt  # type: ignore[assignment]
+apply()

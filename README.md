@@ -88,6 +88,19 @@ pixi run -e dev test
 pixi run -e dev build
 ```
 
+`build` produces the release: a `kadishutu` folder plus a
+`kadishutu-<platform>-<commit>.zip` archive next to it.
+
+The build skips the Qt modules the widgets-only GUI never imports (QML/Quick,
+PDF, Network, SVG) and then prunes the DLLs, plugins and translations that
+PyInstaller copies in anyway. That is what keeps the download near 30 MB
+instead of 50 MB; pass `--no-prune` to build the unpruned payload for
+comparison.
+
+PyInstaller uses UPX when it is available, because its LZMA packing shrinks
+both the folder and the zip. Pass `--no-upx` if the packed executable trips
+antivirus heuristics on your machine; it also starts ~0.3s faster that way.
+
 The optional dependencies for `examples/late_bonuses.py` are in the
 `example-late-bonuses` environment:
 
