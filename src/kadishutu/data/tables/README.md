@@ -37,3 +37,25 @@ pixi run python -m tools.save_lab.item_metadata
 
 These offsets are specific to the current PC save version and should be
 re-checked after a game update.
+
+## Other generated metadata
+
+The same `MMIAsset`/TBCR pipeline generates miracle and quest metadata without
+requiring an optional game asset pack.
+
+- `miracles.generated.json` — `GodParameterDataTable`, table 0, 20-byte rows.
+  The row format is `<HIB5sH?5s` (`id`, `order_id`, `category`, padding,
+  `cost`, `toggleable`, padding).
+- `quests.generated.json` — `MissionTable`, table 0, 372-byte rows. Quest IDs
+  are the first two bytes (`<H`) of each row.
+
+Regenerate them with:
+
+```shell
+pixi run python -m tools.save_lab.miracle_metadata
+pixi run python -m tools.save_lab.quest_metadata
+```
+
+Run the CUE4Parse CLI export first and place the JSON output under
+`lab/dumps/game-tables-json/`. Demon and map data already have committed local
+datasets (`Players.csv`, `laylines.json`), so they do not need extraction yet.

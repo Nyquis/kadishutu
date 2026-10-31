@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import argparse
-import io
-import json
 import struct
 from pathlib import Path
 
-from kadishutu.tools.tbbreader import Tbcr
+from .mmi import load_mmi_tbcr, write_entries
 
 DEFAULT_ITEM_TABLE = Path(
     "lab/dumps/item-tables/Project/Content/Blueprints/Gamedata/"
@@ -36,9 +34,7 @@ def category_for(item_id: int) -> tuple[str, str]:
 
 
 def load_item_table(path: Path) -> tuple[dict[int, dict], dict[int, dict]]:
-    data = json.loads(path.read_text(encoding="utf-8-sig"))
-    raw = bytes(data[0]["Properties"]["MyFmtData"])
-    tcx = Tbcr.open(io.BytesIO(raw))
+    tcx = load_mmi_tbcr(path)
     if len(tcx.tables) < 4:
         raise ValueError(f"Expected at least 4 item tables, got {len(tcx.tables)}")
     consumables = tcx.tables[0]
@@ -128,13 +124,7 @@ def main() -> None:
 
     consumable_data, key_data = load_item_table(args.item_table)
     entries = build_entries(consumable_data, key_data)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    lines = ["["]
-    for index, entry in enumerate(entries):
-        suffix = "," if index != len(entries) - 1 else ""
-        lines.append("  " + json.dumps(entry, ensure_ascii=False) + suffix)
-    lines.append("]")
-    args.output.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    write_entries(args.output, entries)
     print(
         f"Wrote {len(entries)} entries to {args.output} "
         f"({len(consumable_data)} consumables, {len(key_data)} key items)"
