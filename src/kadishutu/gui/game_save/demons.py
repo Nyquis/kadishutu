@@ -134,7 +134,8 @@ class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.l = QGridLayout(self)
         for i, demon_number in enumerate(team.demon_order):
             sel = QPushButton(self)
-            sel.clicked.connect(self.demon_editor(demon_number))
+            if demon_number != self.NO_DEMON:
+                sel.clicked.connect(self.demon_editor(demon_number))
             self.l.addWidget(sel, *divmod(i, 4))
             self.widgets.append(sel)
 
@@ -169,12 +170,15 @@ class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
     def sort_with_fun(self, fun: CIDS):
         demons = self.demons
-        demon_order = self.demon_order
-        while demon_order[-1] == self.NO_DEMON:
-            demon_order.pop()
+        demon_order = [
+            demon_number
+            for demon_number in self.demon_order
+            if demon_number != self.NO_DEMON
+        ]
         demon_order.sort(key=lambda x: fun(x, demons.in_slot(x)))
-        for _ in range(len(demon_order), DEMON_TABLE_SIZE):
-            demon_order.append(self.NO_DEMON)
+        demon_order.extend(
+            [self.NO_DEMON] * (DEMON_TABLE_SIZE - len(demon_order))
+        )
         self._new_demon_order = demon_order
         self.stack_refresh()
 
@@ -217,7 +221,9 @@ class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
             self._new_demon_order = None
 
     def demon_editor(self, demon_number: int):
-        demon = self.demons.in_slot(demon_number)
-        return lambda: self.stack_add(
-            DemonEditorScreen(demon, self)
-        )
+        def open_editor():
+            if demon_number == self.NO_DEMON:
+                return
+            demon = self.demons.in_slot(demon_number)
+            self.stack_add(DemonEditorScreen(demon, self))
+        return open_editor
