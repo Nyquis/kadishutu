@@ -64,6 +64,27 @@ def test_editing_a_value_leaves_it_unapplied(window, editor):
     assert editor.save.macca == 0
 
 
+def test_item_bulk_buttons_apply_through_the_workflow(window, editor):
+    from kadishutu.data.items import CONSUMABLES_RANGE, items_from
+    from kadishutu.gui.game_save.items import ItemEditorScreen
+
+    screen = ItemEditorScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+    tab = screen.tabs[0]
+    meta = items_from(CONSUMABLES_RANGE)[0]
+
+    tab.max_button.click()
+    assert window.has_unapplied_edits()
+
+    screen.on_apply_changes()
+    assert editor.save.items.from_meta(meta).amount == meta.limit
+
+    tab.clear_button.click()
+    screen.on_apply_changes()
+    assert editor.save.items.from_meta(meta).amount == 0
+
+
 def test_mirroring_the_save_is_not_an_edit(window, editor):
     from kadishutu.gui.shared import refresh_screen
 

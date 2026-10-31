@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import (
     QGridLayout,
     QLabel,
+    QPushButton,
     QScrollArea,
     QTabWidget,
     QWidget,
@@ -32,13 +33,21 @@ class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
         self.setWidget(self.inner)
         self.l = QGridLayout(self.inner)
 
+        self.max_button = QPushButton("Max all", self.inner)
+        self.max_button.clicked.connect(self.max_all)
+        self.l.addWidget(self.max_button, 0, 0, 1, 2)
+        self.clear_button = QPushButton("Clear all", self.inner)
+        self.clear_button.clicked.connect(self.clear_all)
+        self.l.addWidget(self.clear_button, 0, 2, 1, 2)
+
         for i, meta in enumerate(items):
+            row = i + 1
             item = self.save.items.from_meta(meta)
             label = QLabel(item.name)
             desc = item.meta.desc
             if desc is not None:
                 label.setToolTip(desc)
-            self.l.addWidget(label, i, 1)
+            self.l.addWidget(label, row, 1)
             try:
                 element = item.meta.icon
                 pak = ICON_LOADER.element_icon(element)
@@ -51,16 +60,24 @@ class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
                 icon.setPixmap(pix)
                 if desc is not None:
                     icon.setToolTip(desc)
-                self.l.addWidget(icon, i, 0)
+                self.l.addWidget(icon, row, 0)
             limit_label = QLabel("Limit: " + str(item.limit))
             if desc is not None:
                 limit_label.setToolTip(desc)
-            self.l.addWidget(limit_label, i, 2)
+            self.l.addWidget(limit_label, row, 2)
             amount_box = QU8()
             if desc is not None:
                 amount_box.setToolTip(desc)
-            self.l.addWidget(amount_box, i, 3)
+            self.l.addWidget(amount_box, row, 3)
             self.items.append((item, label, amount_box))
+
+    def max_all(self):
+        for item, _, amount_box in self.items:
+            amount_box.setValue(item.limit)
+
+    def clear_all(self):
+        for _, _, amount_box in self.items:
+            amount_box.setValue(0)
 
     def stack_refresh(self):
         for item, _, amount_box in self.items:
