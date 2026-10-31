@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from struct import calcsize
 from typing import Self
 
-from kadishutu.data.laylines import Layline
+from kadishutu.data.laylines import LAYLINE_ID_MAP, Layline
 
 from ..shared.editors import (
     BaseStaticEditor,
@@ -79,6 +79,14 @@ class PositionEditor(BaseStaticEditor):
     raw_rotation = BytesEditor(ROT_OFFSET, calcsize(RotationEditor.fmt))
     rotation = RotationEditor(ROT_OFFSET)
     last_layline_fount = U8Editor(0x68c5)
+
+    @property
+    def last_layline(self) -> Layline | None:
+        return LAYLINE_ID_MAP.get(self.last_layline_fount)
+
+    def is_layline_unlocked(self, layline: Layline) -> bool:
+        (offset, bit) = layline.unlock_data
+        return bool(self.data[offset] & (1 << bit))
 
     def layline_unlock(self, layline: Layline):
         (offset, bit) = layline.unlock_data

@@ -782,6 +782,10 @@ Recommended for tests: 0x31 - Tokyo Diet Building
 
 WARNING: IF THE LAST LAYLINE FOUNT IS INVAILD, YOU GET THROWN TO THE TITLE SCREEN.
 
+The Leyline Crossing editor groups laylines by region, shows whether each is
+unlocked, and marks the last-used layline. Unlock status is derived from the
+layline ID formula (`0x80a2 + id // 8`, bit `id % 8`).
+
 ## Tracking info
 
 Tracking is done within an unsigned char / u8 (1 byte).
