@@ -3,6 +3,7 @@ import pytest
 from kadishutu.core.game_save import GameSaveEditor
 from kadishutu.core.game_save.demons import NO_DEMON
 from kadishutu.core.shared.file_handling import DecryptedSave
+from kadishutu.data.demons import DEMON_ID_MAP
 
 GAME_SAVE_SIZE = 0x6DC90
 
@@ -65,3 +66,18 @@ def test_in_slot_rejects_out_of_range():
         game.demons.in_slot(30)
     with pytest.raises(IndexError):
         game.demons.in_slot(-1)
+
+
+def test_new_from_initial_sets_current_healable_stats():
+    game = make_game()
+    for i in range(24):
+        game.demons.in_slot(i).demon_id = NO_DEMON
+    meta = next(iter(DEMON_ID_MAP.values()))
+
+    demon = game.demons.new_from_initial(meta)
+
+    assert demon.slot < 24
+    assert demon.demon_id == meta.id
+    assert demon.level == meta.level
+    assert demon.healable.hp == demon.stats.current.hp
+    assert demon.healable.mp == demon.stats.current.mp

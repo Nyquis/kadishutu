@@ -135,6 +135,8 @@ class DemonManager(BaseStaticEditor):
             stat = stat_name.lower()
             stats.base.__setattr__(stat, meta.stats.__getattribute__(stat))
         stats.recalculate()
+        demon.healable.hp = stats.current.hp
+        demon.healable.mp = stats.current.mp
         for slot, skill in enumerate(meta.skills):
             demon.skills.slot(slot).id = skill.id
         demon.innate_skill.id = meta.innate_skill.id
