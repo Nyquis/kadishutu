@@ -1,45 +1,67 @@
-from enum import IntFlag, auto
+from enum import IntFlag
 
-from kadishutu.core.shared.editors import BoolEditor, EnumEditor
+from kadishutu.core.shared.editors import EnumEditor
 from kadishutu.data.items import ESSENCES_RANGE, ITEM_TABLE_OFFSET, Item
 
 from .items import ItemEditor, ItemManager
 
 
 class EssenceMetadata(IntFlag):
-    Bit0 = auto()
-    New = auto()
-    Owned = auto()
-    Bit3 = auto()
-    Absent = auto()
-    Bit5 = auto()
-    Bit6 = auto()
-    Bit7 = auto()
+    Bit0 = 1
+    New = 2
+    Owned = 4
+    Bit3 = 8
+    Used = 16
+    Absent = Used
+    Bit5 = 32
+    Bit6 = 64
+    Bit7 = 128
 
     @classmethod
     def all(cls):
         return cls(0xff)
 
     @classmethod
+    def known_bits(cls):
+        return cls.New | cls.Owned | cls.Used
+
+    @classmethod
     def new_blockbits(cls):
-        return [EssenceMetadata.Owned, EssenceMetadata.Absent]
+        return [cls.Owned, cls.Used]
 
 
 class EssenceEditor(ItemEditor):
-    owned = BoolEditor(0)
     metadata = EnumEditor(0x380, EssenceMetadata)
 
+    @property
+    def have(self) -> bool:
+        return self.amount != 0
+
+    @have.setter
+    def have(self, value: bool):
+        if value:
+            self.amount = 1
+            if not (self.metadata & EssenceMetadata.known_bits()):
+                self.metadata |= EssenceMetadata.New
+        else:
+            self.amount = 0
+
+    @property
+    def used(self) -> bool:
+        return bool(self.metadata & EssenceMetadata.Used)
+
+    @used.setter
+    def used(self, value: bool):
+        if value:
+            self.metadata |= EssenceMetadata.Used
+        else:
+            self.metadata &= ~EssenceMetadata.Used
+
     def is_absent(self) -> bool:
-        return False
+        return self.used
 
     def is_owned(self) -> bool:
-        return False
-
-    def add_bits(self, bits: EssenceMetadata):
-        self.metadata |= bits
-
-    def remove_bits(self, bits: EssenceMetadata):
-        self.metadata &= ~bits
+        return self.have
 
     def is_new(self) -> bool:
         for i in EssenceMetadata.new_blockbits():
@@ -48,17 +70,13 @@ class EssenceEditor(ItemEditor):
         return bool(self.metadata & EssenceMetadata.New)
 
     def give(self, new: bool = False):
-        self.add_bits(EssenceMetadata.New)
+        self.have = True
         if new:
-            self.remove_bits(EssenceMetadata.Owned)
-        else:
-            self.add_bits(EssenceMetadata.Owned)
-        self.remove_bits(EssenceMetadata.Absent)
+            self.metadata &= ~(EssenceMetadata.Owned | EssenceMetadata.Used)
+            self.metadata |= EssenceMetadata.New
 
     def take(self):
-        self.add_bits(EssenceMetadata.New)
-        self.add_bits(EssenceMetadata.Owned)
-        self.add_bits(EssenceMetadata.Absent)
+        self.have = False
 
 
 class EssenceManager(ItemManager):

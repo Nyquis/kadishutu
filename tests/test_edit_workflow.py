@@ -182,6 +182,50 @@ def test_item_editor_warns_about_existing_over_limit_values(window, editor):
     assert tab.validation_label.isHidden()
 
 
+def test_essence_screen_keeps_have_and_used_flags_separate(window, editor):
+    from kadishutu.core.game_save.essences import EssenceMetadata
+    from kadishutu.gui.game_save.essences import EssenceEditorScreen
+
+    essence = editor.save.essences.from_id(351)
+    essence.amount = 1
+    essence.metadata = (
+        EssenceMetadata.New
+        | EssenceMetadata.Owned
+        | EssenceMetadata.Used
+    )
+
+    screen = EssenceEditorScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+    index = next(
+        index
+        for index, row in enumerate(screen.rows)
+        if row.essence.meta.id == 351
+    )
+    row = screen.rows[index]
+
+    assert row.have.isChecked()
+    assert row.used.isChecked()
+    assert "Used before" in row.status.text()
+
+    screen.search.setText("351")
+    assert screen.visible_indices == {index}
+
+    row.used.setChecked(False)
+    screen.on_apply_changes()
+
+    assert essence.amount == 1
+    assert essence.metadata == EssenceMetadata.New | EssenceMetadata.Owned
+
+    screen.clear_button.click()
+    screen.on_apply_changes()
+    assert essence.amount == 0
+
+    screen.used_button.click()
+    screen.on_apply_changes()
+    assert essence.used is True
+
+
 def test_mirroring_the_save_is_not_an_edit(window, editor):
     from kadishutu.gui.shared import refresh_screen
 

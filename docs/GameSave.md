@@ -672,49 +672,57 @@ Then there's essences from 0x4da9 to 0x4ebc.
 Then there's key items from 0x4f02 to 0x4fca.  
 Then there's relics (again) from 0x4fca to 0x4f11.
 
-NOTE: Essences can only ever have a value of 1.
+NOTE: Essence amounts are `0` (not in inventory) or `1` (in inventory).
 
 ## Essence info
 
-It's an array of fields, each one correlates to an item field asociated with an essence.
+Each essence has two independent save fields:
+
+1. The item amount at `0x4c72 + item_id`.
+   This is the current inventory count and can only be `0` or `1`.
+2. The metadata byte at `item_offset + 0x380`.
+   This is a history/status bitflag for the demon status screen.
 
 In a way essences are both items, and not.
 
-The formula for it is: `absoulute_item_offset + 0x380`  
-where the item is an essence.
+The metadata formula is: `absolute_item_offset + 0x380`.
 
-Here are possible values for each field:
+Possible metadata values include:
 
-- 0 - Not owned, ever  
-  (default)
-- 2 - New  
+- 0 - Not obtained, ever (default)
+- 2 - New
   (after getting an essence from a box)
-- 4 - ???? (possible)  
+- 4 - Owned / seen
   (amount = 1; load + save)
 - 5 (from 1)
   (amount = 1; meta = 1; load + save)
-- 6 - Owned  
-  (after highligting it in the menu)
-- 7 (from 3) - Owned
+- 6 - Owned / seen
+  (after highlighting it in the menu)
+- 7 (from 3) - Owned / seen
   (amount = 1; meta = 3; load + highlight + save)
-- 16 - Absent  
-  (after fusion)
+- 16 - Used before
+  (after fusion/use)
 - 20 (from 16)
   (meta = 16; load + save)
-- 22 - Absent
+- 22 - Used before
   (amount = 1; meta = 2; load + fuse (req highlight) + save)
 
-This is (most likely) a bitflag.
+The metadata is a bitflag:
 
 - bit 0 - does nothing, not removed if set
 - bit 1 - set after getting new essence, never removed
 - bit 2 - set after highlighting an essence
   OR if amount == 1 and bits 0 and 1 are not set
-- bit 4 - absent
+- bit 4 - used before
 - bits 3, 5, 6, 7 - if any of those are set,
   bit 2 is not set after adding essence
 
-### Essence?
+The “used before” bit does **not** remove the essence from inventory.
+It is possible to have `amount = 1` and metadata `22`: the player has a
+copy and has also used that essence before. This is common after re-obtaining
+an essence whose status icon was already marked as used.
+
+### Essence metadata
 
 It's an unsigned char / u8 (1 byte).
 
@@ -725,9 +733,8 @@ It's an unsigned char / u8 (1 byte).
 
 - 0x02 - bit 1 - New
   (is new if bit 2 and bit 4 are not set)
-- 0x04 - bit 2 - Owned
-  (is owned if bit 4 is not set)
-- 0x10 - bit 4 - Absent
+- 0x04 - bit 2 - Owned / seen
+- 0x10 - bit 4 - Used before
 - any other bit - Nothing (not removed)
 
 ## Location info
