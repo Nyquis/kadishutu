@@ -85,6 +85,44 @@ def test_item_bulk_buttons_apply_through_the_workflow(window, editor):
     assert editor.save.items.from_meta(meta).amount == 0
 
 
+def test_item_search_filters_and_limits_bulk_actions(window, editor):
+    from kadishutu.data.items import CONSUMABLES_RANGE, items_from
+    from kadishutu.gui.game_save.items import ItemEditorScreen
+
+    screen = ItemEditorScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+    tab = screen.tabs[0]
+    metas = items_from(CONSUMABLES_RANGE)
+    target_index = next(
+        index
+        for index, (item, _, _) in enumerate(tab.items)
+        if item.meta.id == 9
+    )
+    other_index = 0 if target_index != 0 else 1
+    other_meta = metas[other_index]
+
+    tab.search.setText("Amrita Soda")
+
+    assert tab.visible_indices == {target_index}
+    assert tab.visible_count == 1
+    assert tab.items[other_index][1].isHidden()
+
+    tab.max_button.click()
+    screen.on_apply_changes()
+
+    assert editor.save.items.from_id(9).amount == 50
+    assert editor.save.items.from_meta(other_meta).amount == 0
+
+    tab.search.setText("")
+    assert len(tab.visible_indices) == len(tab.items)
+
+    tab.clear_button.click()
+    screen.on_apply_changes()
+
+    assert editor.save.items.from_id(9).amount == 0
+
+
 def test_mirroring_the_save_is_not_an_edit(window, editor):
     from kadishutu.gui.shared import refresh_screen
 
