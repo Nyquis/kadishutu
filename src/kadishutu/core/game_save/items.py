@@ -1,10 +1,12 @@
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
 
 from kadishutu.data.items import (
     ITEM_ID_MAP,
     ITEM_NAME_MAP,
     ITEM_TABLE_OFFSET,
+    TOTAL_ITEM_RANGE,
     Item,
 )
 
@@ -13,6 +15,42 @@ from ..shared.editors import (
     BaseStaticEditor,
     BaseStructAsSingularValueEditor,
 )
+
+
+@dataclass(frozen=True)
+class ItemIssue:
+    item_id: int
+    amount: int
+    kind: str
+
+    @property
+    def item(self) -> Item | None:
+        return ITEM_ID_MAP.get(self.item_id)
+
+    @property
+    def message(self) -> str:
+        if self.kind == "over_limit":
+            item = self.item
+            assert item is not None
+            return (
+                f"{item.name} (#{self.item_id}) has {self.amount}, "
+                f"but its limit is {item.limit}."
+            )
+        return f"Unused item ID {self.item_id} has amount {self.amount}."
+
+
+def item_issues(data: Sequence[int]) -> list[ItemIssue]:
+    issues: list[ItemIssue] = []
+    for item_id in TOTAL_ITEM_RANGE:
+        amount = data[ITEM_TABLE_OFFSET + item_id]
+        if amount == 0:
+            continue
+        item = ITEM_ID_MAP.get(item_id)
+        if item is None:
+            issues.append(ItemIssue(item_id, amount, "unused_id"))
+        elif amount > item.limit:
+            issues.append(ItemIssue(item_id, amount, "over_limit"))
+    return issues
 
 
 class ItemEditor(BaseDynamicEditor, BaseStructAsSingularValueEditor):
@@ -63,6 +101,9 @@ class ItemManager(BaseStaticEditor):
 
     def from_name(self, name: str):
         return self.from_meta(ITEM_NAME_MAP[name])
+
+    def validate(self) -> list[ItemIssue]:
+        return item_issues(self.data)
 
     def set_amount(
         self,

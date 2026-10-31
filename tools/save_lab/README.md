@@ -21,7 +21,8 @@ pixi run python -m tools.save_lab validate <decrypted-save>
 - `gvas` — parse and print the GVAS header, class name, and payload offset
 - `diff` — annotated byte diff with integer, float, UTF-16, and bit candidates
 - `coverage` — mapped, inferred, and unknown byte ranges
-- `validate` — check size, class, GVAS offset, and hash
+- `validate` — check size, class, GVAS offset, hash, item limits, and unused
+  item IDs
 
 Planned later:
 

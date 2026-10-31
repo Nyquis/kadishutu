@@ -55,8 +55,13 @@ class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
         self.clear_button.clicked.connect(self.clear_all)
         self.l.addWidget(self.clear_button, 1, 2, 1, 3)
 
+        self.validation_label = QLabel(self.inner)
+        self.validation_label.setObjectName("Warning")
+        self.validation_label.setVisible(False)
+        self.l.addWidget(self.validation_label, 2, 0, 1, 5)
+
         for i, meta in enumerate(items):
-            row = i + 2
+            row = i + 3
             item = self.save.items.from_meta(meta)
             row_widgets: list[QWidget] = []
             label = QLabel(item.name)
@@ -91,11 +96,15 @@ class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
             amount_box = QU8()
             amount_box.setMaximum(max(item.limit, item.amount))
             amount_box.setToolTip(self.details_tooltip(item))
+            amount_box.valueChanged.connect(
+                lambda _: self.update_validation()
+            )
             self.l.addWidget(amount_box, row, 4)
             row_widgets.append(amount_box)
             self.items.append((item, label, amount_box))
             self.row_widgets.append(row_widgets)
 
+        self.update_validation()
         self.filter_items()
 
     @staticmethod
@@ -177,10 +186,25 @@ class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
             _, _, amount_box = self.items[index]
             amount_box.setValue(0)
 
+    def update_validation(self):
+        over_limit = sum(
+            1
+            for item, _, amount_box in self.items
+            if amount_box.value() > item.limit
+        )
+        self.validation_label.setVisible(over_limit > 0)
+        if over_limit:
+            noun = "item" if over_limit == 1 else "items"
+            self.validation_label.setText(
+                f"{over_limit} {noun} exceed the in-game limit. "
+                "Lower the amount before saving."
+            )
+
     def stack_refresh(self):
         for item, _, amount_box in self.items:
             amount_box.setMaximum(max(item.limit, item.amount))
             amount_box.setValue(item.amount)
+        self.update_validation()
         self.filter_items()
 
     def on_apply_changes(self):

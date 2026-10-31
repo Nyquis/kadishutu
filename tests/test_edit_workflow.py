@@ -158,6 +158,30 @@ def test_item_search_matches_metadata_and_flags(window, editor):
     )
 
 
+def test_item_editor_warns_about_existing_over_limit_values(window, editor):
+    from kadishutu.data.items import ITEM_ID_MAP
+    from kadishutu.gui.game_save.items import ItemEditorScreen
+
+    editor.save.items.set_amount(ITEM_ID_MAP[9], 255, clamp=False)
+    screen = ItemEditorScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+    tab = screen.tabs[0]
+
+    index = next(
+        index
+        for index, (item, _, _) in enumerate(tab.items)
+        if item.meta.id == 9
+    )
+    amount_box = tab.items[index][2]
+
+    assert amount_box.value() == 255
+    assert not tab.validation_label.isHidden()
+
+    amount_box.setValue(50)
+    assert tab.validation_label.isHidden()
+
+
 def test_mirroring_the_save_is_not_an_edit(window, editor):
     from kadishutu.gui.shared import refresh_screen
 
