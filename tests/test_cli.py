@@ -192,10 +192,10 @@ def test_cmd_run_script_rejects_invalid_hash(tmp_path: Path):
         )
 
 
-def test_sys_save_screen_is_read_only():
+def test_sys_save_screen_is_writable():
     pytest.importorskip("PySide6")
     from kadishutu.gui.shared import SaveScreenMixin
     from kadishutu.gui.sys_save import SysSaveEditorScreen
 
     assert SaveScreenMixin.can_save is True
-    assert SysSaveEditorScreen.can_save is False
+    assert SysSaveEditorScreen.can_save is True

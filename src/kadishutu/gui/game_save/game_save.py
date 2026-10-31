@@ -23,13 +23,13 @@ from ..shared import (
 from .alignment import AlignmentEditorScreen
 from .cross_cycle import CrossCycleEditorScreen
 from .demons import DemonSelectorScreen
+from .difficulty import DifficultyEditorScreen
 from .dlc import DlcEditorScreen
 from .essences import EssenceEditorScreen
 from .items import ItemEditorScreen
 from .miracles import MiracleEditorScreen
 from .player import PlayerEditorScreen
 from .plugin import GameSavePluginScreen
-from .settings import SettingsEditorScreen
 from .teleport import TeleporterScreen
 
 
@@ -97,7 +97,7 @@ class GameSaveEditorScreen(SaveScreenMixin, QWidget, AppliableWidget):
                 TeleporterScreen,
             ),
             ("Alignment", "Law, chaos, and neutrality", AlignmentEditorScreen),
-            ("Settings", "Difficulty and game settings", SettingsEditorScreen),
+            ("Difficulty", "Difficulty for this game save", DifficultyEditorScreen),
             ("Meta", "Cycles, endings, and late bonuses", CrossCycleEditorScreen),
         ]):
             card = CategoryCard(name, description, self.content)

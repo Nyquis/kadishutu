@@ -40,7 +40,7 @@ def test_main_window_initial_actions_are_disabled(main_window):
     assert not main_window.back_button.isEnabled()
 
 
-def test_sys_save_is_read_only(main_window):
+def test_sys_save_is_writable(main_window):
     from kadishutu.gui.sys_save import SysSaveEditorScreen
 
     editor = SysSaveEditorScreen(
@@ -50,8 +50,8 @@ def test_sys_save_is_read_only(main_window):
     )
     main_window.stack_add(editor)
 
-    assert not main_window.save_button.isEnabled()
-    assert not main_window.save_as_button.isEnabled()
+    assert main_window.save_button.isEnabled()
+    assert main_window.save_as_button.isEnabled()
     assert main_window.close_button.isEnabled()
 
 
@@ -112,7 +112,7 @@ def test_save_overview_builds_category_buttons(
         "Essences",
         "Layline Crossing",
         "Alignment",
-        "Settings",
+        "Difficulty",
         "Meta",
         "Plugins",
     } <= categories

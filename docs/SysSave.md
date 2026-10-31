@@ -2,7 +2,11 @@
 
 Size: 4832 bytes (end at 0x12e0)
 
-Contains settings and some misc data.
+Contains settings and some misc data. Changes affect all game saves.
+
+The editor treats the volume sliders as normalized `bfloat16` values
+(`0x3f80` = 1.0). Some advanced/DLC fields are not exposed yet; in particular,
+`0x1232` still needs verification.
 
 ## Decryption
 
