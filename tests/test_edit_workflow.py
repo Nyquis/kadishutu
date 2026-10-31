@@ -319,6 +319,64 @@ def test_alignment_screen_warns_when_both_sides_are_set(window, editor):
     assert alignment.get_flag(5) is False
 
 
+def test_meta_screen_edits_cycles_endings_and_satan(window, editor):
+    from kadishutu.core.game_save.game import Endings
+    from kadishutu.gui.game_save.cross_cycle import CrossCycleEditorScreen
+
+    screen = CrossCycleEditorScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    assert screen.cycles_box.maximum() == 99
+    assert screen.endings_summary.text() == "0 / 6 endings marked"
+
+    screen.cycles_box.setValue(5)
+    screen.ending_map[Endings.CreationLaw].setChecked(True)
+    screen.satan_box.setChecked(True)
+    screen.on_apply_changes()
+
+    assert editor.save.cycles == 5
+    assert editor.save.cycles_copy == 5
+    assert editor.save.endings & Endings.CreationLaw
+    assert editor.save.endings_copy == editor.save.endings
+    assert editor.save.miracle_unlocks.extras.satan_beaten is True
+    assert "1 / 6" in screen.endings_summary.text()
+
+
+def test_meta_screen_warns_and_syncs_header_copies(window, editor):
+    from kadishutu.gui.game_save.cross_cycle import CrossCycleEditorScreen
+
+    editor.save.cycles = 4
+    editor.save.cycles_copy = 9
+
+    screen = CrossCycleEditorScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    assert not screen.copy_warning.isHidden()
+
+    screen.on_apply_changes()
+
+    assert editor.save.cycles_copy == 4
+    assert screen.copy_warning.isHidden()
+
+
+def test_meta_screen_bulk_endings(window, editor):
+    from kadishutu.gui.game_save.cross_cycle import CrossCycleEditorScreen
+
+    screen = CrossCycleEditorScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    screen.mark_all_button.click()
+    assert all(box.isChecked() for box in screen.ending_map.values())
+    assert "6 / 6" in screen.endings_summary.text()
+
+    screen.clear_all_button.click()
+    assert not any(box.isChecked() for box in screen.ending_map.values())
+    assert "0 / 6" in screen.endings_summary.text()
+
+
 def test_mirroring_the_save_is_not_an_edit(window, editor):
     from kadishutu.gui.shared import refresh_screen
 

@@ -318,7 +318,7 @@ with all DLCs more specifically), but it also works with the PC version.
   - Position
   - Early compendium and quest support
   - Alignment
-  - Number of cycles and endings
+  - Number of cycles, endings, clear state, and late-game flags
 - Summoning new demons partially works, but it is not recommended because the
   demon block is not fully understood
 - SysSave is documented, but not implemented
