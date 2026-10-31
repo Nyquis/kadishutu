@@ -123,6 +123,25 @@ def test_item_search_filters_and_limits_bulk_actions(window, editor):
     assert editor.save.items.from_id(9).amount == 0
 
 
+def test_item_screen_has_column_headers(window, editor):
+    from kadishutu.gui.game_save.items import ItemEditorScreen
+
+    screen = ItemEditorScreen(window)
+    window.stack_add(screen)
+    tab = screen.tabs[0]
+
+    assert [header.text() for header in tab.headers] == [
+        "Icon",
+        "Item",
+        "Max",
+        "Details",
+        "Amount",
+    ]
+    assert tab.headers[2].toolTip()
+    assert tab.headers[3].toolTip()
+    assert tab.headers[4].toolTip()
+
+
 def test_item_search_matches_metadata_and_flags(window, editor):
     from kadishutu.gui.game_save.items import ItemEditorScreen
 
