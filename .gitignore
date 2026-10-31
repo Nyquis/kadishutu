@@ -192,3 +192,39 @@ Desktop.ini
 
 # Local logs
 logs/
+
+# ---------------------------------------------------------------------------
+# Save lab (monorepo)
+# Tooling and specs are tracked; save data and game dumps are not.
+# ---------------------------------------------------------------------------
+lab/corpus/
+lab/dumps/
+lab/snapshots/
+lab/tmp/
+lab/cache/
+lab/notes/
+lab/reports/
+lab/artifacts/
+
+# Save files and derived data
+*.sav
+*.sav.*
+*.dec
+
+# Editor backups
+*.bak
+
+# Extracted Unreal assets and decompiled output
+*.pak
+*.uexp
+*.uasset
+*.ubulk
+*.usmap
+*.kms
+*.umap
+
+# UE4SS output, if it is ever copied near the repo
+UE4SS_ObjectDump.txt
+UE4SS.log
+CXXHeaderDump/
+UE4SS_SDK/
