@@ -272,6 +272,34 @@ def test_apply_theme_updates_palette_and_stylesheet(qapp: QApplication):
         apply_theme(qapp, ThemeMode.SYSTEM)
 
 
+def test_file_selector_lists_detected_saves(
+    main_window,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    from kadishutu.core.shared.pc_saves import SaveFile
+    from kadishutu.gui import mainwindow
+
+    path = tmp_path / "SysSave.sav"
+    save = DecryptedSave(bytearray(0x12E0))
+    save.data[0x40:0x44] = b"GVAS"
+    save.hash_update()
+    save.save(path)
+
+    slot = SaveFile(path, "system", 0x12E0, path.stat().st_mtime)
+    monkeypatch.setattr(mainwindow, "discover_saves", lambda: [slot])
+
+    menu = mainwindow.FileSelectorMenu()
+
+    assert menu.detected_saves_box.count() == 1
+    assert menu.detected_saves_box.itemData(0) == str(path)
+
+    menu.detected_saves_box.setCurrentIndex(0)
+
+    assert menu.file_path.path == path
+    assert menu.file_open.isEnabled()
+
+
 def test_theme_controller_persists_mode(qapp: QApplication, tmp_path: Path):
     from PySide6.QtCore import QSettings
 
