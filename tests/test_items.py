@@ -104,6 +104,22 @@ def test_item_metadata_categories_and_flags():
     assert relic.category == "relic"
 
 
+def test_item_use_target_and_search_metadata():
+    life_stone = ITEM_ID_MAP[1]
+    health_balm = ITEM_ID_MAP[84]
+    health_incense = ITEM_ID_MAP[91]
+    return_pillar = ITEM_ID_MAP[70]
+
+    assert life_stone.use_target_name == "Any"
+    assert health_balm.use_target_name == "Nahobino"
+    assert health_incense.use_target_name == "Demon"
+    assert return_pillar.infinite is True
+    assert "infinite" in return_pillar.search_text
+    assert "unique" in ITEM_ID_MAP[706].search_text
+    assert "key item" in ITEM_ID_MAP[706].search_text
+    assert "battle" in ITEM_ID_MAP[9].search_text
+
+
 def test_all_known_items_have_positive_limits():
     assert all(item.limit > 0 for item in ITEM_ID_MAP.values())
 

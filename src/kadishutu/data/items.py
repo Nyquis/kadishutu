@@ -80,6 +80,12 @@ ITEM_KIND_NAMES = (
     "Important",
     "Invalid",
 )
+USE_TARGET_NAMES = (
+    "Unknown",
+    "Nahobino",
+    "Demon",
+    "Any",
+)
 
 
 @dataclass
@@ -174,6 +180,46 @@ class Item:
             return ITEM_KIND_NAMES[self.item_kind]
         except IndexError:
             return "Unknown"
+
+    @property
+    def use_target(self) -> int:
+        return int(self.metadata.get("use_target", -1))
+
+    @property
+    def use_target_name(self) -> str:
+        if self.use_target < 0:
+            return "Unknown"
+        try:
+            return USE_TARGET_NAMES[self.use_target]
+        except IndexError:
+            return "Unknown"
+
+    @property
+    def is_boost(self) -> bool:
+        return bool(self.metadata.get("is_boost", False))
+
+    @property
+    def search_text(self) -> str:
+        parts = [
+            self.name,
+            str(self.id),
+            self.category.replace("_", " "),
+            str(self.metadata.get("group", "")).replace("_", " "),
+            self.item_kind_name,
+            self.use_scene_name,
+            self.use_target_name,
+        ]
+        if self.unique:
+            parts.append("unique")
+        else:
+            parts.extend([f"max {self.limit}", f"limit {self.limit}"])
+        if self.infinite:
+            parts.append("infinite")
+        if self.is_boost:
+            parts.append("boost")
+        if self.desc:
+            parts.append(self.desc)
+        return " ".join(parts).lower()
 
     @property
     def offset(self) -> int:

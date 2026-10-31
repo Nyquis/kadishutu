@@ -38,20 +38,22 @@ class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
         self.l = QGridLayout(self.inner)
 
         self.search = QLineEdit(self.inner)
-        self.search.setPlaceholderText("Search items…")
+        self.search.setPlaceholderText(
+            "Search by name, ID, category, effect, or flag…"
+        )
         self.search.setClearButtonEnabled(True)
         self.search.textChanged.connect(lambda _: self.filter_items())
-        self.l.addWidget(self.search, 0, 0, 1, 3)
+        self.l.addWidget(self.search, 0, 0, 1, 4)
         self.count_label = QLabel(self.inner)
         self.count_label.setObjectName("Muted")
-        self.l.addWidget(self.count_label, 0, 3)
+        self.l.addWidget(self.count_label, 0, 4)
 
         self.max_button = QPushButton("Max all", self.inner)
         self.max_button.clicked.connect(self.max_all)
         self.l.addWidget(self.max_button, 1, 0, 1, 2)
         self.clear_button = QPushButton("Clear all", self.inner)
         self.clear_button.clicked.connect(self.clear_all)
-        self.l.addWidget(self.clear_button, 1, 2, 1, 2)
+        self.l.addWidget(self.clear_button, 1, 2, 1, 3)
 
         for i, meta in enumerate(items):
             row = i + 2
@@ -77,30 +79,81 @@ class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
                     icon.setToolTip(desc)
                 self.l.addWidget(icon, row, 0)
                 row_widgets.append(icon)
-            limit_label = QLabel("Limit: " + str(item.limit))
-            if desc is not None:
-                limit_label.setToolTip(desc)
+            limit_label = QLabel(self.limit_text(item))
+            limit_label.setToolTip(self.limit_tooltip(item))
             self.l.addWidget(limit_label, row, 2)
             row_widgets.append(limit_label)
+            details_label = QLabel(self.details_text(item))
+            details_label.setObjectName("Muted")
+            details_label.setToolTip(self.details_tooltip(item))
+            self.l.addWidget(details_label, row, 3)
+            row_widgets.append(details_label)
             amount_box = QU8()
-            if desc is not None:
-                amount_box.setToolTip(desc)
-            self.l.addWidget(amount_box, row, 3)
+            amount_box.setMaximum(max(item.limit, item.amount))
+            amount_box.setToolTip(self.details_tooltip(item))
+            self.l.addWidget(amount_box, row, 4)
             row_widgets.append(amount_box)
             self.items.append((item, label, amount_box))
             self.row_widgets.append(row_widgets)
 
         self.filter_items()
 
+    @staticmethod
+    def limit_text(item: ItemEditor) -> str:
+        if item.limit == 1:
+            return "Unique"
+        return f"Max {item.limit}"
+
+    @staticmethod
+    def limit_tooltip(item: ItemEditor) -> str:
+        if item.limit == 1:
+            return "This item does not stack."
+        return f"Maximum amount: {item.limit}"
+
+    @staticmethod
+    def details_text(item: ItemEditor) -> str:
+        parts: list[str] = []
+        meta = item.meta
+        if meta.infinite:
+            parts.append("Infinite")
+        scene = meta.use_scene_name
+        if scene not in ("Unknown", "Not usable"):
+            parts.append(scene)
+        target = meta.use_target_name
+        if target != "Unknown":
+            parts.append(f"{target} target")
+        return " · ".join(parts)
+
+    @staticmethod
+    def details_tooltip(item: ItemEditor) -> str:
+        meta = item.meta
+        lines: list[str] = []
+        if meta.desc:
+            lines.append(meta.desc)
+        lines.append(f"Category: {meta.category.replace('_', ' ').title()}")
+        if meta.item_kind_name != "Unknown":
+            lines.append(f"Kind: {meta.item_kind_name}")
+        if meta.use_scene_name != "Unknown":
+            lines.append(f"Usable: {meta.use_scene_name}")
+        if meta.use_target_name != "Unknown":
+            lines.append(f"Target: {meta.use_target_name}")
+        if meta.infinite:
+            lines.append("Infinite use")
+        lines.append(ItemEditorWidget.limit_tooltip(item))
+        return "\n".join(lines)
+
+    def matches_query(self, item: ItemEditor, query: str) -> bool:
+        if not query:
+            return True
+        if query.isdigit():
+            return query == str(item.meta.id)
+        return all(token in item.meta.search_text for token in query.split())
+
     def filter_items(self):
         query = self.search.text().strip().lower()
         visible: list[int] = []
         for index, (item, _, _) in enumerate(self.items):
-            matches = (
-                not query
-                or query in item.name.lower()
-                or query == str(item.meta.id)
-            )
+            matches = self.matches_query(item, query)
             for widget in self.row_widgets[index]:
                 widget.setVisible(matches)
             if matches:
@@ -126,6 +179,7 @@ class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
 
     def stack_refresh(self):
         for item, _, amount_box in self.items:
+            amount_box.setMaximum(max(item.limit, item.amount))
             amount_box.setValue(item.amount)
         self.filter_items()
 

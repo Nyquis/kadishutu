@@ -123,6 +123,41 @@ def test_item_search_filters_and_limits_bulk_actions(window, editor):
     assert editor.save.items.from_id(9).amount == 0
 
 
+def test_item_search_matches_metadata_and_flags(window, editor):
+    from kadishutu.gui.game_save.items import ItemEditorScreen
+
+    screen = ItemEditorScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+    tab = screen.tabs[0]
+
+    tab.search.setText("battle")
+    battle_ids = {
+        tab.items[index][0].meta.id for index in tab.visible_indices
+    }
+    assert 9 in battle_ids
+    assert all(
+        "battle" in tab.items[index][0].meta.search_text
+        for index in tab.visible_indices
+    )
+
+    tab.search.setText("infinite")
+    infinite_ids = {
+        tab.items[index][0].meta.id for index in tab.visible_indices
+    }
+    assert 70 in infinite_ids
+    assert all(
+        tab.items[index][0].meta.infinite
+        for index in tab.visible_indices
+    )
+
+    tab.search.setText("unique")
+    assert all(
+        tab.items[index][0].meta.limit == 1
+        for index in tab.visible_indices
+    )
+
+
 def test_mirroring_the_save_is_not_an_edit(window, editor):
     from kadishutu.gui.shared import refresh_screen
 
