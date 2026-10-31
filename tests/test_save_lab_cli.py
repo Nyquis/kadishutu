@@ -40,3 +40,21 @@ def test_cli_validate_rejects_bad_hash(tmp_path: Path, capsys):
 
     output = capsys.readouterr().out
     assert "FAIL hash" in output
+
+
+def test_cli_validate_reports_item_issues(tmp_path: Path, capsys):
+    from kadishutu.core.shared.file_handling import DecryptedSave
+    from kadishutu.data.items import ITEM_TABLE_OFFSET
+
+    header, _ = make_gvas_header()
+    data = bytearray(0x6DC90)
+    data[:len(header)] = header
+    data[ITEM_TABLE_OFFSET + 9] = 255
+    path = tmp_path / "game.sav"
+    DecryptedSave(data).save_finished(path, backup=False)
+
+    assert main(["validate", str(path)]) == 1
+
+    output = capsys.readouterr().out
+    assert "FAIL items" in output
+    assert "Amrita Soda (#9)" in output

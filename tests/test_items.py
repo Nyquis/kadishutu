@@ -120,6 +120,22 @@ def test_item_use_target_and_search_metadata():
     assert "battle" in ITEM_ID_MAP[9].search_text
 
 
+def test_item_validation_flags_over_limit_and_unused_ids():
+    game = make_game()
+    game.items.set_amount(ITEM_ID_MAP[9], 255, clamp=False)
+    game.data[ITEM_TABLE_OFFSET + 29] = 1
+
+    issues = game.items.validate()
+
+    assert (9, "over_limit") in {
+        (issue.item_id, issue.kind) for issue in issues
+    }
+    assert (29, "unused_id") in {
+        (issue.item_id, issue.kind) for issue in issues
+    }
+    assert any("Amrita Soda" in issue.message for issue in issues)
+
+
 def test_all_known_items_have_positive_limits():
     assert all(item.limit > 0 for item in ITEM_ID_MAP.values())
 

@@ -3,6 +3,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from kadishutu.core.game_save.items import item_issues
+from kadishutu.data.items import ITEM_TABLE_END
+
 from .diff import format_diff
 from .files import load_save
 from .gvas import GvasError, find_gvas_offset, parse_gvas_header
@@ -97,11 +100,35 @@ def cmd_validate(args: argparse.Namespace) -> int:
         f"GVAS at 0x{header.offset:x}",
     ))
 
+    issues = []
+    if len(save.data) >= ITEM_TABLE_END:
+        issues = item_issues(save.data)
+        over_limit = sum(1 for issue in issues if issue.kind == "over_limit")
+        unused = sum(1 for issue in issues if issue.kind == "unused_id")
+        checks.append((
+            "items",
+            not issues,
+            (
+                f"{len(issues)} issue(s): "
+                f"{over_limit} over-limit, {unused} unused ID(s)"
+                if issues
+                else "amounts and IDs are valid"
+            ),
+        ))
+    else:
+        checks.append((
+            "items",
+            False,
+            "save is too small for the item table",
+        ))
+
     failed = False
     for name, ok, detail in checks:
         mark = "OK" if ok else "FAIL"
         print(f"{mark:4s} {name}: {detail}")
         failed = failed or not ok
+    for issue in issues:
+        print(f"     {issue.message}")
     return 1 if failed else 0
 
 

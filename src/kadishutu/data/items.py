@@ -50,6 +50,7 @@ def _range_for_flag(flag: str) -> range:
 
 
 TOTAL_ITEM_RANGE = range(0, max(ITEM_METADATA, default=895) + 1)
+ITEM_TABLE_END = ITEM_TABLE_OFFSET + len(TOTAL_ITEM_RANGE)
 CONSUMABLES_RANGE = _range_for_group("consumable")
 CON_BOOST_RANGE = _range_for_flag("is_boost")
 ESSENCES_RANGE = _range_for_group("essence")
