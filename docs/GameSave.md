@@ -831,9 +831,29 @@ The end is assumed to be at 0x5b412 due to the last id in the quest data table.
 
 ### Canon of Vengeance
 
-Data about alignment values is in a different doc (for now).
+Alignment choices are stored as an 8-byte bitfield from `0x69cf5` to
+`0x69cfc`. Each bit records one dialogue or action choice.
 
-[Here's a copy.](cheatroom_blog_post_translation.md)
+- `src/kadishutu/data/tables/alignment_data.json` contains the decoded choices.
+- Law and Chaos choices are paired, but some choices are still unverified and
+  use `"alignment": "unknown"`.
+- A bit does not directly represent a numeric Law/Chaos score. The editor
+  summarises selected Law/Chaos choices, but the game’s final alignment also
+  depends on its own weighting.
+
+Missing or uncertain entries:
+
+- `0x69cfa` bits 4 and 5 are **Heart of Garnet**: Law for finishing off
+  Vouivre, Chaos for sparing her.
+- `0x69cfc` bits 2 and 3 are still unverified: “For Creation” and
+  “To stop Tiamat”.
+- `0x69cfa` bit 5 was previously missing from the data even though it is set
+  in normal saves.
+
+The original experimental breakdown is in
+[cheatroom_blog_post_translation.md](cheatroom_blog_post_translation.md).
+The Vengeance-specific diff is in
+[experimentation/vengeance-alignment.md](experimentation/vengeance-alignment.md).
 
 ### [TODO] Map block
 
