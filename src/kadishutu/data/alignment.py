@@ -15,6 +15,10 @@ class AlignmentBit(JsonListMixin):
     side_quest: str | None
     text: list[str]
 
+    @property
+    def is_unknown(self) -> bool:
+        return self.alignment not in ("law", "chaos")
+
 
 @dataclass
 class AlignmentByte(JsonListMixin):
@@ -31,12 +35,14 @@ class AlignmentByte(JsonListMixin):
             self.bitmap[bitobj.bit] = bitobj
 
     def has_bit(self, bit: int) -> bool:
-        try:
-            self.bitmap[bit]
-        except IndexError:
-            return False
-        else:
-            return True
+        return bit in self.bitmap
+
+    @property
+    def known_mask(self) -> int:
+        return sum(1 << bit.bit for bit in self.bits)
+
+    def unknown_bits(self, value: int) -> int:
+        return value & ~self.known_mask & 0xFF
 
 
 ALIGNMENT_DATA = AlignmentByte.load_path(ALIGNMENT_DATA_PATH)

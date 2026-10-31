@@ -63,6 +63,7 @@ See `docs/GameSave.md` for the hash and encryption details.
 | `0x5129-0x523c` | Essence metadata | inferred |
 | `0x567e-0x569a` | Current map IDs and position | verified |
 | `0x59d52-0x5b412` | Quest records, 224 × 26 bytes | inferred |
+| `0x69cf5-0x69cfd` | Alignment choice bitfield, 8 bytes | verified |
 | `0x69a90` | Settings copy (`FSystemData`) | inferred |
 | `0x18272-0x2db42` | Analyze/compendium data | inferred |
 

@@ -59,3 +59,14 @@ pixi run python -m tools.save_lab.quest_metadata
 Run the CUE4Parse CLI export first and place the JSON output under
 `lab/dumps/game-tables-json/`. Demon and map data already have committed local
 datasets (`Players.csv`, `laylines.json`), so they do not need extraction yet.
+
+## Alignment choices
+
+`alignment_data.json` decodes the 8-byte alignment bitfield at
+`0x69cf5-0x69cfc`. Each entry records the save offset, bit, Law/Chaos value,
+place, optional side quest, and the text of the choice.
+
+The data is based on the save experiments in `docs/GameSave.md` and
+`docs/cheatroom_blog_post_translation.md`. Some choices are still marked
+`"unknown"` where the alignment has not been verified. The editor also reports
+unmapped bits instead of silently ignoring them.

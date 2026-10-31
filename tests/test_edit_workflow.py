@@ -245,6 +245,46 @@ def test_essence_screen_keeps_have_and_used_flags_separate(window, editor):
     assert essence.used is True
 
 
+def test_alignment_screen_filters_and_edits_choices(window, editor):
+    from kadishutu.gui.game_save.alignment import AlignmentEditorScreen
+
+    screen = AlignmentEditorScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    assert [header.text() for header in screen.headers[:6]] == [
+        "Set",
+        "Alignment",
+        "Place",
+        "Choice",
+        "Quest",
+        "Type",
+    ]
+
+    screen.search.setText("Heart of Garnet")
+    expected = {
+        index
+        for index, row in enumerate(screen.rows)
+        if row.bit.side_quest == "Heart of Garnet"
+    }
+    assert screen.visible_indices == expected
+    assert len(expected) == 2
+
+    row = next(
+        row for row in screen.rows
+        if row.bit.side_quest == "Heart of Garnet" and row.bit.bit == 4
+    )
+    row.box.setChecked(True)
+    screen.on_apply_changes()
+
+    assert editor.save.alignment.at_offset(0x69CFA).get_flag(4) is True
+    assert "Law 1" in screen.summary_label.text()
+
+    screen.advanced.setChecked(True)
+    assert not row.offset_label.isHidden()
+    assert not row.bit_label.isHidden()
+
+
 def test_mirroring_the_save_is_not_an_edit(window, editor):
     from kadishutu.gui.shared import refresh_screen
 
