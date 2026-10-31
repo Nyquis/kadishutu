@@ -39,7 +39,7 @@ def is_save_decrypted(data: bytearray) -> bool:
     return data[0x40:0x44] == b"GVAS"
 
 
-def _backup_path(path: Path) -> Path:
+def backup_path(path: Path) -> Path:
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
     candidate = path.with_name(f"{path.name}.{stamp}.bak")
     suffix = 1
@@ -47,6 +47,12 @@ def _backup_path(path: Path) -> Path:
         candidate = path.with_name(f"{path.name}.{stamp}.{suffix}.bak")
         suffix += 1
     return candidate
+
+
+def copy_backup(path: Path) -> Path:
+    backup = backup_path(path)
+    shutil.copy2(path, backup)
+    return backup
 
 
 def _replace_file(source: Path, destination: Path) -> None:
@@ -61,10 +67,9 @@ def _backup_note(backup_path: Path | None) -> str:
 
 def _write_atomic(path: Path, data: bytes, *, backup: bool = True) -> Path | None:
     path = Path(path)
-    backup_path: Path | None = None
+    backup_file: Path | None = None
     if backup and path.exists():
-        backup_path = _backup_path(path)
-        shutil.copy2(path, backup_path)
+        backup_file = copy_backup(path)
 
     fd, temp_name = tempfile.mkstemp(
         prefix=f".{path.name}.",
@@ -80,7 +85,7 @@ def _write_atomic(path: Path, data: bytes, *, backup: bool = True) -> Path | Non
         if temp_path.read_bytes() != data:
             raise SaveVerificationError(
                 f"Temporary save file verification failed for {path}"
-                f"{_backup_note(backup_path)}"
+                f"{_backup_note(backup_file)}"
             )
         _replace_file(temp_path, path)
     except BaseException:
@@ -91,20 +96,20 @@ def _write_atomic(path: Path, data: bytes, *, backup: bool = True) -> Path | Non
     try:
         written_data = path.read_bytes()
     except OSError as exc:
-        _restore_backup(path, backup_path)
+        _restore_backup(path, backup_file)
         raise SaveVerificationError(
             f"Could not verify the saved file at {path}."
-            f"{_backup_note(backup_path)}"
+            f"{_backup_note(backup_file)}"
         ) from exc
 
     if written_data != data:
-        _restore_backup(path, backup_path)
+        _restore_backup(path, backup_file)
         raise SaveVerificationError(
             f"Saved file verification failed for {path}."
-            f"{_backup_note(backup_path)}"
+            f"{_backup_note(backup_file)}"
         )
 
-    return backup_path
+    return backup_file
 
 
 def _restore_backup(path: Path, backup_path: Path | None) -> None:
