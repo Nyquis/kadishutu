@@ -352,6 +352,94 @@ def test_file_selector_lists_detected_saves(
     assert menu.file_open.isEnabled()
 
 
+def test_backup_manager_dialog_creates_backup(qapp: QApplication, tmp_path: Path):
+    from kadishutu.core.shared.backups import list_backups
+    from kadishutu.gui.backup_manager import BackupManagerDialog
+
+    target = tmp_path / "GameSave01.sav"
+    target.write_bytes(b"current")
+
+    dialog = BackupManagerDialog(target)
+
+    assert dialog.table.rowCount() == 0
+
+    dialog.create_now()
+
+    assert dialog.table.rowCount() == 1
+    assert len(list_backups(target)) == 1
+    dialog.reject()
+
+
+def test_backup_manager_dialog_restores_and_deletes(
+    qapp: QApplication,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    from kadishutu.core.shared.backups import create_backup
+    from kadishutu.gui.backup_manager import BackupManagerDialog
+
+    target = tmp_path / "GameSave01.sav"
+    target.write_bytes(b"old")
+    create_backup(target)
+    target.write_bytes(b"new")
+
+    monkeypatch.setattr(
+        QMessageBox,
+        "warning",
+        lambda *args, **kwargs: QMessageBox.StandardButton.Yes,
+    )
+    monkeypatch.setattr(
+        QMessageBox,
+        "question",
+        lambda *args, **kwargs: QMessageBox.StandardButton.Yes,
+    )
+    monkeypatch.setattr(
+        QMessageBox,
+        "information",
+        lambda *args, **kwargs: None,
+    )
+
+    dialog = BackupManagerDialog(target)
+    assert dialog.table.rowCount() == 1
+
+    dialog.restore_selected()
+
+    assert target.read_bytes() == b"old"
+    assert dialog.restored
+    assert dialog.table.rowCount() == 2
+
+    dialog.table.selectRow(0)
+    selected = dialog.selected_entry()
+    assert selected is not None
+    dialog.delete_selected()
+
+    assert not selected.path.exists()
+    dialog.reject()
+
+
+def test_file_selector_backups_button_tracks_selected_path(
+    qapp: QApplication,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    from kadishutu.gui import mainwindow
+    from kadishutu.gui.mainwindow import FileSelectorMenu
+
+    monkeypatch.setattr(mainwindow, "discover_saves", lambda: [])
+
+    path = tmp_path / "SysSave.sav"
+    save = DecryptedSave(bytearray(0x12E0))
+    save.data[0x40:0x44] = b"GVAS"
+    save.hash_update()
+    save.save(path)
+
+    menu = FileSelectorMenu()
+
+    assert not menu.backups_button.isEnabled()
+    menu.file_path.path = path
+    assert menu.backups_button.isEnabled()
+
+
 def test_theme_controller_persists_mode(qapp: QApplication, tmp_path: Path):
     from PySide6.QtCore import QSettings
 
