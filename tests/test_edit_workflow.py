@@ -517,6 +517,51 @@ def test_potentials_screen_uses_signed_values(window, editor):
     assert demon.potentials.read(PotentialType.Physical) == -2
 
 
+def test_layline_screen_groups_filters_and_teleports(window, editor):
+    from kadishutu.gui.game_save.teleport import TeleporterScreen
+
+    screen = TeleporterScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    assert screen.tree.topLevelItemCount() > 0
+    assert "Last used layline" in screen.last_label.text()
+
+    screen.search.setText("Tamachi")
+    tamachi = next(
+        item
+        for item in screen.item_by_id.values()
+        if item.text(0) == "Tamachi"
+    )
+    assert not tamachi.isHidden()
+
+    screen.tree.setCurrentItem(tamachi)
+    assert screen.selected_layline is not None
+    assert screen.selected_layline.name == "Da'at: Minato - Tamachi"
+    assert screen.button.isEnabled()
+    assert screen.unlock_layline.isEnabled()
+
+    screen.on_apply_changes()
+
+    position = editor.save.position
+    assert position.last_layline is not None
+    assert position.last_layline.name == "Da'at: Minato - Tamachi"
+    assert position.is_layline_unlocked(position.last_layline) is True
+
+
+def test_layline_screen_warns_about_invalid_last_layline(window, editor):
+    from kadishutu.gui.game_save.teleport import TeleporterScreen
+
+    editor.save.position.last_layline_fount = 0xFF
+
+    screen = TeleporterScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    assert not screen.warning_label.isHidden()
+    assert "not recognized" in screen.warning_label.text()
+
+
 def test_mirroring_the_save_is_not_an_edit(window, editor):
     from kadishutu.gui.shared import refresh_screen
 
