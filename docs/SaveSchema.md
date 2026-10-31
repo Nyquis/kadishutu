@@ -195,8 +195,18 @@ The first used essence in a typical save is ID `311` at `0x4da9` (Khonsu).
 Lower essence IDs are valid but may be zero/unused. This matches
 `data/items.py` and resolves the apparent gap in older notes.
 
-`FItemSaveData` also has `m_Get`, but the flag encoding and offset are not yet
-confirmed.
+`FItemSaveData` also has `m_Get`, which starts at `0x4ff2`
+(`0x4c72 + 0x380`) and mirrors the item IDs. For essences, the byte is a
+history/status bitflag:
+
+| Bit | Meaning |
+| --- | --- |
+| `0x02` | New |
+| `0x04` | Owned / seen |
+| `0x10` | Used before |
+
+The amount byte and the `m_Get` byte are independent. An essence can have
+`amount = 1` and the used-before bit set at the same time.
 
 ## Quests: `FMissionSaveData`
 
