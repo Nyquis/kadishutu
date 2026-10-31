@@ -6,10 +6,20 @@ from ..shared import AppliableWidget, MComboBox, hboxed
 from .shared import GameScreenMixin
 
 
-class SettingsEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
+class DifficultyEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.l = QVBoxLayout(self)
+
+        note = QLabel(
+            "Most system settings are stored in SysSave.sav, not in a game "
+            "save. Open SysSave.sav to edit them.",
+            self,
+        )
+        note.setObjectName("Muted")
+        note.setWordWrap(True)
+        self.l.addWidget(note)
+
         self.difficulty = MComboBox()
         self.difficulty.addItems([
             difficulty.name

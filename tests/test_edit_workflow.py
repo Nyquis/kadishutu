@@ -517,6 +517,67 @@ def test_potentials_screen_uses_signed_values(window, editor):
     assert demon.potentials.read(PotentialType.Physical) == -2
 
 
+def test_game_save_categories_use_difficulty_label(editor):
+    from kadishutu.gui.components import CategoryCard
+
+    titles = {
+        card.title_label.text()
+        for card in editor.findChildren(CategoryCard)
+    }
+
+    assert "Difficulty" in titles
+    assert "Settings" not in titles
+
+
+def test_sys_save_screen_edits_settings(window, tmp_path):
+    from kadishutu.core.shared.file_handling import DecryptedSave
+    from kadishutu.core.sys_save import CameraMode
+    from kadishutu.gui.sys_save.sys_save import SysSaveEditorScreen
+
+    raw = DecryptedSave(bytearray(0x12E0))
+    raw.data[0x40:0x44] = b"GVAS"
+    path = tmp_path / "SysSave.sav"
+
+    screen = SysSaveEditorScreen(path, raw, window)
+    window.stack_add(screen)
+
+    assert screen.can_save
+
+    volume = next(
+        slider
+        for slider, _, field in screen.volume_controls
+        if field == "voice_volume"
+    )
+    volume.setValue(50)
+
+    camera = next(
+        combo
+        for combo, field, _ in screen.enum_controls
+        if field == "camera_horizontal"
+    )
+    camera.setCurrentIndex(
+        camera.findData(CameraMode.Reverse.value)
+    )
+
+    subtitles = next(
+        box
+        for box, field in screen.bool_controls
+        if field == "subtitles"
+    )
+    subtitles.setChecked(False)
+
+    screen.on_apply_changes()
+
+    assert 0.49 < screen.save.voice_volume < 0.51
+    assert screen.save.camera_horizontal is CameraMode.Reverse
+    assert raw.data[0x1221] == 1
+
+    screen.raw_save.save_finished(path, backup=False)
+    reopened = DecryptedSave.auto_open(path)
+    assert reopened.data[0x1221] == 1
+    assert reopened.data[0x5F6] == CameraMode.Reverse.value
+
+
 def test_layline_screen_groups_filters_and_teleports(window, editor):
     from kadishutu.gui.game_save.teleport import TeleporterScreen
 

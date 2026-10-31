@@ -319,16 +319,18 @@ with all DLCs more specifically), but it also works with the PC version.
   - Early compendium and quest support
   - Alignment
   - Number of cycles, endings, clear state, and late-game flags
+  - Game difficulty
+  - SysSave system settings: audio, camera, display, messages, battle,
+    controls, language, and Mitama dances
 - Summoning new demons partially works, but it is not recommended because the
   demon block is not fully understood
-- SysSave is documented, but not implemented
 
 ### Known limitations
 
 - The CLI is functional but unpolished.
 - The demon block and some compendium/quest data are not fully understood.
 - Plugins and scripts are trusted code rather than sandboxed extensions.
-- SysSave editing is not implemented.
+- Some SysSave advanced/DLC flags are not exposed yet.
 
 ### Planned
 

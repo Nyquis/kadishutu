@@ -26,6 +26,7 @@ Update this block and the per-area status after each manual pass.
 | Meta | Not run | | |
 | Demons | Not run | | |
 | Laylines | Not run | | |
+| SysSave | Not run | | |
 | Data pipeline | Not run | | |
 | Regression | Not run | | |
 
@@ -58,6 +59,14 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 | SAVE-02 | Switch screens with unapplied edits | App warns or preserves the edits | Not run | | |
 | SAVE-03 | Restore a backup from the backup manager | Restored save opens correctly | Not run | | |
 | SAVE-04 | Open a save with an invalid hash | App warns before opening | Not run | | |
+
+## Difficulty
+
+| ID | Test | Expected | Status | Build | Notes |
+|---|---|---|---|---|---|
+| DIFF-01 | Open the game-save category list | Card is named `Difficulty`, not `Settings` | Not run | | |
+| DIFF-02 | Open Difficulty | SysSave note is visible | Not run | | |
+| DIFF-03 | Change difficulty and save/reload | Value persists | Not run | | |
 
 ## Items
 
@@ -130,6 +139,17 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 | LAYLINE-05 | Teleport to Tokyo Diet Building | Selection enables Teleport | Not run | | |
 | LAYLINE-06 | Apply, save, and load in game | Position and unlock state are correct | Not run | | |
 | LAYLINE-07 | Open an invalid last-layline save | Warning appears | Not run | | |
+
+## SysSave
+
+| ID | Test | Expected | Status | Build | Notes |
+|---|---|---|---|---|---|
+| SYSSAVE-01 | Open SysSave.sav | System Settings screen loads | Not run | | |
+| SYSSAVE-02 | Change a volume slider | Percentage updates | Not run | | |
+| SYSSAVE-03 | Change camera/display/message options | Controls update correctly | Not run | | |
+| SYSSAVE-04 | Toggle inverted settings | Checkbox meaning matches the UI label | Not run | | |
+| SYSSAVE-05 | Apply and Save to Disk | Save round-trip succeeds | Not run | | |
+| SYSSAVE-06 | Reopen SysSave and launch the game | Settings persist without corruption | Not run | | |
 
 ## Data pipeline
 
