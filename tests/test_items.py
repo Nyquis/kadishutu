@@ -62,6 +62,27 @@ def test_amrita_soda_uses_in_game_limit():
     assert game.items.from_meta(item).amount == 50
 
 
+@pytest.mark.parametrize(
+    ("item_id", "expected_limit"),
+    [
+        (9, 50),
+        (656, 3),
+        (706, 1),
+        (757, 8),
+        (769, 99),
+        (771, 99),
+        (772, 10),
+        (799, 10),
+        (800, 50),
+        (801, 38),
+    ],
+)
+def test_item_limits_match_game_table(item_id: int, expected_limit: int):
+    item = ITEM_ID_MAP[item_id]
+
+    assert item.limit == expected_limit
+
+
 def test_max_all_uses_per_item_limits():
     game = make_game()
     items = items_from(CONSUMABLES_RANGE)
