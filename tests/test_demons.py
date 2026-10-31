@@ -116,6 +116,33 @@ def test_create_from_initial_refuses_guest_slot():
         game.demons.create_from_initial(meta, 24)
 
 
+def test_max_stock_editor_round_trips():
+    game = make_game()
+
+    game.team.max_stock = 5
+
+    assert game.team.max_stock == 5
+    assert game.data[0x3D31] == 5
+
+
+def test_free_storage_slots_respects_usable_limit():
+    game = make_game()
+    for i in range(30):
+        game.demons.in_slot(i).demon_id = NO_DEMON
+
+    assert game.demons.free_storage_slots(limit=5) == list(range(5))
+
+
+def test_create_from_initial_respects_usable_limit():
+    game = make_game()
+    for i in range(30):
+        game.demons.in_slot(i).demon_id = NO_DEMON
+    meta = next(iter(DEMON_ID_MAP.values()))
+
+    with pytest.raises(ValueError, match="usable limit"):
+        game.demons.create_from_initial(meta, 7, max_stock=5)
+
+
 def test_add_to_order_uses_first_free_slot():
     game = make_game()
     game.team.demon_order = [0xFF] * 30

@@ -29,6 +29,7 @@ class DemonOrderEditor(StructEditor):
 class TeamEditor(BaseStaticEditor):
     offset = 0
     NO_DEMON = 0xff
+    max_stock = U8Editor(0x3d31)
     demon_order = DemonOrderEditor(0x3d10)
 
     @property

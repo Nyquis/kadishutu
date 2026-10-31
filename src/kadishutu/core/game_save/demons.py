@@ -125,16 +125,30 @@ class DemonManager(BaseStaticEditor):
                 return demon
         raise RuntimeError
 
-    def free_storage_slots(self) -> list[int]:
-        return [demon.slot for demon in self if demon.is_free]
+    def free_storage_slots(self, limit: int | None = None) -> list[int]:
+        upper = self.STORAGE_SIZE
+        if limit is not None:
+            upper = min(upper, max(0, limit))
+        return [
+            demon.slot
+            for demon in self
+            if demon.slot < upper and demon.is_free
+        ]
 
     def create_from_initial(
         self,
         meta: Demon,
         slot: int,
+        *,
+        max_stock: int | None = None,
     ) -> DemonEditor:
         if not 0 <= slot < self.STORAGE_SIZE:
             raise ValueError(f"Demon slot {slot} is not a storage slot")
+        if max_stock is not None and slot >= max_stock:
+            raise ValueError(
+                f"Demon slot {slot} exceeds the current usable limit "
+                f"of {max_stock}"
+            )
         demon = self.in_slot(slot)
         if not demon.is_free:
             raise ValueError(f"Demon slot {slot} is occupied")

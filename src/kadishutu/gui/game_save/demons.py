@@ -161,6 +161,10 @@ class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.sort_button = QPushButton("Sort")
         self.sort_button.setMenu(self.sort_menu)
         self.l.addWidget(self.sort_button, 8, 0)
+        self.create_button = QPushButton("Create demon")
+        self.create_button.setObjectName("PrimaryButton")
+        self.create_button.clicked.connect(self.open_creation)
+        self.l.addWidget(self.create_button, 8, 1)
 
     @property
     def demon_order(self) -> list[int]:
@@ -208,6 +212,11 @@ class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
             self.demon_order, self.widgets, strict=False
         ):
             self.demon_button_refresh(demon_number, button)
+        limit = min(self.team.max_stock, self.demons.STORAGE_SIZE)
+        self.create_button.setEnabled(
+            bool(self.demons.free_storage_slots(limit=limit))
+            and self.team.free_order_slots() > 0
+        )
 
     def has_unapplied_changes(self) -> bool:
         return self._new_demon_order is not None
@@ -227,3 +236,7 @@ class DemonSelectorScreen(QWidget, GameScreenMixin, AppliableWidget):
             demon = self.demons.in_slot(demon_number)
             self.stack_add(DemonEditorScreen(demon, self))
         return open_editor
+
+    def open_creation(self):
+        from .demon_creation import DemonCreationScreen
+        self.stack_add(DemonCreationScreen(self))
