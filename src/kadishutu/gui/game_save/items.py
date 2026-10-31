@@ -60,8 +60,25 @@ class ItemEditorWidget(QScrollArea, GameScreenMixin, AppliableWidget):
         self.validation_label.setVisible(False)
         self.l.addWidget(self.validation_label, 2, 0, 1, 5)
 
+        self.headers: list[QLabel] = []
+        for column, (title, tooltip) in enumerate([
+            ("Icon", "Item icon"),
+            ("Item", "Item name"),
+            ("Max", "In-game stack limit. Unique means the item cannot stack."),
+            (
+                "Details",
+                "Usable scene, target, and infinite-use flag.",
+            ),
+            ("Amount", "Current saved quantity."),
+        ]):
+            header = QLabel(title, self.inner)
+            header.setObjectName("Muted")
+            header.setToolTip(tooltip)
+            self.l.addWidget(header, 3, column)
+            self.headers.append(header)
+
         for i, meta in enumerate(items):
-            row = i + 3
+            row = i + 4
             item = self.save.items.from_meta(meta)
             row_widgets: list[QWidget] = []
             label = QLabel(item.name)
