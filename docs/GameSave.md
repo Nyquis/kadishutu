@@ -422,15 +422,16 @@ I recommend not changing this. EVER. Just use Gospels/Grimores.
 
 ### Singular Skill value
 
-A skill value consists of:
+A skill value is an `FLearnSkill`:
 
-- A mysterious  value
+- Learn type
   (an unsigned int / u32 (4 bytes))
-  (might be weather the skill can be learned)
-- A skill ID
+  - `0` — `E_LEARN_SKILL_DEFAULT`: natural/default or level-up skill
+  - `1` — `E_LEARN_SKILL_LIB`: learned from a skill library
+- Skill ID
   (an unsigned int / u32 (4 bytes))
 
-It's 8 bytes in total.
+It is 8 bytes in total. Empty slots use skill ID `0`.
 
 ### Skill block
 

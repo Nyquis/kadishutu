@@ -1,23 +1,43 @@
 from abc import abstractmethod
+from dataclasses import dataclass
 
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QGridLayout,
     QHBoxLayout,
     QLabel,
     QSpinBox,
+    QVBoxLayout,
     QWidget,
 )
 
-from kadishutu.core.game_save.skills import InnateSkillEditor, SkillEditor, SkillManager
+from kadishutu.core.game_save.skills import (
+    InnateSkillEditor,
+    SkillEditor,
+    SkillManager,
+)
 from kadishutu.data.element_icons import Element
-from kadishutu.data.skills import SKILL_ID_MAP, SKILL_NAME_MAP
+from kadishutu.data.skills import (
+    SKILL_ID_MAP,
+    SKILL_NAME_MAP,
+    LearnSkillType,
+)
 
 from ..iconloader import ICON_LOADER, handle_image_loading_error
-from ..shared import QU32, SHIBOKEN_MAX, AppliableWidget, ModifiedMixin
+from ..shared import (
+    SHIBOKEN_MAX,
+    AppliableWidget,
+    MComboBox,
+    ModifiedMixin,
+)
 from .shared import GameScreenMixin
 
 BAD_OR_UNKNOWN_SKILL = "???"
+LEARN_TYPE_HELP = (
+    "Default = natural or level-up skill. "
+    "Library = learned from a skill library."
+)
 
 
 class AbstractStrIntMap(QWidget, ModifiedMixin):
@@ -76,16 +96,29 @@ class SkillBox(AbstractStrIntMap, ModifiedMixin):
         self.skill = skill
         self.int_box.setMaximum(SHIBOKEN_MAX)
 
+    def update_tooltip(self):
+        self.str_box.setToolTip(f"Skill ID: {self.int_box.value()}")
+
+    def int_changed(self, value: int):
+        super().int_changed(value)
+        self.update_tooltip()
+
+    def str_changed(self, value: str):
+        super().str_changed(value)
+        self.update_tooltip()
+
     def refresh(self):
         self.int_box.setValue(self.skill.id)
         if self.skill.id == self.NO_VALUE_INT:
             self.str_box.setCurrentIndex(0)
+            self.update_tooltip()
             return
         try:
             skill_name = self.skill.name
         except KeyError:
             skill_name = BAD_OR_UNKNOWN_SKILL
         self.str_box.setCurrentText(skill_name)
+        self.update_tooltip()
 
     def apply_changes(self):
         if self.get_modified():
@@ -106,6 +139,15 @@ class SkillBox(AbstractStrIntMap, ModifiedMixin):
         return SKILL_NAME_MAP[value].id
 
 
+@dataclass
+class SkillRow:
+    skill_box: SkillBox
+    learn_type_box: MComboBox | None
+    icon: QLabel
+    mp_cost: QLabel
+    innate: bool
+
+
 class SkillEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def __init__(
         self,
@@ -116,48 +158,118 @@ class SkillEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     ):
         super().__init__(*args, **kwargs)
         self.skills = skills
-        self.widgets: list[tuple[SkillBox, QU32]] = []
+        self.rows: list[SkillRow] = []
+        self.headers: list[QLabel] = []
 
-        self.l = QGridLayout(self)
+        self.l = QVBoxLayout(self)
+
+        top = QHBoxLayout()
+        self.advanced = QCheckBox("Show skill IDs", self)
+        self.advanced.setToolTip("Show raw skill IDs for debugging.")
+        self.advanced.checkStateChanged.connect(self.set_ids_visible)
+        top.addWidget(self.advanced)
+        help_label = QLabel(LEARN_TYPE_HELP, self)
+        help_label.setObjectName("Muted")
+        help_label.setWordWrap(True)
+        top.addWidget(help_label, 1)
+        self.l.addLayout(top)
+
+        self.grid = QGridLayout()
+        self.l.addLayout(self.grid)
+
+        for column, title in enumerate(
+            ("Slot", "Icon", "Skill", "MP cost", "Learn type")
+        ):
+            header = QLabel(title, self)
+            header.setObjectName("Muted")
+            self.grid.addWidget(header, 0, column)
+            self.headers.append(header)
 
         all_skills = list(SKILL_NAME_MAP.keys())
 
         for i in range(9):
             if i == 0:
                 skill = innate_skill
-                label = QLabel("Innate skill")
+                slot_name = "Innate skill"
+                innate = True
+                learn_type_box = None
             else:
                 skill = skills.slot(i - 1)
-                label = QLabel(f"Skill {i}")
-            self.l.addWidget(label, i, 0)
+                slot_name = f"Skill {i}"
+                innate = False
+                learn_type_box = MComboBox(self)
+                learn_type_box.addItem(
+                    "Default",
+                    LearnSkillType.Default.value,
+                )
+                learn_type_box.addItem(
+                    "Library",
+                    LearnSkillType.Library.value,
+                )
+                learn_type_box.setToolTip(LEARN_TYPE_HELP)
+
+            slot_label = QLabel(slot_name, self)
+            self.grid.addWidget(slot_label, i + 1, 0)
+
+            icon = QLabel(self)
+            self.grid.addWidget(icon, i + 1, 1)
+
             skill_box = SkillBox(skill, all_skills)
-            self.l.addWidget(skill_box, i, 2)
-            mystery_box = QU32()
-            self.l.addWidget(mystery_box, i, 4)
-            icon = QLabel()
-            self.l.addWidget(icon, i, 1)
-            mp_cost = QLabel()
-            self.l.addWidget(mp_cost, i, 3)
-            if not i:
-                mystery_box.hide()
-                mp_cost.hide()
-            cb = self.make_meta_refresh_callback(icon, mp_cost)
+            self.grid.addWidget(skill_box, i + 1, 2)
+            skill_box.int_box.setVisible(False)
+
+            mp_cost = QLabel(self)
+            self.grid.addWidget(mp_cost, i + 1, 3)
+
+            if learn_type_box is None:
+                learn_type_cell = QLabel("—", self)
+                learn_type_cell.setObjectName("Muted")
+                self.grid.addWidget(learn_type_cell, i + 1, 4)
+            else:
+                self.grid.addWidget(learn_type_box, i + 1, 4)
+
+            cb = self.make_meta_refresh_callback(
+                icon,
+                mp_cost,
+                learn_type_box,
+                innate,
+            )
             skill_box.int_box.valueChanged.connect(cb)
-            self.widgets.append((skill_box, mystery_box))
+            self.rows.append(
+                SkillRow(skill_box, learn_type_box, icon, mp_cost, innate)
+            )
+
+        self.set_ids_visible(False)
+        self.stack_refresh()
+
+    def set_ids_visible(self, *_):
+        visible = self.advanced.isChecked()
+        for row in self.rows:
+            row.skill_box.int_box.setVisible(visible)
 
     def meta_refresh(
         self,
         skill_id: int,
         icon: QLabel,
         mp_cost: QLabel,
+        learn_type_box: MComboBox | None,
+        innate: bool,
     ):
         if skill_id == SkillBox.NO_VALUE_INT:
             mp_cost.hide()
             icon.hide()
+            if learn_type_box is not None:
+                learn_type_box.hide()
             return
+
+        icon.show()
+        if innate:
+            mp_cost.hide()
         else:
             mp_cost.show()
-            icon.show()
+            if learn_type_box is not None:
+                learn_type_box.show()
+
         try:
             skill_meta = SKILL_ID_MAP[skill_id]
         except KeyError:
@@ -182,23 +294,53 @@ class SkillEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self,
         icon: QLabel,
         mp_cost: QLabel,
+        learn_type_box: MComboBox | None,
+        innate: bool,
     ):
         def inner(skill_id: int):
-            return self.meta_refresh(skill_id, icon, mp_cost)
+            return self.meta_refresh(
+                skill_id,
+                icon,
+                mp_cost,
+                learn_type_box,
+                innate,
+            )
         return inner
 
     def stack_refresh(self):
-        for i in range(9):
-            skill_box, mystery_box = self.widgets[i]
-            skill_box.refresh()
-            skill = skill_box.skill
+        for row in self.rows:
+            row.skill_box.refresh()
+            row.skill_box.set_modified(False)
+            skill = row.skill_box.skill
             if isinstance(skill, InnateSkillEditor):
-                assert i == 0, "i != 0 is an innate skill"
+                self.meta_refresh(
+                    skill.id,
+                    row.icon,
+                    row.mp_cost,
+                    row.learn_type_box,
+                    True,
+                )
                 continue
-            mystery_box.setValue(skill._unknown)
+            assert row.learn_type_box is not None
+            index = row.learn_type_box.findData(skill.learn_type.value)
+            row.learn_type_box.setCurrentIndex(index if index >= 0 else 0)
+            row.learn_type_box.set_modified(False)
+            self.meta_refresh(
+                skill.id,
+                row.icon,
+                row.mp_cost,
+                row.learn_type_box,
+                False,
+            )
 
     def on_apply_changes(self):
-        for i in range(9):
-            skill_box, mystery_box = self.widgets[i]
-            skill_box.apply_changes()
-            mystery_box.setattr_if_modified(skill_box.skill, "_unknown")
+        for row in self.rows:
+            row.skill_box.apply_changes()
+            if row.learn_type_box is None:
+                continue
+            if not row.learn_type_box.get_modified():
+                continue
+            row.skill_box.skill.learn_type = LearnSkillType(
+                row.learn_type_box.currentData()
+            )
+            row.learn_type_box.set_modified(False)

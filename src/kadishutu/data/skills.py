@@ -49,6 +49,11 @@ class Magatsuhi(Enum):
     Enemy = 0
 
 
+class LearnSkillType(Enum):
+    Default = 0
+    Library = 1
+
+
 @dataclass
 class ActionSkill(FromCsv):
     name: str

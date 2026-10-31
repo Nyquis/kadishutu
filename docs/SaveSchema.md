@@ -173,6 +173,11 @@ Each demon record is `0x1a8` (424) bytes. The table starts at `0xb60` and has
 | `0x198` | Unique/innate skill | verified |
 | `0x19c` | Bonus/guest marker | inferred |
 
+Each skill slot is an `FLearnSkill`: a 4-byte learn type followed by a 4-byte
+skill ID. Learn type `0` is `E_LEARN_SKILL_DEFAULT`; type `1` is
+`E_LEARN_SKILL_LIB` (learned from a skill library). Empty slots use skill ID
+`0`.
+
 C++ `FNkmData` also exposes `m_EncountCnt`, `m_SkillSlotNum`,
 `m_AutoSkillSlotNum`, `m_AutoSkill`, `m_BtlEntryCnt`,
 `m_skillExIntervalCnt`, `m_GaveSoulGift`, `m_IsBonusDevil`, and

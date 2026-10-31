@@ -1,9 +1,10 @@
 
-from kadishutu.data.skills import SKILL_ID_MAP, Skill
+from kadishutu.data.skills import SKILL_ID_MAP, LearnSkillType, Skill
 
 from ..shared.editors import (
     BaseDynamicEditor,
     BaseStructAsFieldEditor,
+    EnumEditor,
     U32Editor,
 )
 
@@ -18,7 +19,7 @@ class SkillEditor(BaseDynamicEditor, BaseStructAsFieldEditor):
             self._meta = SKILL_ID_MAP[self.id]
         return self._meta
 
-    _unknown = U32Editor(0)
+    learn_type = EnumEditor(0, LearnSkillType, "<I")
     id = U32Editor(4)
 
     @property
@@ -39,5 +40,5 @@ class SkillManager(BaseDynamicEditor, BaseStructAsFieldEditor):
 
 
 class InnateSkillEditor(SkillEditor):
-    _unknown = None
+    learn_type = None
     id = U32Editor(0)
