@@ -47,3 +47,57 @@ _appdata/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ---------------------------------------------------------------------------
+# Save lab (monorepo)
+# Minimal backup: source, docs, tests, tooling, and notes only.
+# No save data, extracted game data, or generated output.
+# ---------------------------------------------------------------------------
+lab/corpus/
+lab/dumps/
+lab/snapshots/
+lab/tmp/
+lab/cache/
+lab/reports/
+lab/artifacts/
+
+# Save files and derived data
+*.sav
+*.sav.*
+*.dec
+
+# Extracted Unreal assets and decompiled output
+*.pak
+*.uexp
+*.uasset
+*.ubulk
+*.usmap
+*.kms
+*.umap
+
+# Archives and packaged binaries that may appear outside build/dist
+*.zip
+*.7z
+*.exe
+*.dll
+*.pyd
+*.so
+*.whl
+*.tar
+*.gz
+
+# Media and crash dumps
+*.mp4
+*.webm
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.dmp
+*.stackdump
+
+# UE4SS output
+UE4SS_ObjectDump.txt
+UE4SS.log
+CXXHeaderDump/
+UE4SS_SDK/
