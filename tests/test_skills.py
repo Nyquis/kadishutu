@@ -1,7 +1,7 @@
 from kadishutu.core.game_save import GameSaveEditor
 from kadishutu.core.game_save.skills import InnateSkillEditor
 from kadishutu.core.shared.file_handling import DecryptedSave
-from kadishutu.data.skills import LearnSkillType
+from kadishutu.data.skills import SKILL_ID_MAP, LearnSkillType
 
 GAME_SAVE_SIZE = 0x6DC90
 
@@ -25,6 +25,17 @@ def test_skill_slot_learn_type_round_trips():
     skill.learn_type = LearnSkillType.Default
 
     assert skill.learn_type is LearnSkillType.Default
+
+
+def test_skill_mechanics_summaries_are_generated():
+    agi = SKILL_ID_MAP[1]
+    fire_pleroma = SKILL_ID_MAP[491]
+
+    assert "Magic attack" in agi.summary
+    assert "Fire" in agi.summary
+    assert "130 power" in agi.summary
+    assert "10 MP" in agi.summary
+    assert fire_pleroma.summary == "Passive skill"
 
 
 def test_innate_skill_has_no_learn_type_slot():

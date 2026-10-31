@@ -373,6 +373,9 @@ NOTE: For demons, if the current stats are different from the sum of initial
 stats and changes, then at some point the game will reset them. This does not
 apply for the player (for some reason).
 
+The editor labels these blocks **Natural**, **Bonuses**, and **Current**.
+Natural + Bonuses is the expected Current value.
+
 It's 48 bytes in total.
 
 ### Healable Stats
@@ -456,6 +459,9 @@ Here are the possible values:
 - 999 - Repel
 - 1000 - Drain
 
+The editor shows only these player-facing values by default. Any other stored
+value is shown as `Unmapped (value)` instead of being silently converted.
+
 ### Affinity block
 
 An affinity block is an array containing many values in the following order:
@@ -479,7 +485,9 @@ potentials also get updated based on your miracles.
 
 A singular affinity is represented by a signed short / i16 (2 bytes).
 
-In regular gameplay it ranges from -9 to 9.
+In regular gameplay it ranges from -9 to 9. Higher is better; 0 means no
+bonus. The editor displays signed values and groups them into elemental and
+other potentials.
 
 ### Potential block
 
