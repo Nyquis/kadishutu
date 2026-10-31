@@ -66,6 +66,11 @@ datasets (`Players.csv`, `laylines.json`), so they do not need extraction yet.
 `0x69cf5-0x69cfc`. Each entry records the save offset, bit, Law/Chaos value,
 place, optional side quest, and the text of the choice.
 
+Every pair of bits describing the same decision shares a `group` value. For
+example, both sides of **A Wish for a Fish** use `"group":
+"a-wish-for-a-fish"`. The UI shows one dropdown per group because the options
+are mutually exclusive.
+
 The data is based on the save experiments in `docs/GameSave.md` and
 `docs/cheatroom_blog_post_translation.md`. Some choices are still marked
 `"unknown"` where the alignment has not been verified. The editor also reports

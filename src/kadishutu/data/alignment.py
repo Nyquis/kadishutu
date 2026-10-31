@@ -14,10 +14,30 @@ class AlignmentBit(JsonListMixin):
     place: str
     side_quest: str | None
     text: list[str]
+    group: str | None = None
 
     @property
     def is_unknown(self) -> bool:
         return self.alignment not in ("law", "chaos")
+
+
+@dataclass
+class AlignmentChoice:
+    key: str
+    offset: int
+    place: str
+    side_quest: str | None
+    options: list[AlignmentBit]
+
+    def option_for_bit(self, bit: int) -> AlignmentBit | None:
+        for option in self.options:
+            if option.bit == bit:
+                return option
+        return None
+
+    @property
+    def is_unknown(self) -> bool:
+        return all(option.is_unknown for option in self.options)
 
 
 @dataclass
@@ -43,6 +63,22 @@ class AlignmentByte(JsonListMixin):
 
     def unknown_bits(self, value: int) -> int:
         return value & ~self.known_mask & 0xFF
+
+    def choices(self) -> list[AlignmentChoice]:
+        grouped: dict[str, list[AlignmentBit]] = {}
+        for bit in self.bits:
+            key = bit.group or f"bit-{bit.bit}"
+            grouped.setdefault(key, []).append(bit)
+        return [
+            AlignmentChoice(
+                key,
+                self.offset,
+                options[0].place,
+                options[0].side_quest,
+                options,
+            )
+            for key, options in grouped.items()
+        ]
 
 
 ALIGNMENT_DATA = AlignmentByte.load_path(ALIGNMENT_DATA_PATH)

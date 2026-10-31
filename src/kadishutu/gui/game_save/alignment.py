@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from PySide6.QtCore import QSignalBlocker
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -12,9 +13,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from kadishutu.data.alignment import ALIGNMENT_DATA, AlignmentBit
+from kadishutu.data.alignment import (
+    ALIGNMENT_DATA,
+    AlignmentBit,
+    AlignmentChoice,
+)
 
-from ..shared import AppliableWidget, MCheckBox
+from ..shared import AppliableWidget, MComboBox
 from .shared import GameScreenMixin
 
 ALIGNMENT_COLORS = {
@@ -27,16 +32,16 @@ ALIGNMENT_COLORS = {
 @dataclass
 class AlignmentRow:
     offset: int
-    bit: AlignmentBit
-    box: MCheckBox
-    alignment: QLabel
+    choice: AlignmentChoice
+    combo: MComboBox
+    status: QLabel
     place: QLabel
-    choice: QLabel
     quest: QLabel
     kind: QLabel
     offset_label: QLabel
-    bit_label: QLabel
+    bits_label: QLabel
     widgets: list[QWidget]
+    invalid: bool = False
 
 
 class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
@@ -73,18 +78,20 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.search.textChanged.connect(lambda _: self.filter_rows())
         controls.addWidget(self.search, 0, 0, 1, 3)
 
-        self.alignment_filter = QComboBox(self)
+        self.selection_filter = QComboBox(self)
         for label, key in [
-            ("All alignments", "all"),
+            ("All choices", "all"),
             ("Law", "law"),
             ("Chaos", "chaos"),
             ("Unknown", "unknown"),
+            ("Not chosen", "unselected"),
+            ("Invalid", "invalid"),
         ]:
-            self.alignment_filter.addItem(label, key)
-        self.alignment_filter.currentIndexChanged.connect(
+            self.selection_filter.addItem(label, key)
+        self.selection_filter.currentIndexChanged.connect(
             lambda _: self.filter_rows()
         )
-        controls.addWidget(self.alignment_filter, 0, 3)
+        controls.addWidget(self.selection_filter, 0, 3)
 
         self.kind_filter = QComboBox(self)
         for label, key in [
@@ -98,32 +105,23 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         )
         controls.addWidget(self.kind_filter, 0, 4)
 
-        self.selected_filter = QComboBox(self)
-        for label, key in [
-            ("All choices", "all"),
-            ("Selected", "selected"),
-            ("Unselected", "unselected"),
-        ]:
-            self.selected_filter.addItem(label, key)
-        self.selected_filter.currentIndexChanged.connect(
-            lambda _: self.filter_rows()
-        )
-        controls.addWidget(self.selected_filter, 0, 5)
-
         self.advanced = QCheckBox("Show raw offset/bit", self)
         self.advanced.checkStateChanged.connect(self.set_raw_visible)
         controls.addWidget(self.advanced, 1, 0, 1, 2)
 
-        self.select_button = QPushButton("Select visible", self)
-        self.select_button.clicked.connect(self.select_visible)
-        controls.addWidget(self.select_button, 1, 2)
+        self.law_button = QPushButton("Law visible", self)
+        self.law_button.clicked.connect(self.set_law_visible)
+        controls.addWidget(self.law_button, 1, 2)
+        self.chaos_button = QPushButton("Chaos visible", self)
+        self.chaos_button.clicked.connect(self.set_chaos_visible)
+        controls.addWidget(self.chaos_button, 1, 3)
         self.clear_button = QPushButton("Clear visible", self)
         self.clear_button.clicked.connect(self.clear_visible)
-        controls.addWidget(self.clear_button, 1, 3)
+        controls.addWidget(self.clear_button, 1, 4)
 
         self.count_label = QLabel(self)
         self.count_label.setObjectName("Muted")
-        controls.addWidget(self.count_label, 1, 4, 1, 2)
+        controls.addWidget(self.count_label, 1, 5)
         root.addLayout(controls)
 
         self.summary_label = QLabel(self)
@@ -139,14 +137,13 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
         self.headers: list[QLabel] = []
         for column, (title, tooltip) in enumerate([
-            ("Set", "Whether this alignment choice is selected."),
-            ("Alignment", "Law, Chaos, or Unknown."),
+            ("Selection", "The chosen option for this decision."),
+            ("Status", "Warns when both sides are set in the save."),
             ("Place", "Where the choice happens."),
-            ("Choice", "The dialogue or action choice."),
             ("Quest", "The side quest, if any."),
             ("Type", "Main story or side quest."),
             ("Offset", "Raw save offset."),
-            ("Bit", "Raw bit inside the offset."),
+            ("Bits", "Raw bits inside the offset."),
         ]):
             header = QLabel(title, self.inner)
             header.setObjectName("Muted")
@@ -154,135 +151,169 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             self.grid.addWidget(header, 0, column)
             self.headers.append(header)
 
-        for offset, bit in self.flat_data():
-            self.add_row(offset, bit)
+        for offset, choice in self.flat_data():
+            self.add_row(offset, choice)
 
         self.set_raw_visible()
         self.stack_refresh()
 
     @staticmethod
-    def flat_data() -> list[tuple[int, AlignmentBit]]:
+    def flat_data() -> list[tuple[int, AlignmentChoice]]:
         return [
-            (byte.offset, bit)
+            (byte.offset, choice)
             for byte in ALIGNMENT_DATA
-            for bit in byte.bits
+            for choice in byte.choices()
         ]
 
-    def add_row(self, offset: int, bit: AlignmentBit):
+    def option_label(self, option: AlignmentBit) -> str:
+        if option.alignment == "law":
+            prefix = "Law"
+        elif option.alignment == "chaos":
+            prefix = "Chaos"
+        else:
+            prefix = "Unknown"
+        return f"{prefix} — {' / '.join(option.text)}"
+
+    def add_row(self, offset: int, choice: AlignmentChoice):
         index = len(self.rows) + 1
-        box = MCheckBox(self.inner)
-        alignment = QLabel(self.alignment_text(bit), self.inner)
-        color = ALIGNMENT_COLORS.get(
-            bit.alignment,
-            ALIGNMENT_COLORS["unknown"],
+        combo = MComboBox(self.inner)
+        combo.setMinimumWidth(260)
+        combo.setSizeAdjustPolicy(
+            QComboBox.AdjustToMinimumContentsLengthWithIcon
         )
-        alignment.setStyleSheet(
-            f"color: {color}; font-weight: 600;"
-        )
-        place = QLabel(bit.place, self.inner)
-        choice = QLabel(" — ".join(bit.text), self.inner)
-        choice.setWordWrap(True)
-        quest = QLabel(bit.side_quest or "", self.inner)
+        combo.setMinimumContentsLength(40)
+        status = QLabel(self.inner)
+        status.setObjectName("Warning")
+        status.setVisible(False)
+        place = QLabel(choice.place, self.inner)
+        quest = QLabel(choice.side_quest or "", self.inner)
         kind = QLabel(
-            "Main story" if bit.side_quest is None else "Side quest",
+            "Main story" if choice.side_quest is None else "Side quest",
             self.inner,
         )
         kind.setObjectName("Muted")
         offset_label = QLabel(f"0x{offset:04x}", self.inner)
-        bit_label = QLabel(str(bit.bit), self.inner)
+        bits_label = QLabel(
+            ", ".join(str(option.bit) for option in choice.options),
+            self.inner,
+        )
         widgets: list[QWidget] = [
-            box,
-            alignment,
+            combo,
+            status,
             place,
-            choice,
             quest,
             kind,
             offset_label,
-            bit_label,
+            bits_label,
         ]
         for column, widget in enumerate(widgets):
             self.grid.addWidget(widget, index, column)
 
         row = AlignmentRow(
             offset,
-            bit,
-            box,
-            alignment,
-            place,
             choice,
+            combo,
+            status,
+            place,
             quest,
             kind,
             offset_label,
-            bit_label,
+            bits_label,
             widgets,
         )
-        tooltip = (
-            f"Offset: 0x{offset:04x}\n"
-            f"Bit: {bit.bit}\n"
-            f"Alignment: {self.alignment_text(bit)}\n"
-            f"Place: {bit.place}\n"
-            f"Quest: {bit.side_quest or 'Main story'}\n"
-            f"Choice: {' — '.join(bit.text)}"
-        )
+        tooltip = "\n".join([
+            f"Offset: 0x{offset:04x}",
+            f"Bits: {', '.join(str(o.bit) for o in choice.options)}",
+            f"Place: {choice.place}",
+            f"Quest: {choice.side_quest or 'Main story'}",
+            "Options:",
+            *[f"  {self.option_label(o)}" for o in choice.options],
+        ])
         for widget in widgets:
             widget.setToolTip(tooltip)
-        box.checkStateChanged.connect(
-            lambda _, row=row: self.on_row_changed(row)
+        combo.currentIndexChanged.connect(
+            lambda _, row=row: self.on_choice_changed(row)
         )
         self.rows.append(row)
 
-    @staticmethod
-    def alignment_text(bit: AlignmentBit) -> str:
-        if bit.alignment == "law":
-            return "● Law"
-        if bit.alignment == "chaos":
-            return "● Chaos"
-        return "○ Unknown"
+    def populate_combo(
+        self,
+        row: AlignmentRow,
+        selected_bits: list[int],
+    ):
+        combo = row.combo
+        with QSignalBlocker(combo):
+            combo.clear()
+            combo.addItem("Not chosen", None)
+            for option in row.choice.options:
+                combo.addItem(self.option_label(option), option.bit)
+            if len(selected_bits) > 1:
+                combo.setCurrentIndex(0)
+                row.invalid = True
+                row.status.setText("Both selected")
+                row.status.setVisible(True)
+            else:
+                row.invalid = False
+                row.status.setVisible(False)
+                index = (
+                    combo.findData(selected_bits[0])
+                    if selected_bits
+                    else 0
+                )
+                combo.setCurrentIndex(index if index >= 0 else 0)
+        combo.set_modified(False)
 
     def set_raw_visible(self, *_):
         self.show_raw = self.advanced.isChecked()
+        self.headers[5].setVisible(self.show_raw)
         self.headers[6].setVisible(self.show_raw)
-        self.headers[7].setVisible(self.show_raw)
         self.filter_rows()
 
     def matches_query(self, row: AlignmentRow, query: str) -> bool:
         if not query:
             return True
         text = " ".join([
-            row.bit.place,
-            " ".join(row.bit.text),
-            row.bit.side_quest or "",
-            self.alignment_text(row.bit),
-            "main story" if row.bit.side_quest is None else "side quest",
+            row.choice.place,
+            row.choice.side_quest or "",
+            "main story" if row.choice.side_quest is None else "side quest",
+            *[
+                " ".join(option.text)
+                for option in row.choice.options
+            ],
             f"0x{row.offset:04x}",
-            str(row.bit.bit),
+            *[str(option.bit) for option in row.choice.options],
         ]).lower()
         return all(token in text for token in query.split())
 
-    def matches_alignment(self, row: AlignmentRow) -> bool:
-        key = self.alignment_filter.currentData()
-        if key == "law":
-            return row.bit.alignment == "law"
-        if key == "chaos":
-            return row.bit.alignment == "chaos"
+    def selected_option(self, row: AlignmentRow) -> AlignmentBit | None:
+        bit = row.combo.currentData()
+        if bit is None:
+            return None
+        return row.choice.option_for_bit(bit)
+
+    def matches_selection(self, row: AlignmentRow) -> bool:
+        key = self.selection_filter.currentData()
+        if key == "all":
+            return True
+        if key == "invalid":
+            return row.invalid and not row.combo.get_modified()
+        if row.invalid and not row.combo.get_modified():
+            return False
+        option = self.selected_option(row)
+        if key == "unselected":
+            return option is None
+        if option is None:
+            return False
         if key == "unknown":
-            return row.bit.is_unknown
-        return True
+            return option.is_unknown
+        return option.alignment == key
 
     def matches_kind(self, row: AlignmentRow) -> bool:
         key = self.kind_filter.currentData()
         if key == "main":
-            return row.bit.side_quest is None
+            return row.choice.side_quest is None
         if key == "side":
-            return row.bit.side_quest is not None
-        return True
-
-    def matches_selected(self, row: AlignmentRow) -> bool:
-        key = self.selected_filter.currentData()
-        if key == "selected":
-            return row.box.isChecked()
-        if key == "unselected":
-            return not row.box.isChecked()
+            return row.choice.side_quest is not None
         return True
 
     def filter_rows(self):
@@ -291,14 +322,18 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         for index, row in enumerate(self.rows):
             matches = (
                 self.matches_query(row, query)
-                and self.matches_alignment(row)
+                and self.matches_selection(row)
                 and self.matches_kind(row)
-                and self.matches_selected(row)
             )
             for widget in row.widgets:
                 widget.setVisible(matches)
+            row.status.setVisible(
+                matches
+                and row.invalid
+                and not row.combo.get_modified()
+            )
             row.offset_label.setVisible(matches and self.show_raw)
-            row.bit_label.setVisible(matches and self.show_raw)
+            row.bits_label.setVisible(matches and self.show_raw)
             if matches:
                 visible.append(index)
         self.visible_indices = set(visible)
@@ -308,23 +343,30 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.update_summary()
 
     def update_summary(self):
-        selected = law = chaos = unknown = 0
+        selected = law = chaos = unknown = invalid = 0
         for row in self.rows:
-            if not row.box.isChecked():
+            if row.invalid and not row.combo.get_modified():
+                invalid += 1
+                continue
+            option = self.selected_option(row)
+            if option is None:
                 continue
             selected += 1
-            if row.bit.alignment == "law":
+            if option.alignment == "law":
                 law += 1
-            elif row.bit.alignment == "chaos":
+            elif option.alignment == "chaos":
                 chaos += 1
             else:
                 unknown += 1
-        unselected = len(self.rows) - selected
-        self.summary_label.setText(
+        unselected = len(self.rows) - selected - invalid
+        text = (
             f"Selected {selected}/{len(self.rows)} · "
             f"Law {law} · Chaos {chaos} · Unknown {unknown} · "
             f"Unselected {unselected}"
         )
+        if invalid:
+            text += f" · Invalid {invalid}"
+        self.summary_label.setText(text)
 
     def update_unknown_bits(self):
         warnings = []
@@ -347,32 +389,67 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         else:
             self.unknown_label.setVisible(False)
 
-    def on_row_changed(self, row: AlignmentRow):
+    def on_choice_changed(self, row: AlignmentRow):
+        row.invalid = False
+        row.status.setVisible(False)
         self.update_summary()
-        if self.selected_filter.currentData() != "all":
+        if self.selection_filter.currentData() != "all":
             self.filter_rows()
 
     def visible_rows(self) -> list[AlignmentRow]:
         return [self.rows[index] for index in sorted(self.visible_indices)]
 
-    def select_visible(self):
+    def set_law_visible(self):
         for row in self.visible_rows():
-            row.box.setChecked(True)
+            option = next(
+                (
+                    option
+                    for option in row.choice.options
+                    if option.alignment == "law"
+                ),
+                None,
+            )
+            if option is not None:
+                row.combo.setCurrentIndex(row.combo.findData(option.bit))
+
+    def set_chaos_visible(self):
+        for row in self.visible_rows():
+            option = next(
+                (
+                    option
+                    for option in row.choice.options
+                    if option.alignment == "chaos"
+                ),
+                None,
+            )
+            if option is not None:
+                row.combo.setCurrentIndex(row.combo.findData(option.bit))
 
     def clear_visible(self):
         for row in self.visible_rows():
-            row.box.setChecked(False)
+            row.combo.setCurrentIndex(0)
 
     def stack_refresh(self):
         for row in self.rows:
             editor = self.alignment.at_offset(row.offset)
-            row.box.setChecked(editor.get_flag(row.bit.bit))
-            row.box.set_modified(False)
+            selected_bits = [
+                option.bit
+                for option in row.choice.options
+                if editor.get_flag(option.bit)
+            ]
+            self.populate_combo(row, selected_bits)
         self.update_summary()
         self.update_unknown_bits()
         self.filter_rows()
 
     def on_apply_changes(self):
         for row in self.rows:
+            if not row.combo.get_modified():
+                continue
             editor = self.alignment.at_offset(row.offset)
-            editor.set_flag(row.bit.bit, row.box.isChecked())
+            selected_bit = row.combo.currentData()
+            for option in row.choice.options:
+                editor.set_flag(option.bit, option.bit == selected_bit)
+            row.invalid = False
+            row.status.setVisible(False)
+            row.combo.set_modified(False)

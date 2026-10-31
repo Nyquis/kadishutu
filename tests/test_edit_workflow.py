@@ -252,11 +252,10 @@ def test_alignment_screen_filters_and_edits_choices(window, editor):
     window.stack_add(screen)
     screen.stack_refresh()
 
-    assert [header.text() for header in screen.headers[:6]] == [
-        "Set",
-        "Alignment",
+    assert [header.text() for header in screen.headers[:5]] == [
+        "Selection",
+        "Status",
         "Place",
-        "Choice",
         "Quest",
         "Type",
     ]
@@ -265,24 +264,59 @@ def test_alignment_screen_filters_and_edits_choices(window, editor):
     expected = {
         index
         for index, row in enumerate(screen.rows)
-        if row.bit.side_quest == "Heart of Garnet"
+        if row.choice.side_quest == "Heart of Garnet"
     }
     assert screen.visible_indices == expected
-    assert len(expected) == 2
+    assert len(expected) == 1
 
     row = next(
         row for row in screen.rows
-        if row.bit.side_quest == "Heart of Garnet" and row.bit.bit == 4
+        if row.choice.side_quest == "Heart of Garnet"
     )
-    row.box.setChecked(True)
+    row.combo.setCurrentIndex(row.combo.findData(4))
     screen.on_apply_changes()
 
-    assert editor.save.alignment.at_offset(0x69CFA).get_flag(4) is True
+    alignment = editor.save.alignment.at_offset(0x69CFA)
+    assert alignment.get_flag(4) is True
+    assert alignment.get_flag(5) is False
     assert "Law 1" in screen.summary_label.text()
+
+    row.combo.setCurrentIndex(row.combo.findData(5))
+    screen.on_apply_changes()
+
+    assert alignment.get_flag(4) is False
+    assert alignment.get_flag(5) is True
 
     screen.advanced.setChecked(True)
     assert not row.offset_label.isHidden()
-    assert not row.bit_label.isHidden()
+    assert not row.bits_label.isHidden()
+
+
+def test_alignment_screen_warns_when_both_sides_are_set(window, editor):
+    from kadishutu.gui.game_save.alignment import AlignmentEditorScreen
+
+    alignment = editor.save.alignment.at_offset(0x69CFA)
+    alignment.set_flag(4, True)
+    alignment.set_flag(5, True)
+
+    screen = AlignmentEditorScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    row = next(
+        row for row in screen.rows
+        if row.choice.side_quest == "Heart of Garnet"
+    )
+
+    assert row.invalid is True
+    assert "Both selected" in row.status.text()
+    assert "Invalid 1" in screen.summary_label.text()
+
+    row.combo.setCurrentIndex(row.combo.findData(4))
+    screen.on_apply_changes()
+
+    assert alignment.get_flag(4) is True
+    assert alignment.get_flag(5) is False
 
 
 def test_mirroring_the_save_is_not_an_edit(window, editor):
