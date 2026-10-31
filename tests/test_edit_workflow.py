@@ -389,6 +389,46 @@ def test_meta_screen_bulk_endings(window, editor):
     assert "0 / 6" in screen.endings_summary.text()
 
 
+def test_skill_screen_labels_learn_type_and_hides_ids(window, editor):
+    from kadishutu.data.skills import LearnSkillType
+    from kadishutu.gui.game_save.skills import SkillEditorScreen
+
+    demon = editor.save.demons.in_slot(0)
+    demon.skills.slot(0).id = 491
+    demon.skills.slot(0).learn_type = LearnSkillType.Library
+    demon.skills.slot(1).id = 5
+    demon.skills.slot(1).learn_type = LearnSkillType.Default
+    demon.innate_skill.id = 669
+
+    screen = SkillEditorScreen(demon.skills, demon.innate_skill)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    assert [header.text() for header in screen.headers] == [
+        "Slot",
+        "Icon",
+        "Skill",
+        "MP cost",
+        "Learn type",
+    ]
+    assert screen.rows[0].mp_cost.isHidden()
+    assert screen.rows[3].learn_type_box.isHidden()
+    assert screen.rows[1].skill_box.int_box.isHidden()
+
+    row = screen.rows[1]
+    assert row.learn_type_box.currentData() == LearnSkillType.Library.value
+
+    screen.advanced.setChecked(True)
+    assert not row.skill_box.int_box.isHidden()
+
+    row.learn_type_box.setCurrentIndex(
+        row.learn_type_box.findData(LearnSkillType.Default.value)
+    )
+    screen.on_apply_changes()
+
+    assert demon.skills.slot(0).learn_type is LearnSkillType.Default
+
+
 def test_mirroring_the_save_is_not_an_edit(window, editor):
     from kadishutu.gui.shared import refresh_screen
 
