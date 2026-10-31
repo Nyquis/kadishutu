@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import Self
 
@@ -10,6 +11,7 @@ from .tools.unused import is_unused
 
 ITEM_NAMES_TABLE_PATH = TABLES_PATH / "SMT5V NKM Base Table_Navi Devil Data - Item Names.csv"
 ITEM_ADDITIONAL_INFO_PATH = TABLES_PATH / "item_extra_data.json"
+ITEM_METADATA_PATH = TABLES_PATH / "items.generated.json"
 
 
 ITEM_TABLE_OFFSET = 0x4c72
@@ -19,18 +21,65 @@ ITEM_TABLE_OFFSET = 0x4c72
 # etc...
 
 
-TOTAL_ITEM_RANGE = range(0, 895 + 1)
-CONSUMABLES_RANGE = range(0, 220 + 1)
-CON_BOOST_RANGE = range(82, 108 + 1)
-ESSENCES_RANGE = range(221, 615 + 1)
-RELICS_RANGE_1 = range(616, 655 + 1)
-KEY_ITEMS_RANGE = range(656, 855 + 1)
-RELICS_RANGE_2 = range(856, 895 + 1)
+ITEM_METADATA = {
+    int(entry["id"]): entry
+    for entry in json.loads(ITEM_METADATA_PATH.read_text(encoding="utf-8"))
+}
+
+
+def _range_for_group(group: str) -> range:
+    ids = sorted(
+        item_id
+        for item_id, entry in ITEM_METADATA.items()
+        if entry.get("group") == group
+    )
+    if not ids:
+        return range(0)
+    return range(ids[0], ids[-1] + 1)
+
+
+def _range_for_flag(flag: str) -> range:
+    ids = sorted(
+        item_id
+        for item_id, entry in ITEM_METADATA.items()
+        if entry.get(flag)
+    )
+    if not ids:
+        return range(0)
+    return range(ids[0], ids[-1] + 1)
+
+
+TOTAL_ITEM_RANGE = range(0, max(ITEM_METADATA, default=895) + 1)
+CONSUMABLES_RANGE = _range_for_group("consumable")
+CON_BOOST_RANGE = _range_for_flag("is_boost")
+ESSENCES_RANGE = _range_for_group("essence")
+RELICS_RANGE_1 = _range_for_group("relic_1")
+KEY_ITEMS_RANGE = _range_for_group("key_item")
+RELICS_RANGE_2 = _range_for_group("relic_2")
 
 
 DEFAULT_LIMIT = 99
 ESSENCE_ITEM_LIMIT = 1
 RELICS_ITEM_LIMIT = DEFAULT_LIMIT
+
+USE_SCENE_NAMES = (
+    "Not usable",
+    "Field",
+    "Battle",
+    "Facility",
+    "Not battle",
+    "Not field",
+    "Not facility",
+    "All scenes",
+)
+ITEM_KIND_NAMES = (
+    "Use",
+    "Skill Get",
+    "Utsusemi",
+    "Relic",
+    "Important",
+    "Invalid",
+)
 
 
 @dataclass
@@ -72,7 +121,13 @@ class Item:
     desc: str | None
 
     @property
+    def metadata(self) -> dict:
+        return ITEM_METADATA.get(self.id, {})
+
+    @property
     def limit(self) -> int:
+        if "limit" in self.metadata:
+            return int(self.metadata["limit"])
         if self._limit:
             return self._limit
         elif self.id in ESSENCES_RANGE:
@@ -81,6 +136,44 @@ class Item:
             return RELICS_ITEM_LIMIT
         else:
             return DEFAULT_LIMIT
+
+    @property
+    def category(self) -> str:
+        return str(self.metadata.get("category", "unknown"))
+
+    @property
+    def unique(self) -> bool:
+        return bool(self.metadata.get("unique", self.limit == 1))
+
+    @property
+    def infinite(self) -> bool:
+        return bool(self.metadata.get("infinite", False))
+
+    @property
+    def use_scene(self) -> int:
+        return int(self.metadata.get("use_scene", -1))
+
+    @property
+    def use_scene_name(self) -> str:
+        if self.use_scene < 0:
+            return "Unknown"
+        try:
+            return USE_SCENE_NAMES[self.use_scene]
+        except IndexError:
+            return "Unknown"
+
+    @property
+    def item_kind(self) -> int:
+        return int(self.metadata.get("item_kind", -1))
+
+    @property
+    def item_kind_name(self) -> str:
+        if self.item_kind < 0:
+            return "Unknown"
+        try:
+            return ITEM_KIND_NAMES[self.item_kind]
+        except IndexError:
+            return "Unknown"
 
     @property
     def offset(self) -> int:
