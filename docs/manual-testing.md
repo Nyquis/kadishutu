@@ -1,7 +1,7 @@
 # Manual Testing
 
-This is the long-lived manual test catalog. Use the IDs in PRs and release
-issues so a specific check can be referenced later.
+This is the long-lived manual test catalog. Use the IDs to reference specific
+checks later.
 
 ## Current verification
 
