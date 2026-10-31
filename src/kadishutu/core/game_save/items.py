@@ -1,4 +1,6 @@
 
+from collections.abc import Iterable
+
 from kadishutu.data.items import (
     ITEM_ID_MAP,
     ITEM_NAME_MAP,
@@ -61,3 +63,35 @@ class ItemManager(BaseStaticEditor):
 
     def from_name(self, name: str):
         return self.from_meta(ITEM_NAME_MAP[name])
+
+    def set_amount(
+        self,
+        item: Item,
+        amount: int,
+        *,
+        clamp: bool = True,
+    ) -> ItemEditor:
+        editor = self.from_meta(item)
+        if clamp:
+            amount = min(amount, editor.limit)
+        editor.amount = amount
+        return editor
+
+    def set_all(
+        self,
+        items: Iterable[Item],
+        amount: int,
+        *,
+        clamp: bool = True,
+    ) -> None:
+        for item in items:
+            self.set_amount(item, amount, clamp=clamp)
+
+    def max_all(self, items: Iterable[Item]) -> None:
+        for item in items:
+            editor = self.from_meta(item)
+            editor.amount = editor.limit
+
+    def clear_all(self, items: Iterable[Item]) -> None:
+        for item in items:
+            self.from_meta(item).amount = 0
