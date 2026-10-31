@@ -290,6 +290,40 @@ def test_demon_selector_handles_empty_party_order(main_window):
     screen.widgets[0].click()
 
 
+def test_demon_creation_screen_creates_visible_demon(main_window):
+    from kadishutu.gui.game_save.demon_creation import DemonCreationScreen
+    from kadishutu.gui.game_save.game_save import GameSaveEditorScreen
+
+    raw = DecryptedSave(bytearray(0x6DC90))
+    raw.data[0x40:0x44] = b"GVAS"
+    editor = GameSaveEditorScreen(Path("save.sav"), raw, main_window)
+    main_window.stack_add(editor)
+    editor.save.team.max_stock = 5
+    editor.save.team.demon_order = [0xFF] * 30
+    for i in range(30):
+        editor.save.demons.in_slot(i).demon_id = 0xFFFF
+
+    screen = DemonCreationScreen(main_window)
+    main_window.stack_add(screen)
+    screen.species_list.setCurrentRow(0)
+    screen.slot_box.setCurrentIndex(0)
+
+    assert "5 of 24" in screen.slot_info.text()
+    assert screen.slot_box.count() == 5
+    assert screen.create_button.isEnabled()
+
+    selected = screen.selected
+    assert selected is not None
+    screen.create_button.click()
+
+    assert screen.created_slot is not None
+    created = editor.save.demons.in_slot(screen.created_slot)
+    assert created.demon_id == selected.id
+    assert screen.created_slot in editor.save.team.demon_order
+    assert not screen.success_card.isHidden()
+    editor.modified = False
+
+
 def test_file_selector_lists_detected_saves(
     main_window,
     tmp_path: Path,
