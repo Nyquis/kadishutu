@@ -4,6 +4,7 @@ from kadishutu.core.game_save import GameSaveEditor
 from kadishutu.core.shared.file_handling import DecryptedSave
 from kadishutu.data.items import (
     CONSUMABLES_RANGE,
+    ITEM_ID_MAP,
     ITEM_TABLE_OFFSET,
     items_from,
 )
@@ -47,6 +48,18 @@ def test_set_all_writes_only_inside_item_table():
     )
     assert game.items.from_meta(items[0]).amount == 5
     assert game.items.from_meta(items[-1]).amount == 5
+
+
+def test_amrita_soda_uses_in_game_limit():
+    game = make_game()
+    item = ITEM_ID_MAP[9]
+
+    assert item.name == "Amrita Soda"
+    assert item.limit == 50
+
+    game.items.max_all([item])
+
+    assert game.items.from_meta(item).amount == 50
 
 
 def test_max_all_uses_per_item_limits():

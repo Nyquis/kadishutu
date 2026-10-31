@@ -15,7 +15,7 @@
     "desc": "Revives 1 ally with half HP."},
     {"id":   8, "limit": 10, "icon": 10,
     "desc": "Revives 1 ally with full HP."},
-    {"id":   9, "limit": 20, "icon": 10,
+    {"id":   9, "limit": 50, "icon": 10,
     "desc": "Cures status ailments on 1 ally."},
     {"id":  10, "limit": 10, "icon": 10,
     "desc": "Cures status ailments on all allies."},
