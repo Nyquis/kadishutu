@@ -7,28 +7,46 @@ The lab is intentionally small: it reuses `kadishutu.core.shared.file_handling`
 and the editor classes instead of reimplementing decryption, hashing, or field
 access.
 
-## Planned commands
+## Commands
 
-- `diff` — annotated diff between two saves or snapshots
-- `coverage` — which byte ranges are mapped, inferred, or unknown
+Run from the repository root:
+
+```shell
+pixi run python -m tools.save_lab gvas <decrypted-save>
+pixi run python -m tools.save_lab diff <before-save> <after-save>
+pixi run python -m tools.save_lab coverage <decrypted-save>
+pixi run python -m tools.save_lab validate <decrypted-save>
+```
+
+- `gvas` — parse and print the GVAS header, class name, and payload offset
+- `diff` — annotated byte diff with integer, float, UTF-16, and bit candidates
+- `coverage` — mapped, inferred, and unknown byte ranges
+- `validate` — check size, class, GVAS offset, and hash
+
+Planned later:
+
 - `explain` — show the schema entry and editor binding for an offset
-- `validate` — check save invariants before writing
-- `gvas` — parse the UE4 `GVAS` payload after the 0x40-byte wrapper
 - `snapshot` — copy the PC save folder into `lab/snapshots/`
 
 ## Layout
 
 ```text
 tools/save_lab/
-  ue4ss/            # UE4SS dump kit and collector
+  __main__.py       # CLI entry point
+  gvas.py           # GVAS header parser
+  diff.py           # byte diff and value candidates
+  schema.py         # region map and coverage
+  files.py          # encrypted/decrypted save loading
+  ue4ss/            # optional UE4SS dump kit and collector
   README.md
   __init__.py
 ```
 
 ## UE4SS
 
-The first experiment is a one-time UE4SS session to dump the save class and
-related data. See [ue4ss/README.md](ue4ss/README.md).
+UE4SS is optional. The SMT5V-Project headers already expose the save schema;
+use UE4SS only when you need live runtime values or reflected offsets. See
+[ue4ss/README.md](ue4ss/README.md).
 
 Collected output belongs in `lab/dumps/ue4ss/`, which is ignored by both Git
 and Kopia.
