@@ -347,6 +347,7 @@ The save-file documentation is in the `docs` folder:
 
 - [GameSave.md](docs/GameSave.md)
 - [SysSave.md](docs/SysSave.md)
+- [SaveSchema.md](docs/SaveSchema.md)
 - [Troubleshooting.md](docs/Troubleshooting.md)
 
 ## License

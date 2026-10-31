@@ -2,6 +2,9 @@
 
 Size: 449680 bytes (end at 0x6dc90)
 
+For a cross-reference between these offsets and the game's C++ save structs,
+see [SaveSchema.md](SaveSchema.md).
+
 ## Decryption
 
 The decryption algorithm is stored in [encryption.py](../src/kadishutu/encryption.py).
