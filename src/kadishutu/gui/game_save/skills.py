@@ -97,7 +97,13 @@ class SkillBox(AbstractStrIntMap, ModifiedMixin):
         self.int_box.setMaximum(SHIBOKEN_MAX)
 
     def update_tooltip(self):
-        self.str_box.setToolTip(f"Skill ID: {self.int_box.value()}")
+        skill_id = self.int_box.value()
+        skill = SKILL_ID_MAP.get(skill_id)
+        if skill is not None and skill.summary:
+            tooltip = f"Skill ID: {skill_id}\n{skill.summary}"
+        else:
+            tooltip = f"Skill ID: {skill_id}"
+        self.str_box.setToolTip(tooltip)
 
     def int_changed(self, value: int):
         super().int_changed(value)

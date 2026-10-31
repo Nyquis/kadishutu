@@ -417,6 +417,7 @@ def test_skill_screen_labels_learn_type_and_hides_ids(window, editor):
 
     row = screen.rows[1]
     assert row.learn_type_box.currentData() == LearnSkillType.Library.value
+    assert "Magic attack" in screen.rows[2].skill_box.str_box.toolTip()
 
     screen.advanced.setChecked(True)
     assert not row.skill_box.int_box.isHidden()
@@ -427,6 +428,93 @@ def test_skill_screen_labels_learn_type_and_hides_ids(window, editor):
     screen.on_apply_changes()
 
     assert demon.skills.slot(0).learn_type is LearnSkillType.Default
+
+
+def test_stats_screen_recalculates_and_heals(window, editor):
+    from kadishutu.gui.game_save.stats import StatEditorScreen
+
+    demon = editor.save.demons.in_slot(0)
+    demon.stats.base.hp = 100
+    demon.stats.base.mp = 50
+    demon.stats.base.strength = 10
+    demon.stats.changes.hp = 20
+    demon.stats.changes.mp = 5
+    demon.stats.changes.strength = 3
+    demon.stats.current.hp = 120
+    demon.stats.current.mp = 55
+    demon.stats.current.strength = 13
+    demon.healable.hp = 50
+    demon.healable.mp = 20
+
+    screen = StatEditorScreen(demon.stats, demon.healable)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    assert screen.headers[1].text() == "Natural"
+    assert screen.headers[2].text() == "Bonuses"
+    assert screen.headers[3].text() == "Current"
+    assert screen.headers[4].text() == "Healable HP/MP"
+    assert screen.widgets["current"]["strength"].isReadOnly()
+
+    screen.widgets["current"]["strength"].setValue(999)
+    screen.recalculate_button.click()
+    assert screen.widgets["current"]["strength"].value() == 13
+
+    screen.heal_button.click()
+    assert screen.widgets["healable"]["hp"].value() == 120
+
+    screen.on_apply_changes()
+
+    assert demon.stats.current.strength == 13
+    assert demon.healable.hp == 120
+
+
+def test_affinity_screen_shows_unmapped_values(window, editor):
+    from kadishutu.data.affinity import Affinity
+    from kadishutu.gui.game_save.affinities import AffinityEditorScreen
+
+    demon = editor.save.demons.in_slot(0)
+    demon.affinities.current_elemental.fire = Affinity.Unknown300
+
+    screen = AffinityEditorScreen(demon.affinities)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    box = screen.elem_aff_map["fire"]
+    assert box.currentText() == "Unmapped (300)"
+    assert screen.group_titles == [
+        "Elemental affinities",
+        "Ailment affinities",
+    ]
+
+    box.setCurrentText("Resist")
+    screen.on_apply_changes()
+
+    assert demon.affinities.current_elemental.fire is Affinity.Resist
+
+
+def test_potentials_screen_uses_signed_values(window, editor):
+    from kadishutu.core.game_save.potentials import PotentialType
+    from kadishutu.gui.game_save.potentials import PotentialEditorScreen
+
+    demon = editor.save.demons.in_slot(0)
+    demon.potentials.physical = 3
+
+    screen = PotentialEditorScreen(demon.potentials)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    box = screen.potential_map[PotentialType.Physical]
+    assert box.textFromValue(3) == "+3"
+    assert screen.group_titles == [
+        "Elemental potentials",
+        "Other potentials",
+    ]
+
+    box.setValue(-2)
+    screen.on_apply_changes()
+
+    assert demon.potentials.read(PotentialType.Physical) == -2
 
 
 def test_mirroring_the_save_is_not_an_edit(window, editor):
