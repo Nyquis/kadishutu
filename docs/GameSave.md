@@ -835,11 +835,15 @@ Alignment choices are stored as an 8-byte bitfield from `0x69cf5` to
 `0x69cfc`. Each bit records one dialogue or action choice.
 
 - `src/kadishutu/data/tables/alignment_data.json` contains the decoded choices.
-- Law and Chaos choices are paired, but some choices are still unverified and
-  use `"alignment": "unknown"`.
+- Law and Chaos choices are paired, and each pair is mutually exclusive.
+  `alignment_data.json` records an explicit `group` for both sides of a choice.
+- Some choices are still unverified and use `"alignment": "unknown"`.
 - A bit does not directly represent a numeric Law/Chaos score. The editor
   summarises selected Law/Chaos choices, but the game’s final alignment also
   depends on its own weighting.
+- The editor presents one dropdown per choice: `Not chosen`, the Law option,
+  or the Chaos option. If both bits are already set in a save, the row is
+  marked invalid instead of silently choosing a side.
 
 Missing or uncertain entries:
 

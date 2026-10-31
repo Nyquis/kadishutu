@@ -10,7 +10,8 @@
                 "text": [
                     "Supreme Heaven Throne",
                     "Choose the law choice"
-                ]
+                ],
+                "group": "supreme-throne-final"
             },
             {
                 "bit": 3,
@@ -20,7 +21,8 @@
                 "text": [
                     "Supreme Heaven Throne",
                     "Choose the chaos choice"
-                ]
+                ],
+                "group": "supreme-throne-final"
             }
         ]
     },
@@ -34,7 +36,8 @@
                 "side_quest": null,
                 "text": [
                     "Chose to save Sahori"
-                ]
+                ],
+                "group": "sahori-lahmu"
             },
             {
                 "bit": 3,
@@ -43,7 +46,8 @@
                 "side_quest": null,
                 "text": [
                     "Chose to defeat Lahmu"
-                ]
+                ],
+                "group": "sahori-lahmu"
             }
         ]
     },
@@ -57,7 +61,8 @@
                 "side_quest": "The Water Nymph",
                 "text": [
                     "Defeat Apsaras"
-                ]
+                ],
+                "group": "water-nymph"
             },
             {
                 "bit": 1,
@@ -66,7 +71,8 @@
                 "side_quest": "The Spirit of Love",
                 "text": [
                     "Defeat Leanan Sidhe"
-                ]
+                ],
+                "group": "water-nymph"
             },
             {
                 "bit": 2,
@@ -76,7 +82,8 @@
                 "text": [
                     "[When talking to angels in front of the diet building]",
                     "Explain the situation"
-                ]
+                ],
+                "group": "diet-building-angels"
             },
             {
                 "bit": 3,
@@ -86,7 +93,8 @@
                 "text": [
                     "[When talking to angels in front of the diet building]",
                     "Force your way through"
-                ]
+                ],
+                "group": "diet-building-angels"
             },
             {
                 "bit": 4,
@@ -95,7 +103,8 @@
                 "side_quest": "A Wish for a Fish",
                 "text": [
                     "Strike the enemy and take it"
-                ]
+                ],
+                "group": "a-wish-for-a-fish"
             },
             {
                 "bit": 5,
@@ -104,7 +113,8 @@
                 "side_quest": "A Wish for a Fish",
                 "text": [
                     "Spare King Frost"
-                ]
+                ],
+                "group": "a-wish-for-a-fish"
             },
             {
                 "bit": 6,
@@ -113,7 +123,8 @@
                 "side_quest": "Those Seeking Sanctuary",
                 "text": [
                     "Defeat the Principalities"
-                ]
+                ],
+                "group": "tokyo-invasion"
             },
             {
                 "bit": 7,
@@ -122,7 +133,8 @@
                 "side_quest": "Holding the Line",
                 "text": [
                     "Defeat the Lilim"
-                ]
+                ],
+                "group": "tokyo-invasion"
             }
         ]
     },
@@ -136,7 +148,8 @@
                 "side_quest": "A Goddess Stolen",
                 "text": [
                     "Take Idun's apple"
-                ]
+                ],
+                "group": "idun-apple"
             },
             {
                 "bit": 1,
@@ -145,7 +158,8 @@
                 "side_quest": "A Goddess Stolen",
                 "text": [
                     "Refuse to take Idun's apple"
-                ]
+                ],
+                "group": "idun-apple"
             },
             {
                 "bit": 4,
@@ -154,7 +168,8 @@
                 "side_quest": "Searching for the Horn of Plenty",
                 "text": [
                     "Sacrifice is inevitable"
-                ]
+                ],
+                "group": "horn-of-plenty"
             },
             {
                 "bit": 5,
@@ -163,7 +178,8 @@
                 "side_quest": "Searching for the Horn of Plenty",
                 "text": [
                     "It's better to have no sacrifices"
-                ]
+                ],
+                "group": "horn-of-plenty"
             }
         ]
     },
@@ -177,7 +193,8 @@
                 "side_quest": "The Raid on Tokyo",
                 "text": [
                     "Defeat Futsunushi"
-                ]
+                ],
+                "group": "tokyo-branch"
             },
             {
                 "bit": 4,
@@ -186,7 +203,8 @@
                 "side_quest": "In Defense of Tokyo",
                 "text": [
                     "Defeat Adramelech"
-                ]
+                ],
+                "group": "tokyo-branch"
             }
         ]
     },
@@ -200,7 +218,8 @@
                 "side_quest": "Heart of Garnet",
                 "text": [
                     "Finish off Vouivre"
-                ]
+                ],
+                "group": "heart-of-garnet"
             },
             {
                 "bit": 5,
@@ -209,7 +228,8 @@
                 "side_quest": "Heart of Garnet",
                 "text": [
                     "Spare Vouivre"
-                ]
+                ],
+                "group": "heart-of-garnet"
             },
             {
                 "bit": 6,
@@ -219,7 +239,8 @@
                 "text": [
                     "[After the match against Yuzuru Atsuta]",
                     "I think the future is bright"
-                ]
+                ],
+                "group": "yuzuru-future"
             },
             {
                 "bit": 7,
@@ -229,7 +250,8 @@
                 "text": [
                     "[After the match against Yuzuru Atsuta]",
                     "I can't believe in the future"
-                ]
+                ],
+                "group": "yuzuru-future"
             }
         ]
     },
@@ -244,7 +266,8 @@
                 "text": [
                     "[After the Battle with Khonsu]",
                     "I think it's believable"
-                ]
+                ],
+                "group": "khonsu"
             },
             {
                 "bit": 1,
@@ -254,7 +277,8 @@
                 "text": [
                     "[After the Battle with Khonsu]",
                     "I don't believe it"
-                ]
+                ],
+                "group": "khonsu"
             },
             {
                 "bit": 2,
@@ -264,7 +288,8 @@
                 "text": [
                     "[After the Battle with Mara]",
                     "I understand"
-                ]
+                ],
+                "group": "mara"
             },
             {
                 "bit": 3,
@@ -274,7 +299,8 @@
                 "text": [
                     "[After the Battle with Mara]",
                     "I don't know"
-                ]
+                ],
+                "group": "mara"
             },
             {
                 "bit": 4,
@@ -283,7 +309,8 @@
                 "side_quest": "Reclaim the Golden Stool",
                 "text": [
                     "Defeat Anansi"
-                ]
+                ],
+                "group": "golden-stool"
             },
             {
                 "bit": 5,
@@ -292,7 +319,8 @@
                 "side_quest": "Free the Golden Stool",
                 "text": [
                     "Defeat Onyankopon"
-                ]
+                ],
+                "group": "golden-stool"
             },
             {
                 "bit": 6,
@@ -301,7 +329,8 @@
                 "side_quest": "The Hunter in White",
                 "text": [
                     "Defeat Kudlak"
-                ]
+                ],
+                "group": "hunter-vampire"
             },
             {
                 "bit": 7,
@@ -310,7 +339,8 @@
                 "side_quest": "The Vampire in Black",
                 "text": [
                     "Defeat Kresnik"
-                ]
+                ],
+                "group": "hunter-vampire"
             }
         ]
     },
@@ -325,7 +355,8 @@
                 "text": [
                     "[After defeating Norn]",
                     "Things that bind you"
-                ]
+                ],
+                "group": "norn"
             },
             {
                 "bit": 1,
@@ -335,7 +366,8 @@
                 "text": [
                     "[After defeating Norn]",
                     "What guides me"
-                ]
+                ],
+                "group": "norn"
             },
             {
                 "bit": 2,
@@ -345,7 +377,8 @@
                 "text": [
                     "[Before the Battle with Beelzebub]",
                     "For Creation"
-                ]
+                ],
+                "group": "beelzebub"
             },
             {
                 "bit": 3,
@@ -355,7 +388,8 @@
                 "text": [
                     "[Before the battle with Beelzebub]",
                     "To stop Tiamat"
-                ]
+                ],
+                "group": "beelzebub"
             },
             {
                 "bit": 4,
@@ -365,7 +399,8 @@
                 "text": [
                     "[Before the battle with Zeus and Odin]",
                     "Because he saw hope for the future of humanity"
-                ]
+                ],
+                "group": "zeus-odin"
             },
             {
                 "bit": 5,
@@ -375,7 +410,8 @@
                 "text": [
                     "[Before the battle with Zeus and Odin]",
                     "Despair over the past of other people"
-                ]
+                ],
+                "group": "zeus-odin"
             },
             {
                 "bit": 6,
@@ -385,7 +421,8 @@
                 "text": [
                     "Supreme Heaven Throne",
                     "I believed it would come"
-                ]
+                ],
+                "group": "supreme-throne-ending"
             },
             {
                 "bit": 7,
@@ -395,7 +432,8 @@
                 "text": [
                     "Supreme Heaven Throne",
                     "That's not allowed."
-                ]
+                ],
+                "group": "supreme-throne-ending"
             }
         ]
     }

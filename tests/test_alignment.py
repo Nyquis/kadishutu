@@ -53,6 +53,34 @@ def test_alignment_byte_unknown_bits_helpers():
     assert byte.unknown_bits(0x20) == 0
 
 
+def test_alignment_choices_are_exclusive_pairs():
+    for byte in ALIGNMENT_OFFSET_MAP.values():
+        choices = byte.choices()
+        assert len(choices) * 2 == len(byte.bits)
+        for choice in choices:
+            assert len(choice.options) == 2
+            assert choice.option_for_bit(choice.options[0].bit) is not None
+            assert choice.option_for_bit(99) is None
+
+
+def test_alignment_choice_groups_handle_non_adjacent_bits():
+    choices = ALIGNMENT_OFFSET_MAP[0x69CF9].choices()
+    assert len(choices) == 1
+    assert {option.bit for option in choices[0].options} == {3, 4}
+
+
+def test_alignment_choice_groups_keep_quest_context():
+    choices = ALIGNMENT_OFFSET_MAP[0x69CF7].choices()
+    fish = next(
+        choice
+        for choice in choices
+        if choice.side_quest == "A Wish for a Fish"
+    )
+
+    assert {option.bit for option in fish.options} == {4, 5}
+    assert {option.alignment for option in fish.options} == {"law", "chaos"}
+
+
 def test_alignment_editor_reads_and_writes_heart_of_garnet_bits():
     game = make_game()
     editor = game.alignment.at_offset(0x69CFA)
