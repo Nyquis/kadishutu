@@ -39,6 +39,7 @@ from kadishutu.core.shared.pc_saves import SaveFile, discover_saves
 from kadishutu.data.save_locs import SAVE_LOCS
 from kadishutu.plugin.loader import PLUGIN_MANAGER
 
+from .backup_manager import BackupManagerDialog
 from .components import Card, PageHeader
 from .game_save import GameSaveEditorScreen
 from .shared import (
@@ -177,7 +178,12 @@ class FileSelectorMenu(QWidget):
         self.file_path = FileSelector(self.card)
         file_path_display = self.file_path.file_path_display
         file_path_display.textChanged.connect(self.file_selected)
+        file_path_display.textChanged.connect(self.update_backup_button)
         card_layout.addWidget(self.file_path)
+        self.backups_button = QPushButton("Backups…", self.card)
+        self.backups_button.clicked.connect(self.manage_backups)
+        card_layout.addWidget(self.backups_button)
+        self.update_backup_button()
 
         type_label = QLabel("Save type", self.card)
         type_label.setObjectName("Muted")
@@ -229,6 +235,19 @@ class FileSelectorMenu(QWidget):
         if not path:
             return
         self.file_path.path = Path(path)
+
+    def update_backup_button(self):
+        path = getattr(self.file_path, "_path", None)
+        self.backups_button.setEnabled(path is not None)
+
+    def manage_backups(self):
+        path = getattr(self.file_path, "_path", None)
+        if path is None:
+            return
+        dialog = BackupManagerDialog(path, self)
+        dialog.exec()
+        if dialog.restored:
+            self.file_selected()
 
     def on_file_open(self):
         if self.raw is None:
