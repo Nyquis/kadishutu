@@ -24,6 +24,17 @@ pixi run python -m tools.save_lab validate <decrypted-save>
 - `validate` — check size, class, GVAS offset, hash, item limits, and unused
   item IDs
 
+Generated metadata helpers (run after exporting the relevant asset JSON into
+`lab/dumps/`):
+
+```shell
+pixi run python -m tools.save_lab.item_metadata
+pixi run python -m tools.save_lab.miracle_metadata
+pixi run python -m tools.save_lab.quest_metadata
+```
+
+`mmi.py` contains the shared `MyFmtData`/TBCR reader and JSON writer.
+
 Planned later:
 
 - `explain` — show the schema entry and editor binding for an offset

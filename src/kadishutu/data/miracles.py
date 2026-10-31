@@ -5,7 +5,6 @@ from typing import Self
 
 from kadishutu.paths import APPDIRS
 from kadishutu.tools.eprint import printexcept
-from kadishutu.tools.tbbreader import Tbcr
 
 from .tools.json import JsonListMixin
 from .tools.mapping import make_maps
@@ -15,6 +14,7 @@ from .tools.unused import is_unused
 
 UMODEL_SAVED_PATH = APPDIRS.data_path / "game_data_saved"
 MIRACLE_DATA_PATH = TABLES_PATH / "miracles.json"
+MIRACLE_METADATA_PATH = TABLES_PATH / "miracles.generated.json"
 
 
 MIRACLE_TABLE_OFFSET = 0x3d4e
@@ -58,9 +58,28 @@ class MiracleData(Destructable):
         return "<HIB5sH?5s"
 
 
+@dataclass
+class MiracleTableEntry(JsonListMixin):
+    id: int
+    order_id: int
+    category: int
+    cost: int
+    toggleable: bool
+
+
 try:
-    tcx = Tbcr.from_path(UMODEL_SAVED_PATH / "Game/Blueprints/Gamedata/BinTable/GodParameter/Table/GodParameterDataTable.uexp")
-    MIRACLE_DATA = MiracleData.from_array_of_bytes(tcx.tables[0].rows)
+    MIRACLE_DATA = [
+        MiracleData(
+            entry.id,
+            entry.order_id,
+            entry.category,
+            b"",
+            entry.cost,
+            entry.toggleable,
+            b"",
+        )
+        for entry in MiracleTableEntry.load_path(MIRACLE_METADATA_PATH)
+    ]
 except Exception as e:
     printexcept("Failed to load miracle data", e)
     MIRACLE_DATA = []

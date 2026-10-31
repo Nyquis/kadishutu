@@ -4,14 +4,16 @@ from typing import Self
 
 from kadishutu.tools.eprint import printexcept
 from kadishutu.tools.groupobj import group_objects
-from kadishutu.tools.tbbreader import Tbcr
 from kadishutu.tools.uexp_extract import UExpTranslationFile
 
 from .miracles import UMODEL_SAVED_PATH, Destructable
+from .tools.json import JsonListMixin
 from .tools.mapping import make_maps
+from .tools.path import TABLES_PATH
 
 QUEST_TABLE_OFFSET = 0x59d52
 QUEST_ENTRY_SIZE = 26
+QUEST_METADATA_PATH = TABLES_PATH / "quests.generated.json"
 QUEST_INFO_FIELDS = [
     "name", "client", "reward", "explain", "help", "report", "completed",
 ]
@@ -82,9 +84,16 @@ class QuestData(Destructable):
         return struct_padded("<H", TABLE_ROW_SIZE)
 
 
+@dataclass
+class QuestTableEntry(JsonListMixin):
+    id: int
+
+
 try:
-    tcx = Tbcr.from_path(UMODEL_SAVED_PATH / "Game/Blueprints/Gamedata/BinTable/Mission/MissionTable.uexp")
-    QUEST_DATA = QuestData.from_array_of_bytes(tcx.tables[0].rows)
+    QUEST_DATA = [
+        QuestData(entry.id, b"")
+        for entry in QuestTableEntry.load_path(QUEST_METADATA_PATH)
+    ]
 except Exception as e:
     printexcept("Failed to load quest data", e)
     QUEST_DATA = []
@@ -97,8 +106,24 @@ class Quest:
 
     @classmethod
     def load_quests(cls) -> list[Self]:
-        if not QUEST_STRINGS or not QUEST_DATA:
+        if not QUEST_DATA:
             return []
+        if not QUEST_STRINGS:
+            return [
+                cls(
+                    data,
+                    QuestStrings(
+                        f"Quest {data.id}",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                    ),
+                )
+                for data in QUEST_DATA
+            ]
         return [
             cls(*i)
             for i in list(zip(QUEST_DATA, QUEST_STRINGS, strict=False))
