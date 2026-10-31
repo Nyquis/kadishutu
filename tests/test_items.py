@@ -83,6 +83,31 @@ def test_item_limits_match_game_table(item_id: int, expected_limit: int):
     assert item.limit == expected_limit
 
 
+def test_item_metadata_categories_and_flags():
+    amrita = ITEM_ID_MAP[9]
+    periapt = ITEM_ID_MAP[706]
+    aquamarine = ITEM_ID_MAP[771]
+    essence = ITEM_ID_MAP[311]
+    relic = ITEM_ID_MAP[616]
+
+    assert amrita.category == "consumable"
+    assert amrita.unique is False
+    assert amrita.use_scene_name == "Battle"
+    assert amrita.infinite is False
+    assert amrita.item_kind_name == "Use"
+
+    assert periapt.category == "key_item"
+    assert periapt.unique is True
+    assert aquamarine.category == "key_item"
+    assert aquamarine.unique is False
+    assert essence.category == "essence"
+    assert relic.category == "relic"
+
+
+def test_all_known_items_have_positive_limits():
+    assert all(item.limit > 0 for item in ITEM_ID_MAP.values())
+
+
 def test_max_all_uses_per_item_limits():
     game = make_game()
     items = items_from(CONSUMABLES_RANGE)

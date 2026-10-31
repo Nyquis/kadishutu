@@ -17,14 +17,23 @@
 - Replaced `∞` with `inf` as per
   [pewbayeaj on GameBanana](https://gamebanana.com/posts/12025667)
 
-## Item limits
+## Item metadata
 
-`item_extra_data.json` limits were checked against the game's
-`Project/Content/Blueprints/Gamedata/BinTable/Item/ItemTable` asset. The asset
-is an `MMIAsset` whose `MyFmtData` property contains a TBCR table.
+Limits, categories, and basic flags are generated into `items.generated.json`
+from the game's `Project/Content/Blueprints/Gamedata/BinTable/Item/ItemTable`
+asset. The asset is an `MMIAsset` whose `MyFmtData` property contains a TBCR
+table. `item_extra_data.json` keeps only the local names/icons/descriptions.
 
-- Consumables: table 0; `m_ItemID` at `+0x10`, `m_HaveMax` at `+0x3a`.
+- Consumables: table 0; `m_ItemID` at `+0x10`, `m_HaveMax` at `+0x3a`,
+  `m_UseScene` at `+0x2e`, `m_IsUseInfinite` at `+0x2f`,
+  `m_UseTarget` at `+0x3e`.
 - Key items: table 3; `m_ItemID` at `+0x00`, `m_HaveMax` at `+0x05`.
+
+Regenerate with:
+
+```shell
+pixi run python -m tools.save_lab.item_metadata
+```
 
 These offsets are specific to the current PC save version and should be
 re-checked after a game update.
