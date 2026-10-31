@@ -109,6 +109,13 @@ Known header offsets from `docs/GameSave.md`:
 | `0x5d0` | Play time, seconds | verified |
 | `0x5d4` | Moon phase | inferred |
 
+### Cycles and endings
+
+- `0x6a08a` — editable cycle count, capped at 99 by the game.
+- `0x6a08b` — ending bitfield (`0x01`–`0x20`).
+- `0x502` / `0x503` — header copies of cycles and endings.
+- The editor writes both the editable values and their header copies.
+
 ## Player: `FCharData`
 
 The player record is `0x1d8` bytes, from `0x988` to `0xb60`.

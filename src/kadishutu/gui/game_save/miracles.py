@@ -158,24 +158,13 @@ class MiracleUnlockerWidget(QScrollArea, GameScreenMixin):
             self.l.addLayout(layout)
             self.widgets.append((editor, unlock_box))
 
-        sublayout = QHBoxLayout()
-        self.satan_unlock_box = MCheckBox()
-        sublayout.addWidget(self.satan_unlock_box)
-        label = QLabel("Extra: Satan beaten flag")
-        sublayout.addWidget(label)
-        layout.insertLayout(1, sublayout)
-
     def stack_refresh(self):
         for editor, unlock_box in self.widgets:
             unlock_box.setChecked(editor.state)
-        self.satan_unlock_box.setChecked(self.unlocks.extras.satan_beaten)
 
     def apply_changes(self):
         for editor, unlock_box in self.widgets:
             unlock_box.setattr_if_modified(editor, "state")
-        self.satan_unlock_box.setattr_if_modified(
-            self.unlocks.extras, "satan_beaten"
-        )
 
 
 class MiracleEditorScreen(QTabWidget, GameScreenMixin, AppliableWidget):

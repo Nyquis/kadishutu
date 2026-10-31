@@ -179,14 +179,26 @@ https://github.com/EpicGames/UnrealEngine/blob/40eea367040d50aadd9f030ed5909fc89
 
 It's an unsigned char / u8 (1 byte) with an in-game cap of 99.
 
+- `0x6a08a` — editable cycle count
+- `0x502` — header copy, kept in sync by the editor
+
 ### Endings value
 
-- 0x01 - Creation - Neutral
-- 0x02 - Creation - Law
-- 0x04 - Creation - Chaos
-- 0x08 - Creation - True Neutral
-- 0x10 - Vengeance - Law
-- 0x20 - Vengeance - Chaos
+It's a bitfield; multiple endings can be marked because endings are cumulative
+across cycles.
+
+- `0x01` — Creation — Neutral
+- `0x02` — Creation — Law
+- `0x04` — Creation — Chaos
+- `0x08` — Creation — True Neutral (Secret)
+- `0x10` — Vengeance — Law
+- `0x20` — Vengeance — Chaos
+
+- `0x6a08b` — editable endings bitfield
+- `0x503` — header copy, kept in sync by the editor
+
+The Meta screen also exposes the inferred clear-save flag at `0x528` and the
+Satan-beaten late-game flag at `0x69ce4` bit 4.
 
 ## Difficulty values
 
