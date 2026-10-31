@@ -65,3 +65,20 @@ class TeamEditor(BaseStaticEditor):
         #demon_icons.insert(self.player_placement, (1, 99))
 
     player_placement = U8Editor(0x3d45)
+
+    def free_order_slots(self) -> int:
+        return list(self.demon_order).count(self.NO_DEMON)
+
+    def add_to_order(self, slot: int) -> bool:
+        if not 0 <= slot < DEMON_TABLE_SIZE:
+            raise ValueError(f"Demon slot {slot} is out of range")
+        order = list(self.demon_order)
+        if slot in order:
+            return True
+        try:
+            index = order.index(self.NO_DEMON)
+        except ValueError:
+            return False
+        order[index] = slot
+        self.demon_order = order
+        return True
