@@ -35,6 +35,7 @@ from kadishutu.core.game_save import GameSaveEditor
 # NOTE: I wish Python had a better tool for this
 # Like (for example) rustfmt
 from kadishutu.core.shared.file_handling import DecryptedSave
+from kadishutu.core.shared.pc_saves import SaveFile, discover_saves
 from kadishutu.data.save_locs import SAVE_LOCS
 from kadishutu.plugin.loader import PLUGIN_MANAGER
 
@@ -132,6 +133,7 @@ class FileSelectorPreview(QWidget):
 
 class FileSelectorMenu(QWidget):
     raw: DecryptedSave | None = None
+    detected_saves: list[SaveFile]
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -151,6 +153,23 @@ class FileSelectorMenu(QWidget):
         card_layout = QVBoxLayout(self.card)
         card_layout.setContentsMargins(20, 18, 20, 18)
         card_layout.setSpacing(10)
+
+        detected_label = QLabel("Detected saves", self.card)
+        detected_label.setObjectName("SectionTitle")
+        card_layout.addWidget(detected_label)
+        detected_row = QHBoxLayout()
+        self.detected_saves_box = QComboBox(self.card)
+        self.detected_saves_box.setPlaceholderText("Select a save…")
+        self.detected_saves_box.currentIndexChanged.connect(
+            self.detected_save_selected
+        )
+        detected_row.addWidget(self.detected_saves_box, 1)
+        self.detected_saves_refresh = QPushButton("Refresh", self.card)
+        self.detected_saves_refresh.clicked.connect(
+            self.refresh_detected_saves
+        )
+        detected_row.addWidget(self.detected_saves_refresh)
+        card_layout.addLayout(detected_row)
 
         file_label = QLabel("Save file", self.card)
         file_label.setObjectName("SectionTitle")
@@ -184,6 +203,32 @@ class FileSelectorMenu(QWidget):
 
         layout.addWidget(self.card)
         layout.addStretch()
+        self.refresh_detected_saves()
+
+    def refresh_detected_saves(self):
+        self.detected_saves = discover_saves()
+        self.detected_saves_box.blockSignals(True)
+        self.detected_saves_box.clear()
+        if not self.detected_saves:
+            self.detected_saves_box.addItem("No PC saves found")
+            self.detected_saves_box.setEnabled(False)
+        else:
+            for save in self.detected_saves:
+                self.detected_saves_box.addItem(
+                    save.display_name,
+                    str(save.path),
+                )
+            self.detected_saves_box.setEnabled(True)
+            self.detected_saves_box.setCurrentIndex(-1)
+        self.detected_saves_box.blockSignals(False)
+
+    def detected_save_selected(self, index: int):
+        if index < 0:
+            return
+        path = self.detected_saves_box.itemData(index)
+        if not path:
+            return
+        self.file_path.path = Path(path)
 
     def on_file_open(self):
         if self.raw is None:
