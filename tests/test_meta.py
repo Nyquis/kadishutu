@@ -1,4 +1,8 @@
-from kadishutu.data.endings import ENDING_INFOS, ENDING_ROUTES
+from kadishutu.data.endings import (
+    CANON_DESCRIPTIONS,
+    ENDING_INFOS,
+    ENDING_ROUTES,
+)
 
 
 def test_ending_metadata_is_complete():
@@ -14,6 +18,9 @@ def test_ending_metadata_is_complete():
     assert {info.route for info in ENDING_INFOS} == set(ENDING_ROUTES)
     assert all(info.label for info in ENDING_INFOS)
     assert all(info.description for info in ENDING_INFOS)
+    assert all(info.canon.startswith("Canon of ") for info in ENDING_INFOS)
+    assert all(" — " in info.full_label for info in ENDING_INFOS)
+    assert set(CANON_DESCRIPTIONS) == set(ENDING_ROUTES)
 
 
 def test_ending_labels_are_human_readable():

@@ -9,6 +9,14 @@ class EndingInfo:
     label: str
     description: str
 
+    @property
+    def canon(self) -> str:
+        return f"Canon of {self.route}"
+
+    @property
+    def full_label(self) -> str:
+        return f"{self.canon} — {self.label}"
+
 
 ENDING_INFOS = [
     EndingInfo(
@@ -56,3 +64,8 @@ ENDING_INFOS = [
 ]
 
 ENDING_ROUTES = ("Creation", "Vengeance")
+
+CANON_DESCRIPTIONS = {
+    "Creation": "The original Shin Megami Tensei V storyline.",
+    "Vengeance": "The Canon of Vengeance storyline.",
+}
