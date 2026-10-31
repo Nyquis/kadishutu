@@ -349,6 +349,7 @@ The save-file documentation is in the `docs` folder:
 - [SysSave.md](docs/SysSave.md)
 - [SaveSchema.md](docs/SaveSchema.md)
 - [Troubleshooting.md](docs/Troubleshooting.md)
+- [Manual testing](docs/manual-testing.md)
 
 ## License
 
