@@ -21,6 +21,7 @@ from .stats import STATS_NAMES, HealableEditor, StatBlockEditor
 DEMON_TABLE_OFFSET = 0xb60
 DEMON_ENTRY_SIZE = 424
 DEMON_TABLE_SIZE = 30
+DEMON_STORAGE_SIZE = 24
 NO_DEMON = 0xffff
 
 
@@ -57,6 +58,10 @@ class DemonEditor(BaseDynamicEditor, DemonLikeEditor):
         return dtoff // DEMON_ENTRY_SIZE
 
     @property
+    def is_guest(self) -> bool:
+        return self.slot >= DEMON_STORAGE_SIZE
+
+    @property
     def raw(self) -> bytearray:
         end = self.offset + DEMON_ENTRY_SIZE
         return self.data[self.offset:end]
@@ -72,12 +77,16 @@ class DemonEditor(BaseDynamicEditor, DemonLikeEditor):
 
 class DemonManager(BaseStaticEditor):
     offset = DEMON_TABLE_OFFSET
-    DEMON_STORAGE = 24
+    STORAGE_SIZE = DEMON_STORAGE_SIZE
+    TABLE_SIZE = DEMON_TABLE_SIZE
+    DEMON_STORAGE = STORAGE_SIZE
 
     def at_offset(self, offset: int, *args, **kwargs) -> DemonEditor:
         return self.dispatch(DemonEditor, offset, *args, **kwargs)
 
     def in_slot(self, id: int, *args, **kwargs) -> DemonEditor:
+        if not 0 <= id < self.TABLE_SIZE:
+            raise IndexError(f"Demon slot {id} is out of range")
         return self.at_offset(
             self.relative_as_absolute_offset(DEMON_ENTRY_SIZE * id),
             *args,
@@ -85,15 +94,28 @@ class DemonManager(BaseStaticEditor):
         )
 
     def __iter__(self):
-        for i in range(self.DEMON_STORAGE):
+        for i in range(self.STORAGE_SIZE):
+            yield self.in_slot(i)
+
+    def all(self):
+        for i in range(self.TABLE_SIZE):
+            yield self.in_slot(i)
+
+    def guests(self):
+        for i in range(self.STORAGE_SIZE, self.TABLE_SIZE):
             yield self.in_slot(i)
 
     def enumerate(self):
-        for i in range(self.DEMON_STORAGE):
+        for i in range(self.STORAGE_SIZE):
             yield (i, self.in_slot(i))
 
     def real(self):
         for demon in self:
+            if not demon.is_free:
+                yield demon
+
+    def real_all(self):
+        for demon in self.all():
             if not demon.is_free:
                 yield demon
 
