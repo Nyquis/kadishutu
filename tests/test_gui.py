@@ -272,6 +272,24 @@ def test_apply_theme_updates_palette_and_stylesheet(qapp: QApplication):
         apply_theme(qapp, ThemeMode.SYSTEM)
 
 
+def test_demon_selector_handles_empty_party_order(main_window):
+    from kadishutu.gui.game_save.demons import DemonSelectorScreen
+    from kadishutu.gui.game_save.game_save import GameSaveEditorScreen
+
+    raw = DecryptedSave(bytearray(0x6DC90))
+    raw.data[0x40:0x44] = b"GVAS"
+    editor = GameSaveEditorScreen(Path("save.sav"), raw, main_window)
+    main_window.stack_add(editor)
+    editor.save.team.demon_order = [0xFF] * 30
+
+    screen = DemonSelectorScreen(main_window)
+    screen.stack_refresh()
+
+    assert len(screen.widgets) == 30
+    assert all(not widget.isEnabled() for widget in screen.widgets)
+    screen.widgets[0].click()
+
+
 def test_file_selector_lists_detected_saves(
     main_window,
     tmp_path: Path,
