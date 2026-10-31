@@ -125,9 +125,30 @@ class DemonManager(BaseStaticEditor):
                 return demon
         raise RuntimeError
 
+    def free_storage_slots(self) -> list[int]:
+        return [demon.slot for demon in self if demon.is_free]
+
+    def create_from_initial(
+        self,
+        meta: Demon,
+        slot: int,
+    ) -> DemonEditor:
+        if not 0 <= slot < self.STORAGE_SIZE:
+            raise ValueError(f"Demon slot {slot} is not a storage slot")
+        demon = self.in_slot(slot)
+        if not demon.is_free:
+            raise ValueError(f"Demon slot {slot} is occupied")
+        return self._initialize_demon(demon, meta)
+
     def new_from_initial(self, meta: Demon) -> DemonEditor:
         print("USING EXPERIMENTAL METHOD new_from_initial")
-        demon = self._find_free_slot()
+        return self._initialize_demon(self._find_free_slot(), meta)
+
+    def _initialize_demon(
+        self,
+        demon: DemonEditor,
+        meta: Demon,
+    ) -> DemonEditor:
         demon.demon_id = meta.id
         demon.level = meta.level
         stats = demon.stats
