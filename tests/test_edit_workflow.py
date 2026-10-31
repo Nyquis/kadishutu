@@ -329,6 +329,14 @@ def test_meta_screen_edits_cycles_endings_and_satan(window, editor):
 
     assert screen.cycles_box.maximum() == 99
     assert screen.endings_summary.text() == "0 / 6 endings marked"
+    assert (
+        screen.canon_headers["Creation"].text()
+        == "Canon of Creation — 0 / 4"
+    )
+    assert (
+        screen.canon_headers["Vengeance"].text()
+        == "Canon of Vengeance — 0 / 2"
+    )
 
     screen.cycles_box.setValue(5)
     screen.ending_map[Endings.CreationLaw].setChecked(True)
@@ -341,6 +349,10 @@ def test_meta_screen_edits_cycles_endings_and_satan(window, editor):
     assert editor.save.endings_copy == editor.save.endings
     assert editor.save.miracle_unlocks.extras.satan_beaten is True
     assert "1 / 6" in screen.endings_summary.text()
+    assert (
+        screen.canon_headers["Creation"].text()
+        == "Canon of Creation — 1 / 4"
+    )
 
 
 def test_meta_screen_warns_and_syncs_header_copies(window, editor):

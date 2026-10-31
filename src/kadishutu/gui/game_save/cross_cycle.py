@@ -9,7 +9,11 @@ from PySide6.QtWidgets import (
 )
 
 from kadishutu.core.game_save.game import Endings
-from kadishutu.data.endings import ENDING_INFOS, ENDING_ROUTES
+from kadishutu.data.endings import (
+    CANON_DESCRIPTIONS,
+    ENDING_INFOS,
+    ENDING_ROUTES,
+)
 
 from ..shared import QU8, AppliableWidget, MCheckBox
 from .shared import GameScreenMixin
@@ -19,6 +23,7 @@ class CrossCycleEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ending_map: dict[Endings, MCheckBox] = {}
+        self.canon_headers: dict[str, QLabel] = {}
         self.ending_details = [
             (Endings(info.flag), info)
             for info in ENDING_INFOS
@@ -74,22 +79,44 @@ class CrossCycleEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.endings_summary.setObjectName("Muted")
         endings_layout.addWidget(self.endings_summary)
 
+        endings_note = QLabel(
+            "Endings are cumulative across cycles. A save can mark endings "
+            "from both canons.",
+            endings_group,
+        )
+        endings_note.setObjectName("Muted")
+        endings_note.setWordWrap(True)
+        endings_layout.addWidget(endings_note)
+
         for route in ENDING_ROUTES:
-            route_label = QLabel(route, endings_group)
-            route_label.setStyleSheet("font-weight: 600; margin-top: 4px;")
-            endings_layout.addWidget(route_label)
+            canon_header = QLabel(endings_group)
+            canon_header.setStyleSheet(
+                "font-weight: 600; font-size: 14px; margin-top: 8px;"
+            )
+            endings_layout.addWidget(canon_header)
+            self.canon_headers[route] = canon_header
+
+            canon_description = QLabel(
+                CANON_DESCRIPTIONS[route],
+                endings_group,
+            )
+            canon_description.setObjectName("Muted")
+            canon_description.setWordWrap(True)
+            endings_layout.addWidget(canon_description)
+
             route_layout = QGridLayout()
             row = 0
             for flag, info in self.ending_details:
                 if info.route != route:
                     continue
+                tip = f"{info.full_label}\n{info.description}"
                 box = MCheckBox(endings_group)
-                box.setToolTip(info.description)
+                box.setToolTip(tip)
                 box.checkStateChanged.connect(
                     lambda _: self.update_endings_summary()
                 )
                 label = QLabel(info.label, endings_group)
-                label.setToolTip(info.description)
+                label.setToolTip(tip)
                 route_layout.addWidget(label, row, 0)
                 route_layout.addWidget(box, row, 1)
                 self.ending_map[flag] = box
@@ -131,6 +158,21 @@ class CrossCycleEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.endings_summary.setText(
             f"{achieved} / {len(self.ending_map)} endings marked"
         )
+        for route in ENDING_ROUTES:
+            route_details = [
+                (flag, info)
+                for flag, info in self.ending_details
+                if info.route == route
+            ]
+            route_achieved = sum(
+                1
+                for flag, _ in route_details
+                if self.ending_map[flag].isChecked()
+            )
+            self.canon_headers[route].setText(
+                f"Canon of {route} — "
+                f"{route_achieved} / {len(route_details)}"
+            )
 
     def update_copy_warning(self):
         mismatched = (
