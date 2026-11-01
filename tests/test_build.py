@@ -2,6 +2,8 @@ import importlib.util
 import os
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
     "kadishutu_build",
@@ -89,3 +91,79 @@ def test_prune_ignores_other_platforms(tmp_path: Path):
     BUILD.prune_archives(tmp_path, current, 0)
 
     assert (tmp_path / other).exists()
+
+
+def make_app_tree(tmp_path: Path) -> Path:
+    app = tmp_path / BUILD.NAME
+    dist_info = app / "_internal" / "kadishutu-0.2.0.dist-info"
+    examples = app / "_internal" / "examples"
+    cache = examples / "__pycache__"
+    cache.mkdir(parents=True)
+    dist_info.mkdir(parents=True)
+
+    (dist_info / "METADATA").write_text("Name: kadishutu\n", encoding="utf-8")
+    (dist_info / "direct_url.json").write_text(
+        '{"url":"file:///home/build/kadishutu","dir_info":{"editable":true}}',
+        encoding="utf-8",
+    )
+    (dist_info / "INSTALLER").write_text("pixi\n", encoding="utf-8")
+    (examples / "keep.py").write_text("print('hi')\n", encoding="utf-8")
+    (cache / "keep.cpython-313.pyc").write_bytes(b"cache")
+    (examples / "stray.pyc").write_bytes(b"stray")
+    return app
+
+
+def test_scrub_removes_install_metadata_and_caches(tmp_path: Path):
+    app = make_app_tree(tmp_path)
+
+    BUILD.scrub_metadata(app)
+
+    assert (app / "_internal" / "kadishutu-0.2.0.dist-info" / "METADATA").exists()
+    assert not (app / "_internal" / "kadishutu-0.2.0.dist-info" / "direct_url.json").exists()
+    assert not (app / "_internal" / "kadishutu-0.2.0.dist-info" / "INSTALLER").exists()
+    assert not (app / "_internal" / "examples" / "__pycache__").exists()
+    assert not (app / "_internal" / "examples" / "stray.pyc").exists()
+    assert (app / "_internal" / "examples" / "keep.py").exists()
+
+
+def test_scrub_is_idempotent_when_clean(tmp_path: Path):
+    app = make_app_tree(tmp_path)
+
+    BUILD.scrub_metadata(app)
+    BUILD.scrub_metadata(app)
+
+    assert BUILD.find_leaks(app) == []
+
+
+def test_find_leaks_reports_build_host_path(tmp_path: Path):
+    app = make_app_tree(tmp_path)
+    BUILD.scrub_metadata(app)
+    leaky = app / "_internal" / "leaky.txt"
+    leaky.write_text(f"built in {BUILD.ROOT}", encoding="utf-8")
+
+    problems = BUILD.find_leaks(app)
+
+    assert any("leaky.txt" in problem for problem in problems)
+
+
+def test_find_leaks_reports_surviving_metadata(tmp_path: Path):
+    app = make_app_tree(tmp_path)
+
+    problems = BUILD.find_leaks(app)
+
+    assert any("direct_url.json" in problem for problem in problems)
+    assert any("__pycache__" in problem for problem in problems)
+
+
+def test_assert_no_leaks_fails_the_build(tmp_path: Path):
+    app = make_app_tree(tmp_path)
+
+    with pytest.raises(SystemExit):
+        BUILD.assert_no_leaks(app)
+
+
+def test_assert_no_leaks_accepts_scrubbed_tree(tmp_path: Path):
+    app = make_app_tree(tmp_path)
+
+    BUILD.scrub_metadata(app)
+    BUILD.assert_no_leaks(app)

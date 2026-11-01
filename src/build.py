@@ -4,7 +4,9 @@ Run it with ``pixi run -e dev build`` (or ``python src/build.py`` inside the
 dev environment).
 
 The build excludes the Qt modules the widgets-only GUI never imports, prunes
-the leftover DLLs/plugins/translations, then zips the result.
+the leftover DLLs/plugins/translations, scrubs install metadata that would
+otherwise expose the build host's paths, then zips the result. The build fails
+if any local path survives into the packaged tree.
 """
 import argparse
 import os
@@ -105,6 +107,20 @@ PRUNED_GLOBS = [
     "_avif*.pyd",
 ]
 
+# Install metadata written by pip/pixi. direct_url.json points at the editable
+# checkout that produced the build, so it ships the local path and user name.
+# None of it is read at runtime.
+SCRUBBED_NAMES = [
+    "direct_url.json",
+    "INSTALLER",
+]
+
+# Bytecode caches are build noise. The real modules live in the PYZ archive
+# inside the executable, so loose .pyc files are never imported.
+SCRUBBED_DIRS = [
+    "__pycache__",
+]
+
 
 def platform_name() -> str:
     return PLATFORM_NAMES.get(platform.system(), platform.system().lower())
@@ -200,6 +216,73 @@ def prune_dist(app_dir: Path) -> None:
     )
 
 
+def scrub_metadata(app_dir: Path) -> None:
+    """Remove install metadata and bytecode caches that name the build host.
+
+    This runs even with ``--no-prune``: it is about information leakage, not
+    about the download size.
+    """
+    removed: list[Path] = []
+    for name in SCRUBBED_DIRS:
+        removed.extend(p for p in app_dir.rglob(name) if p.is_dir())
+    for name in SCRUBBED_NAMES:
+        removed.extend(p for p in app_dir.rglob(name) if p.is_file())
+    removed.extend(
+        p for p in app_dir.rglob("*.pyc")
+        if p.is_file() and "__pycache__" not in p.parts
+    )
+    paths = list(dict.fromkeys(removed))
+    for path in paths:
+        if not path.exists():
+            continue
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+    if paths:
+        print(f"Scrubbed {len(paths)} build-metadata path(s)")
+
+
+def leak_needles() -> list[bytes]:
+    """Local paths that must never appear inside a release."""
+    home = Path.home()
+    candidates = {str(ROOT), ROOT.as_posix(), str(home), home.as_posix()}
+    return [item.encode() for item in candidates if len(item) > 3]
+
+
+def find_leaks(app_dir: Path) -> list[str]:
+    """Report build-host paths and install metadata left in ``app_dir``."""
+    needles = leak_needles()
+    problems: list[str] = []
+    for path in sorted(app_dir.rglob("*")):
+        rel = path.relative_to(app_dir)
+        if path.is_dir():
+            if path.name in SCRUBBED_DIRS:
+                problems.append(f"{rel} (bytecode cache directory)")
+            continue
+        if path.name in SCRUBBED_NAMES:
+            problems.append(f"{rel} (install metadata)")
+        data = path.read_bytes()
+        for needle in needles:
+            if needle in data:
+                problems.append(f"{rel} (contains {needle.decode()})")
+    return problems
+
+
+def assert_no_leaks(app_dir: Path) -> None:
+    """Fail the build rather than publish local paths."""
+    problems = find_leaks(app_dir)
+    if not problems:
+        return
+    print("Build machine paths leaked into the release:", file=sys.stderr)
+    for problem in problems:
+        print(f"  {problem}", file=sys.stderr)
+    raise SystemExit(
+        "Refusing to package a build that exposes local paths. Extend "
+        "SCRUBBED_NAMES/SCRUBBED_DIRS or remove the offending file."
+    )
+
+
 def pyinstaller_args(upx: bool) -> list[str]:
     dist_path = ROOT / "dist" / "pyinstaller" / platform_name()
     work_path = ROOT / "build" / "pyinstaller"
@@ -246,8 +329,10 @@ def build(upx: bool = True, prune: bool = True) -> Path:
 
     app_path = ROOT / "dist" / "pyinstaller" / platform_name() / NAME
     copy_licenses(app_path)
+    scrub_metadata(app_path)
     if prune:
         prune_dist(app_path)
+    assert_no_leaks(app_path)
     return app_path
 
 
