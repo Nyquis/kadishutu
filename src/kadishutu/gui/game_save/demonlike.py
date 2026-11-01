@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
 from kadishutu.core.game_save.demonlike import DemonLikeEditor
+from kadishutu.data.leveling import exp_progress
 
 from ..shared import QU8, QU32, AppliableWidget, hboxed
 from .affinities import AffinityEditorScreen
@@ -43,6 +44,10 @@ class DemonLikeEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             self.exp_box
         ))
 
+        self.exp_hint = QLabel()
+        self.exp_hint.setWordWrap(True)
+        self.dl_layout.addWidget(self.exp_hint)
+
         self.last_box = 2
 
         for name, fun in [
@@ -70,7 +75,23 @@ class DemonLikeEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def stack_refresh(self):
         self.level_box.setValue(self.demon.level)
         self.exp_box.setValue(self.demon.exp)
+        self.refresh_exp_hint()
+
+    def exp_required(self) -> int | None:
+        return None
+
+    def refresh_exp_hint(self):
+        required = self.exp_required()
+        if required is None:
+            self.exp_hint.setText("EXP to next level: unknown")
+            return
+        progress = exp_progress(self.exp_box.value(), required)
+        percent = 0 if progress is None else round(progress * 100)
+        self.exp_hint.setText(
+            f"EXP to next level: {required:,} ({percent}% earned)"
+        )
 
     def on_apply_changes(self):
         self.level_box.setattr_if_modified(self.demon, "level")
         self.exp_box.setattr_if_modified(self.demon, "exp")
+        self.refresh_exp_hint()

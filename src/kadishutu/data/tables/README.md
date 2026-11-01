@@ -60,6 +60,25 @@ Run the CUE4Parse CLI export first and place the JSON output under
 `lab/dumps/game-tables-json/`. Demon and map data already have committed local
 datasets (`Players.csv`, `laylines.json`), so they do not need extraction yet.
 
+## Leveling metadata
+
+`nahobino_leveling.json` is generated from the `PlayerGrow` asset:
+
+- table 2: one 28-byte row per level, seven `int32` values
+  `(HP, MP, STR, VIT, MAG, AGI, LUK)`; row index = level, row 0 unused;
+- table 3: 149 `int32` EXP-to-next-level values, index = level - 1.
+
+Regenerate it with:
+
+```shell
+pixi run python -m tools.save_lab.leveling_metadata
+```
+
+See `docs/leveling.md` for how the Nahobino and demon EXP curves fit together.
+
+Demon growth weights and skill schedules come from the committed
+`Players.csv`; no extraction is needed for them.
+
 ## Alignment choices
 
 `alignment_data.json` decodes the 8-byte alignment bitfield at

@@ -36,6 +36,31 @@ class DemonStats:
 
 
 @dataclass
+class DemonGrowth:
+    hp: int
+    mp: int
+    strength: int
+    vitality: int
+    magic: int
+    agility: int
+    luck: int
+    total: int
+
+    @classmethod
+    def from_data(cls, data: dict[str, str]) -> Self:
+        return cls(
+            int(data["HP Growth"]),
+            int(data["MP Growth"]),
+            int(data["Strength Growth"]),
+            int(data["Vitality Growth"]),
+            int(data["Magic Growth"]),
+            int(data["Agility Growth"]),
+            int(data["Luck Growth"]),
+            int(data["Growth Total"]),
+        )
+
+
+@dataclass
 class LearnedSkill:
     skill: Skill
     level: int
@@ -172,6 +197,7 @@ class DemonDataTab(FromCsv):
     race: DemonRace
     level: int
     stats: DemonStats
+    growth: DemonGrowth
     skills: list[Skill]
     learned_skills: list[LearnedSkill]
     innate_skill: Skill
@@ -208,6 +234,9 @@ class DemonDataTab(FromCsv):
             },
             "stats": {
                 "eval": DemonStats.from_data,
+            },
+            "growth": {
+                "eval": DemonGrowth.from_data,
             },
             "skills": {
                 "eval": d_to_skills,
@@ -261,6 +290,7 @@ class Demon:
     name: str
     level: int
     stats: DemonStats
+    growth: DemonGrowth
     skills: list[Skill]
     innate_skill: Skill
     affinities: DemonAffinities
@@ -273,6 +303,7 @@ class Demon:
             demon.id, demon.name,
             demon.level,
             demon.stats,
+            demon.growth,
             demon.skills,
             demon.innate_skill,
             demon.affinities,

@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
 
 from kadishutu.core.game_save.demons import DEMON_TABLE_SIZE, DemonEditor
 from kadishutu.data.demons import DEMON_ID_MAP, DEMON_NAME_MAP
+from kadishutu.data.leveling import demon_exp_to_next
 
 from ..iconloader import ICON_LOADER, DisabledError, handle_image_loading_error
 from ..shared import (
@@ -91,10 +92,35 @@ class DemonEditorScreen(DemonLikeEditorScreen, AppliableWidget):
         )
         self.dl_layout.insertWidget(0, self.demon_idn_widget)
 
+        self.growth_label = QLabel()
+        self.growth_label.setWordWrap(True)
+        self.growth_label.setToolTip(
+            "Relative stat-growth weights from the game's demon table. "
+            "Allocated stat points, fusion bonuses and level-up rounding "
+            "are not predicted here."
+        )
+        self.dl_layout.insertWidget(1, self.growth_label)
+
         self.demon_graphic = QLabel()
         self.l.addWidget(self.demon_graphic)
+        self.refresh_growth()
+
+    def exp_required(self) -> int | None:
+        meta = self.demon_idn_widget.demon
+        return demon_exp_to_next(self.demon.level, meta.level)
+
+    def refresh_growth(self):
+        growth = self.demon_idn_widget.demon.growth
+        self.growth_label.setText(
+            f"Growth weights: HP {growth.hp} / MP {growth.mp}\n"
+            f"STR {growth.strength} / VIT {growth.vitality} / "
+            f"MAG {growth.magic} / AGI {growth.agility} / "
+            f"LUK {growth.luck}"
+        )
 
     def graphic_refresh(self):
+        self.refresh_growth()
+        self.refresh_exp_hint()
         try:
             id = self.demon_idn_widget.demon.id
             icon = ICON_LOADER.loading_character_icon(id)

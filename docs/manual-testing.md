@@ -25,6 +25,7 @@ Update this block and the per-area status after each manual pass.
 | Alignment | Not run | | |
 | Meta | Not run | | |
 | Demons | Not run | | |
+| Leveling | Not run | | |
 | Laylines | Not run | | |
 | SysSave | Not run | | |
 | Data pipeline | Not run | | |
@@ -127,6 +128,18 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 | DEMON-09 | Change affinity | Value applies and persists | Not run | | |
 | DEMON-10 | Change potential | Signed value applies and persists | Not run | | |
 | DEMON-11 | Save, reload, and load demon in game | Stats/skills/affinities/potentials are sane | Not run | | |
+| DEMON-12 | Open a demon screen | Growth weights and EXP-to-next line are shown | Not run | | |
+| DEMON-13 | Change the demon ID | Growth weights follow the new species | Not run | | |
+
+## Leveling
+
+| ID | Test | Expected | Status | Build | Notes |
+|---|---|---|---|---|---|
+| LVL-01 | Open the Nahobino screen on a level 55 save | EXP to next shows 140,518 | Not run | | |
+| LVL-02 | Compare Nahobino base HP/MP with the level table | Values match the game status screen | Not run | | |
+| LVL-03 | Open a demon at its base level | EXP to next is 1.5x the Nahobino value | Not run | | |
+| LVL-04 | Level a demon up once in game and diff the save | Displayed EXP-to-next changes as predicted | Not run | | |
+| LVL-05 | Level the Nahobino up once in game and diff the save | Progress resets and stats match the next table row | Not run | | |
 
 ## Laylines
 

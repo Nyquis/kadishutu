@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QLabel, QPushButton
 
 from kadishutu.core.game_save.player import PlayerEditor
+from kadishutu.data.leveling import nahobino_exp_to_next
 
 from ..shared import QU16, AppliableWidget, hboxed
 from .demonlike import DemonLikeEditorScreen
@@ -35,6 +36,9 @@ class PlayerEditorScreen(DemonLikeEditorScreen, AppliableWidget):
         player = self.demon
         assert isinstance(player, PlayerEditor)
         return player
+
+    def exp_required(self) -> int | None:
+        return nahobino_exp_to_next(self.player.level)
 
     def stack_refresh(self):
         super().stack_refresh()
