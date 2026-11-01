@@ -223,6 +223,7 @@ class ProgressionScreen(QWidget, GameScreenMixin, AppliableWidget):
         )
 
     def set_gospels_for_target(self):
+        self.update_plan()
         levels = self.levels_needed()
         box = self.item_boxes[82]
         current = box.value()

@@ -11,7 +11,11 @@ if str(ROOT) not in sys.path:
 @pytest.fixture(autouse=True)
 def reset_advanced_mode():
     """Keep GUI tests independent of the user's saved advanced-mode setting."""
-    from kadishutu.gui.advanced import advanced_mode
+    try:
+        from kadishutu.gui.advanced import advanced_mode
+    except ImportError:
+        yield
+        return
 
     mode = advanced_mode()
     previous = mode.enabled
