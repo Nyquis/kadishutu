@@ -32,12 +32,22 @@ Running from source requires Python 3.11-3.13.
 
 Releases are built from version tags and may lag behind `main`. Download the
 latest one from the
-[release page](https://github.com/Nyquis/kadishutu/releases). The binaries are
-built with PyInstaller, so antivirus software may flag them even though they
-are not malicious.
+[release page](https://github.com/Nyquis/kadishutu/releases).
 
-Each release includes a `SHA256SUMS.txt`. Compare it against the downloaded
-archive if you want to confirm the file was not altered in transit.
+### Antivirus false positives
+
+The binaries are built with PyInstaller and packed with UPX, so some engines
+flag them generically even though they are not malicious. For the `v0.2.0`
+archive,
+[VirusTotal](https://www.virustotal.com/gui/file/f8ad375cc09dd67fb8f54114196ea2777f17e176e7a8134f11f48d0b18558b33)
+reports three detections out of roughly seventy, all generic heuristics from
+Bkav, MaxSecure, and Webroot. Microsoft Defender, Kaspersky, Sophos,
+CrowdStrike, and Malwarebytes report it clean.
+
+To confirm a download really is our build:
+
+- compare its SHA-256 against the `SHA256SUMS.txt` asset in the release, or
+- run `gh attestation verify <archive> --repo Nyquis/kadishutu`.
 
 ### From source with Pixi
 

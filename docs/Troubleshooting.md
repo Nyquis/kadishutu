@@ -71,3 +71,18 @@ of the remaining slots and is still being investigated.
 Dense screens should use a scroll area. If a table or group collapses when the
 window is short, report the screen name and approximate size. The Skills and
 Affinities screens were fixed for 900x620; similar reports help catch others.
+
+## Antivirus flags the executable
+
+The release is a PyInstaller bundle packed with UPX, which several engines flag
+generically. That is a false positive, not a finding of malicious code.
+
+- Microsoft Defender, Kaspersky, Sophos, CrowdStrike, and Malwarebytes report
+  the `v0.2.0` archive clean. Bkav, MaxSecure, and Webroot report generic
+  heuristics such as `W32.Adware.Gen`.
+- Verify the download with the release's `SHA256SUMS.txt`, or run
+  `gh attestation verify <archive> --repo Nyquis/kadishutu`.
+- If your engine quarantines it anyway, exclude the extracted folder rather
+  than turning protection off.
+
+Do not disable your antivirus to run the editor.
