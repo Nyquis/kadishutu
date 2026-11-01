@@ -118,6 +118,50 @@ def short_commit() -> str:
     ).strip()
 
 
+ARCHIVE_SUFFIXES = (".tar.xz", ".zip", ".7z")
+
+
+def archive_base_name(path: Path) -> str | None:
+    for suffix in ARCHIVE_SUFFIXES:
+        if path.name.endswith(suffix):
+            return path.name[:-len(suffix)]
+    return None
+
+
+def prune_archives(
+    directory: Path,
+    current_base: str,
+    keep_previous: int,
+) -> None:
+    """Keep the current build plus the newest ``keep_previous`` builds."""
+    groups: dict[str, list[Path]] = {}
+    prefix = f"{NAME}-{platform_name()}-"
+    for path in directory.iterdir():
+        if not path.is_file() or not path.name.startswith(prefix):
+            continue
+        base = archive_base_name(path)
+        if base is None:
+            continue
+        groups.setdefault(base, []).append(path)
+
+    previous = [base for base in groups if base != current_base]
+    previous.sort(
+        key=lambda base: max(p.stat().st_mtime for p in groups[base]),
+        reverse=True,
+    )
+    stale = previous[keep_previous:]
+    removed = 0
+    for base in stale:
+        for path in groups[base]:
+            path.unlink()
+            removed += 1
+    if removed:
+        builds = len(stale)
+        noun = "build" if builds == 1 else "builds"
+        print(f"Pruned {removed} file(s) from {builds} old {noun}.")
+
+
+
 def tree_size(path: Path) -> int:
     if path.is_file():
         return path.stat().st_size
@@ -237,11 +281,18 @@ def sevenz_files(source: Path, target: Path):
         print("Archiving failed for 7z:", repr(e))
 
 
-def archive(source: Path, config: dict) -> list[Path]:
+def archive(
+    source: Path,
+    config: dict,
+    version: str,
+    keep_previous: int,
+    prune_old: bool,
+) -> list[Path]:
     target_dir = source.parent
     name = config["archive_name"].format(
         name=NAME,
         platform=platform_name(),
+        version=version,
         commit=short_commit(),
     )
     formats = config["formats"][platform_name()]
@@ -259,6 +310,8 @@ def archive(source: Path, config: dict) -> list[Path]:
         print("Archiving:", target)
         compressor(source, target)
         targets.append(target)
+    if prune_old:
+        prune_archives(target_dir, name, keep_previous)
     return targets
 
 
@@ -273,16 +326,46 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Do not compress the payload with UPX (bigger download, faster "
              "startup, fewer antivirus false positives)",
     )
+    parser.add_argument(
+        "--keep-previous", type=int, default=4, metavar="N",
+        help="Keep the current build plus this many previous builds "
+             "(default: 4)",
+    )
+    parser.add_argument(
+        "--no-archive-prune", dest="archive_prune", action="store_false",
+        help="Keep all old build archives",
+    )
     return parser.parse_args(argv)
+
+
+def load_versions() -> tuple[dict, str]:
+    with PYPROJECT.open("rb") as file:
+        project = tomllib.load(file)
+    version = project["project"]["version"]
+    with (ROOT / "pixi.toml").open("rb") as file:
+        pixi_version = tomllib.load(file)["workspace"]["version"]
+    if pixi_version != version:
+        raise SystemExit(
+            f"Version mismatch: pyproject.toml has {version}, "
+            f"pixi.toml has {pixi_version}"
+        )
+    return project["tool"][TOOL_NAME], version
 
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
-    with PYPROJECT.open("rb") as file:
-        config = tomllib.load(file)["tool"][TOOL_NAME]
+    if args.keep_previous < 0:
+        raise SystemExit("--keep-previous must be 0 or greater")
+    config, version = load_versions()
 
     app_path = build(upx=args.upx, prune=not args.no_prune)
-    targets = archive(app_path, config)
+    targets = archive(
+        app_path,
+        config,
+        version,
+        args.keep_previous,
+        args.archive_prune,
+    )
 
     print()
     print(f"{'artifact':<32}{'MiB':>8}")

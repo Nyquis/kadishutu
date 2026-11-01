@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kadishutu"
-version = "0.1.13"
+version = "0.2.0"
 description = "A save editor for Shin Megami Tensei V: Vengeance."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -72,7 +72,7 @@ ignore = ["E501"]
 "src/kadishutu/data/old_demon_data.py" = ["W291"]
 
 [tool.pyinstaller-archiver]
-archive_name = "{name}-{platform}-{commit}"
+archive_name = "{name}-{platform}-v{version}-{commit}"
 
 [tool.pyinstaller-archiver.formats]
 linux = ["xz", "7z"]

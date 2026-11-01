@@ -108,7 +108,11 @@ pixi run -e dev build
 ```
 
 `build` produces the release: a `kadishutu` folder plus a
-`kadishutu-<platform>-<commit>.zip` archive next to it.
+`kadishutu-<platform>-v<version>-<commit>.zip` archive next to it.
+
+The build keeps the new archive plus the four newest previous archives, so at
+most five build archives are retained. Use `--keep-previous N` to change that
+or `--no-archive-prune` to keep everything.
 
 The build skips the Qt modules the widgets-only GUI never imports (QML/Quick,
 PDF, Network, SVG) and then prunes the DLLs, plugins and translations that

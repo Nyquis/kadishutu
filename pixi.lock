@@ -614,8 +614,8 @@ packages:
   - ansicon ; sys_platform == 'win32'
 - pypi: ./
   name: kadishutu
-  version: 0.1.13
-  sha256: 5ea59d7f2178a5bf62cd1b4da610288078c6af46550db8aa81f9bea376900b73
+  version: 0.2.0
+  sha256: 33d612022dd104b0f1b284d90cfb806ce87824617ddfcf58b8a5bac6dc424328
   requires_dist:
   - mashumaro>=3.23,<4
   - platformdirs>=4,<5

@@ -1,7 +1,7 @@
 [workspace]
 name = "kadishutu"
 # Keep in sync with `version` in pyproject.toml.
-version = "0.1.13"
+version = "0.2.0"
 description = "A save editor for Shin Megami Tensei V: Vengeance."
 authors = ["fnrir"]
 license = "Apache-2.0"

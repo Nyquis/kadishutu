@@ -149,9 +149,14 @@ pixi run python -m tools.save_lab.leveling_metadata
 - Use conventional commit messages, for example:
   `feat(ui): ...`, `fix(ui): ...`, `docs(...): ...`.
 - Build with `pixi run build`.
-- Artifact: `dist/pyinstaller/windows/kadishutu-windows-<shortsha>.zip`.
+- Artifact:
+  `dist/pyinstaller/windows/kadishutu-windows-v<version>-<shortsha>.zip`.
+- `pyproject.toml` and `pixi.toml` versions must match; the build fails if
+  they drift.
+- The build keeps the new archive plus the four newest previous archives
+  (five total). Use `--keep-previous N` or `--no-archive-prune` to change it.
 - Report the SHA-256 of the zip.
-- Remove older zip artifacts so only the latest remains.
+- Older archives are pruned automatically; do not commit `dist/`.
 - Do not commit `dist/`, `build/`, `.pixi/`, or `lab/` contents.
 
 ## Documentation
