@@ -38,6 +38,19 @@ DEMON_EXP_MULTIPLIERS = (
 # Normal demon level-ups grant this many points to the five core stats.
 DEMON_STAT_POINTS_PER_LEVEL = 3
 
+# Corpus-derived HP/MP conversion estimates. These are not confirmed game
+# formulas; they fit the available save deltas at roughly 0.3 HP/MP per level.
+HP_GROWTH_DIVISOR = 4
+MP_GROWTH_DIVISOR = 6
+
+
+def estimated_hp_gain(growth: int) -> float:
+    return growth / HP_GROWTH_DIVISOR
+
+
+def estimated_mp_gain(growth: int) -> float:
+    return growth / MP_GROWTH_DIVISOR
+
 
 def expected_stat_gain(
     weight: int,

@@ -121,3 +121,12 @@ def test_expected_demon_stat_gain():
     assert expected_stat_gain(26, 102) == pytest.approx(3 * 26 / 102)
     assert expected_stat_gain(0, 100) == 0.0
     assert expected_stat_gain(20, 0) == 0.0
+
+
+def test_estimated_hp_mp_gain():
+    from kadishutu.data.leveling import estimated_hp_gain, estimated_mp_gain
+
+    assert estimated_hp_gain(20) == pytest.approx(5.0)
+    assert estimated_hp_gain(19) == pytest.approx(4.75)
+    assert estimated_mp_gain(21) == pytest.approx(3.5)
+    assert estimated_mp_gain(25) == pytest.approx(25 / 6)

@@ -18,6 +18,8 @@ from kadishutu.data.demons import DEMON_ID_MAP, DEMON_NAME_MAP
 from kadishutu.data.leveling import (
     DEMON_STAT_POINTS_PER_LEVEL,
     demon_exp_to_next,
+    estimated_hp_gain,
+    estimated_mp_gain,
     expected_stat_gain,
 )
 
@@ -35,9 +37,12 @@ if TYPE_CHECKING:
     from _typeshed import SupportsRichComparison
 
 
-GROWTH_ROWS = (
+HP_MP_ROWS = (
     ("HP", "hp"),
     ("MP", "mp"),
+)
+
+CORE_STAT_ROWS = (
     ("STR", "strength"),
     ("VIT", "vitality"),
     ("MAG", "magic"),
@@ -115,18 +120,47 @@ class DemonEditorScreen(DemonLikeEditorScreen, AppliableWidget):
         self.growth_title = QLabel(self.growth_box)
         self.growth_title.setObjectName("SectionTitle")
         growth_layout.addWidget(self.growth_title)
+        self.growth_cells: dict[str, tuple[QLabel, QLabel, QLabel]] = {}
+
+        self.hp_mp_label = QLabel("HP / MP", self.growth_box)
+        self.hp_mp_label.setObjectName("Muted")
+        growth_layout.addWidget(self.hp_mp_label)
+        self.hp_mp_grid = QGridLayout()
+        self.hp_mp_grid.setHorizontalSpacing(16)
+        self.hp_mp_grid.setColumnStretch(0, 1)
+        self.hp_mp_headers: list[QLabel] = []
+        for column, (title, tooltip) in enumerate((
+            ("Stat", ""),
+            ("Current", "Natural + bonuses. Open Stats for details."),
+            ("Growth", "Raw HP/MP growth value from the demon table."),
+            (
+                "Est. /level",
+                "Approximate corpus estimate: HP growth / 4, "
+                "MP growth / 6. Not a confirmed game formula.",
+            ),
+        )):
+            header = QLabel(title, self.growth_box)
+            header.setObjectName("Muted")
+            if tooltip:
+                header.setToolTip(tooltip)
+            self.hp_mp_grid.addWidget(header, 0, column)
+            self.hp_mp_headers.append(header)
+        growth_layout.addLayout(self.hp_mp_grid)
+
+        self.core_label = QLabel("Core stats", self.growth_box)
+        self.core_label.setObjectName("Muted")
+        growth_layout.addWidget(self.core_label)
         self.growth_grid = QGridLayout()
         self.growth_grid.setHorizontalSpacing(16)
         self.growth_grid.setColumnStretch(0, 1)
-        growth_layout.addLayout(self.growth_grid)
-        self.growth_cells: dict[str, tuple[QLabel, QLabel, QLabel]] = {}
-
+        self.core_headers: list[QLabel] = []
         for column, (title, tooltip) in enumerate((
             ("Stat", ""),
             ("Current", "Natural + bonuses. Open Stats for details."),
             (
-                "Weight",
-                "Relative weight per stat point. HP/MP use separate growth.",
+                "Weight %",
+                "Share of the three core-stat points per level, "
+                "normalized by Growth Total.",
             ),
             (
                 "Avg/level",
@@ -139,22 +173,28 @@ class DemonEditorScreen(DemonLikeEditorScreen, AppliableWidget):
             if tooltip:
                 header.setToolTip(tooltip)
             self.growth_grid.addWidget(header, 0, column)
+            self.core_headers.append(header)
+        growth_layout.addLayout(self.growth_grid)
 
-        for row, (label_text, key) in enumerate(GROWTH_ROWS, 1):
-            name = QLabel(label_text, self.growth_box)
-            current = QLabel("-", self.growth_box)
-            weight = QLabel("-", self.growth_box)
-            average = QLabel("-", self.growth_box)
-            average.setObjectName("Muted")
-            self.growth_grid.addWidget(name, row, 0)
-            self.growth_grid.addWidget(current, row, 1)
-            self.growth_grid.addWidget(weight, row, 2)
-            self.growth_grid.addWidget(average, row, 3)
-            self.growth_cells[key] = (current, weight, average)
+        for grid in (self.hp_mp_grid, self.growth_grid):
+            grid.setColumnMinimumWidth(1, 70)
+            grid.setColumnMinimumWidth(2, 70)
+            grid.setColumnMinimumWidth(3, 90)
+
+        for row, (label_text, key) in enumerate(HP_MP_ROWS, 1):
+            self.add_growth_row(
+                self.hp_mp_grid, row, label_text, key,
+            )
+        for row, (label_text, key) in enumerate(CORE_STAT_ROWS, 1):
+            self.add_growth_row(
+                self.growth_grid, row, label_text, key,
+            )
 
         self.growth_footer = QLabel(
-            f"Avg/level assumes {DEMON_STAT_POINTS_PER_LEVEL} points per "
-            "level. Prayers and fusion add more.",
+            "Weight % uses Growth Total; it is 100 for most demons but can "
+            "be 98-104. HP/MP Est. is a corpus estimate (~growth/4 and "
+            "~growth/6), not a confirmed formula. Prayers and fusion add "
+            "more.",
             self.growth_box,
         )
         self.growth_footer.setObjectName("Muted")
@@ -169,6 +209,24 @@ class DemonEditorScreen(DemonLikeEditorScreen, AppliableWidget):
             "based on the demon's levels above its species' base level."
         )
         self.refresh_growth()
+
+    def add_growth_row(
+        self,
+        grid: QGridLayout,
+        row: int,
+        label_text: str,
+        key: str,
+    ):
+        name = QLabel(label_text, self.growth_box)
+        current = QLabel("-", self.growth_box)
+        value = QLabel("-", self.growth_box)
+        average = QLabel("-", self.growth_box)
+        average.setObjectName("Muted")
+        grid.addWidget(name, row, 0)
+        grid.addWidget(current, row, 1)
+        grid.addWidget(value, row, 2)
+        grid.addWidget(average, row, 3)
+        self.growth_cells[key] = (current, value, average)
 
     def exp_required(self) -> int | None:
         meta = self.demon_idn_widget.demon
@@ -185,22 +243,31 @@ class DemonEditorScreen(DemonLikeEditorScreen, AppliableWidget):
             f"{DEMON_STAT_POINTS_PER_LEVEL} core-stat points are granted "
             "per normal level."
         )
-        for key, (current_label, weight_label, average_label) in (
+        for key, (current_label, value_label, average_label) in (
             self.growth_cells.items()
         ):
             current_label.setText(str(getattr(current, key)))
-            weight = getattr(growth, key)
+            growth_value = getattr(growth, key)
             if key in ("hp", "mp"):
-                weight_label.setText(str(weight) if total else "-")
-                average_label.setText("-")
+                value_label.setText(str(growth_value) if growth_value else "-")
+                if not growth_value:
+                    average_label.setText("-")
+                elif key == "hp":
+                    average_label.setText(
+                        f"~{estimated_hp_gain(growth_value):.1f}"
+                    )
+                else:
+                    average_label.setText(
+                        f"~{estimated_mp_gain(growth_value):.1f}"
+                    )
                 continue
             if not total:
-                weight_label.setText("-")
+                value_label.setText("-")
                 average_label.setText("-")
                 continue
-            weight_label.setText(f"{100 * weight / total:.1f}%")
+            value_label.setText(f"{100 * growth_value / total:.1f}%")
             average_label.setText(
-                f"+{expected_stat_gain(weight, total):.2f}"
+                f"+{expected_stat_gain(growth_value, total):.2f}"
             )
 
     def graphic_refresh(self):

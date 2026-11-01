@@ -131,7 +131,7 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 | DEMON-09 | Change affinity | Value applies and persists | Not run | | |
 | DEMON-10 | Change potential | Signed value applies and persists | Not run | | |
 | DEMON-11 | Save, reload, and load demon in game | Stats/skills/affinities/potentials are sane | Not run | | |
-| DEMON-12 | Open a demon screen | Growth table shows Current, Weight, and Avg/level plus the EXP-to-next line | Not run | | |
+| DEMON-12 | Open a demon screen | HP/MP and core-stat growth tables show Current, Weight %, and estimated/average gains | Not run | | |
 | DEMON-13 | Change the demon ID | Growth table follows the new species | Not run | | |
 | DEMON-14 | Check the level/EXP note | Badge says `separate fields`, not `derived` | Not run | | |
 

@@ -45,14 +45,16 @@ This is intentionally a warning, not a restriction. The save remains valid.
 
 ## Demon growth
 
-The demon screen shows a compact growth table:
+The demon screen shows two compact growth tables:
 
-- `Current` stats
-- normalized `Weight` for the five core stats
-- `Avg/level`, based on three stat points per normal level-up
+- HP/MP: `Current`, raw `Growth`, and an estimated `Est. /level`
+- Core stats: `Current`, `Weight %`, and `Avg/level`
 
-HP/MP keep their separate growth values and have no `Avg/level` column.
-Prayers and fusion add points outside this table.
+`Weight %` is normalized by `Growth Total`, which is 100 for most demons but
+can be 98–104. `Avg/level` assumes three core-stat points per normal level-up.
+
+HP/MP `Est. /level` is a corpus estimate (`growth / 4` and `growth / 6`), not a
+confirmed game formula. Prayers and fusion add points outside both tables.
 
 ## Demon creation
 

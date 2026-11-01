@@ -315,9 +315,20 @@ def test_demon_growth_table_shows_expected_gains(window, editor):
     assert weight.text() == "28.0%"
     assert average.text() == "+0.84"
 
-    _, _, hp_average = screen.growth_cells["hp"]
-    assert hp_average.text() == "-"
-    assert "Avg/level" in screen.growth_footer.text()
+    _, hp_growth, hp_average = screen.growth_cells["hp"]
+    assert hp_growth.text() == "19"
+    assert hp_average.text() == "~4.8"
+    _, mp_growth, mp_average = screen.growth_cells["mp"]
+    assert mp_growth.text() == "25"
+    assert mp_average.text() == "~4.2"
+
+    assert [header.text() for header in screen.hp_mp_headers] == [
+        "Stat", "Current", "Growth", "Est. /level",
+    ]
+    assert [header.text() for header in screen.core_headers] == [
+        "Stat", "Current", "Weight %", "Avg/level",
+    ]
+    assert "corpus estimate" in screen.growth_footer.text().lower()
 
 
 def test_demon_screen_uses_neutral_separate_fields_badge(window, editor):
