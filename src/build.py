@@ -244,7 +244,12 @@ def scrub_metadata(app_dir: Path) -> None:
 
 
 def leak_needles() -> list[bytes]:
-    """Local paths that must never appear inside a release."""
+    """Local paths that must never appear inside a release.
+
+    Only this workspace is checked. Vendor metadata is expected and ignored:
+    Microsoft's redistributable DLLs embed ``D:\\a\\_work\\1\\s`` from their
+    own build agents, and Qt's DLLs embed ``C:\\Users\\qt``.
+    """
     home = Path.home()
     candidates = {str(ROOT), ROOT.as_posix(), str(home), home.as_posix()}
     return [item.encode() for item in candidates if len(item) > 3]
