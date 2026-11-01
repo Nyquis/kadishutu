@@ -33,20 +33,23 @@ jobs:
         run: pixi run python src/build.py --check-version ${{ github.ref_name }}
 
       # Pinned so the published artifact matches local builds. UPX is not
-      # available on the runner, and conda-forge does not package it.
+      # available on the runner, and conda-forge does not package it. It is
+      # unpacked outside the workspace so the build's clean-tree check passes.
       - name: Install pinned UPX
         shell: pwsh
         run: |
           $version = "5.2.1"
           $expected = "EABC6792A347D45E945BE7748423E7868FD01B0D2BCAA2F4B1031FD71FF69BDA"
           $url = "https://github.com/upx/upx/releases/download/v$version/upx-$version-win64.zip"
-          Invoke-WebRequest -Uri $url -OutFile upx.zip
-          $actual = (Get-FileHash upx.zip -Algorithm SHA256).Hash
+          $archive = Join-Path $env:RUNNER_TEMP "upx.zip"
+          $target = Join-Path $env:RUNNER_TEMP "upx"
+          Invoke-WebRequest -Uri $url -OutFile $archive
+          $actual = (Get-FileHash $archive -Algorithm SHA256).Hash
           if ($actual -ne $expected) {
             throw "UPX checksum mismatch: $actual"
           }
-          Expand-Archive upx.zip -DestinationPath upx
-          $bin = (Get-ChildItem upx -Recurse -Filter upx.exe | Select-Object -First 1).Directory.FullName
+          Expand-Archive $archive -DestinationPath $target
+          $bin = (Get-ChildItem $target -Recurse -Filter upx.exe | Select-Object -First 1).Directory.FullName
           $bin | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
           & "$bin\upx.exe" --version | Select-Object -First 2
 
