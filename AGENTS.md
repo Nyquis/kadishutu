@@ -158,22 +158,40 @@ Do not add a package build to pull requests: it is slow and publishes nothing.
 
 ## Git and release workflow
 
-- Commit before building: the artifact name uses `git rev-parse --short HEAD`.
 - Use conventional commit messages, for example:
   `feat(ui): ...`, `fix(ui): ...`, `docs(...): ...`.
-- Build with `pixi run build`.
-- Artifact:
+- Commit before building. The artifact name uses
+  `git rev-parse --short HEAD`, and the build refuses a dirty tree;
+  `--allow-dirty` is only for throwaway builds.
+- Build locally with `pixi run build`. The artifact is
   `dist/pyinstaller/windows/kadishutu-windows-v<version>-<shortsha>.zip`.
-- `pyproject.toml` and `pixi.toml` versions must match; the build fails if
-  they drift.
+- Publish by pushing a `v*` tag; `.github/workflows/release.yml` builds and
+  releases it. Do not publish by hand unless the workflow is unavailable; the
+  fallback is documented in `docs/releasing.md`.
+- `pyproject.toml` and `pixi.toml` must agree on version, authors, license, and
+  description. The build fails if they drift.
 - The build keeps the new archive plus the four newest previous archives
   (five total). Use `--keep-previous N` or `--no-archive-prune` to change it.
-- Report the SHA-256 of the zip.
 - The build scrubs install metadata (`direct_url.json`, `INSTALLER`) and
   `__pycache__`/stray `.pyc` files, then fails if any build-host path remains
-  in the packaged tree. Do not publish an artifact from a failing build.
-- Older archives are pruned automatically; do not commit `dist/`.
+  in the packaged tree.
+- Report the SHA-256 of the zip. Published releases carry a `SHA256SUMS.txt`.
 - Do not commit `dist/`, `build/`, `.pixi/`, or `lab/` contents.
+
+## Versioning
+
+- Never change `version` in `pyproject.toml`, `pixi.toml`, or `pixi.lock`
+  unless the user explicitly asks for a version bump.
+- Bumps happen only immediately before tagging a release, as the last commit.
+- Development builds keep the current version; the short commit in the artifact
+  name distinguishes them.
+- If a change looks release-worthy, propose the bump and wait for confirmation.
+- Pre-1.0: minor (`0.3.0`) for new features or breaking changes, patch
+  (`0.2.1`) for fixes and data corrections. Docs, tests, and CI changes do not
+  bump the version.
+- The package author is Nyquis. `fnrir` appears only as upstream credit in
+  `NOTICE`, `LICENSES/MIT.txt`, and the README; do not treat it as the current
+  author.
 
 ## Documentation
 

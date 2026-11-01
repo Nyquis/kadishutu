@@ -36,6 +36,9 @@ latest one from the
 built with PyInstaller, so antivirus software may flag them even though they
 are not malicious.
 
+Each release includes a `SHA256SUMS.txt`. Compare it against the downloaded
+archive if you want to confirm the file was not altered in transit.
+
 ### From source with Pixi
 
 This is the recommended route for a local checkout. It installs the runtime

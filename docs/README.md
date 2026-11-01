@@ -38,5 +38,7 @@ unversioned build snapshots carried over from upstream; they are not releases.
 
 - [AGENTS.md](../AGENTS.md) - project conventions, commands, domain rules, and
   release workflow.
+- [Releasing](releasing.md) - versioning, tagged releases, verification, and
+  the manual fallback.
 - [Data tables and generators](../src/kadishutu/data/tables/README.md) - how
   generated JSON is produced.
