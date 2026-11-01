@@ -156,6 +156,9 @@ pixi run python -m tools.save_lab.leveling_metadata
 - The build keeps the new archive plus the four newest previous archives
   (five total). Use `--keep-previous N` or `--no-archive-prune` to change it.
 - Report the SHA-256 of the zip.
+- The build scrubs install metadata (`direct_url.json`, `INSTALLER`) and
+  `__pycache__`/stray `.pyc` files, then fails if any build-host path remains
+  in the packaged tree. Do not publish an artifact from a failing build.
 - Older archives are pruned automatically; do not commit `dist/`.
 - Do not commit `dist/`, `build/`, `.pixi/`, or `lab/` contents.
 

@@ -124,6 +124,11 @@ PyInstaller uses UPX when it is available, because its LZMA packing shrinks
 both the folder and the zip. Pass `--no-upx` if the packed executable trips
 antivirus heuristics on your machine; it also starts ~0.3s faster that way.
 
+Before archiving, the build removes install metadata and bytecode caches that
+would otherwise record the path it was built from, and fails outright if any
+build-host path survives into the packaged tree. A release therefore never
+contains the builder's directory layout or user name.
+
 The optional dependencies for `examples/late_bonuses.py` are in the
 `example-late-bonuses` environment:
 
