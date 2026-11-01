@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: build and publish
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: prefix-dev/setup-pixi@v0.11.3
+        with:
+          pixi-version: v0.59.0
+          environments: default, dev
+          cache: true
+
+      # Fail before spending a minute on PyInstaller if the tag is wrong.
+      - name: Verify tag matches project version
+        run: pixi run python src/build.py --check-version ${{ github.ref_name }}
+
+      # Pinned so the published artifact matches local builds. UPX is not
+      # available on the runner, and conda-forge does not package it.
+      - name: Install pinned UPX
+        shell: pwsh
+        run: |
+          $version = "5.2.1"
+          $expected = "EABC6792A347D45E945BE7748423E7868FD01B0D2BCAA2F4B1031FD71FF69BDA"
+          $url = "https://github.com/upx/upx/releases/download/v$version/upx-$version-win64.zip"
+          Invoke-WebRequest -Uri $url -OutFile upx.zip
+          $actual = (Get-FileHash upx.zip -Algorithm SHA256).Hash
+          if ($actual -ne $expected) {
+            throw "UPX checksum mismatch: $actual"
+          }
+          Expand-Archive upx.zip -DestinationPath upx
+          $bin = (Get-ChildItem upx -Recurse -Filter upx.exe | Select-Object -First 1).Directory.FullName
+          $bin | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          & "$bin\upx.exe" --version | Select-Object -First 2
+
+      - name: Build
+        run: pixi run python src/build.py --no-archive-prune
+
+      - name: Locate the archive
+        id: artifact
+        shell: pwsh
+        run: |
+          $zips = @(Get-ChildItem dist/pyinstaller/windows -File -Filter *.zip)
+          if ($zips.Count -ne 1) {
+            throw "Expected exactly one archive, found $($zips.Count)."
+          }
+          "zip=$($zips[0].FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Smoke test the frozen executable
+        shell: pwsh
+        run: |
+          $exe = "dist/pyinstaller/windows/kadishutu/kadishutu.exe"
+          if (-not (Test-Path $exe)) { throw "Packaged executable is missing." }
+          $process = Start-Process -FilePath $exe -ArgumentList "help" -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Packaged executable exited with $($process.ExitCode)."
+          }
+
+      - name: Write checksums
+        shell: pwsh
+        run: |
+          $zip = "${{ steps.artifact.outputs.zip }}"
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  $(Split-Path $zip -Leaf)" | Set-Content -Path SHA256SUMS.txt -Encoding ascii
+          Get-Content SHA256SUMS.txt
+
+      # Before publishing, so a partial release cannot exist.
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: ${{ steps.artifact.outputs.zip }}
+
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Release $tag already exists. Delete it, or use 'gh release upload --clobber'."
+          }
+          gh release create $tag "${{ steps.artifact.outputs.zip }}" SHA256SUMS.txt --verify-tag --generate-notes --title $tag
