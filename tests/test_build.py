@@ -167,3 +167,95 @@ def test_assert_no_leaks_accepts_scrubbed_tree(tmp_path: Path):
 
     BUILD.scrub_metadata(app)
     BUILD.assert_no_leaks(app)
+
+
+def metadata(author: str = "Nyquis") -> dict:
+    return {
+        "authors": [{"name": author}],
+        "license": "Apache-2.0",
+        "description": "A save editor.",
+    }
+
+
+def workspace(author: str = "Nyquis") -> dict:
+    return {
+        "authors": [author],
+        "license": "Apache-2.0",
+        "description": "A save editor.",
+    }
+
+
+def test_workspace_metadata_repository_is_consistent():
+    BUILD.load_versions()
+
+
+def test_workspace_metadata_accepts_matching_values():
+    BUILD.check_workspace_metadata(metadata(), workspace())
+
+
+def test_workspace_metadata_rejects_author_drift():
+    with pytest.raises(SystemExit, match="authors mismatch"):
+        BUILD.check_workspace_metadata(metadata(), workspace("fnrir"))
+
+
+def test_workspace_metadata_rejects_license_drift():
+    drifted = workspace()
+    drifted["license"] = "MIT"
+    with pytest.raises(SystemExit, match="license mismatch"):
+        BUILD.check_workspace_metadata(metadata(), drifted)
+
+
+def test_workspace_metadata_rejects_description_drift():
+    drifted = workspace()
+    drifted["description"] = "Something else."
+    with pytest.raises(SystemExit, match="description mismatch"):
+        BUILD.check_workspace_metadata(metadata(), drifted)
+
+
+def test_check_version_tag_accepts_matching_tag(capsys):
+    BUILD.check_version_tag("v0.2.0", "0.2.0")
+
+    assert "matches version 0.2.0" in capsys.readouterr().out
+
+
+def test_check_version_tag_rejects_other_tag():
+    with pytest.raises(SystemExit, match="does not match"):
+        BUILD.check_version_tag("v0.2.1", "0.2.0")
+
+
+def test_check_version_tag_rejects_missing_prefix():
+    with pytest.raises(SystemExit, match="does not match"):
+        BUILD.check_version_tag("0.2.0", "0.2.0")
+
+
+def test_dirty_paths_reports_changes(monkeypatch):
+    monkeypatch.setattr(
+        BUILD, "git_lines", lambda args: [" M README.md", "?? new.txt"],
+    )
+
+    assert BUILD.dirty_paths() == [" M README.md", "?? new.txt"]
+
+
+def test_dirty_paths_empty_when_clean(monkeypatch):
+    monkeypatch.setattr(BUILD, "git_lines", lambda args: [])
+
+    assert BUILD.dirty_paths() == []
+
+
+def test_dirty_paths_tolerates_missing_git(monkeypatch):
+    monkeypatch.setattr(BUILD, "git_lines", lambda args: None)
+
+    assert BUILD.dirty_paths() == []
+
+
+def test_check_clean_tree_refuses_dirty_worktree(monkeypatch):
+    monkeypatch.setattr(BUILD, "dirty_paths", lambda: [" M README.md"])
+
+    with pytest.raises(SystemExit, match="allow-dirty"):
+        BUILD.check_clean_tree()
+
+
+def test_check_clean_tree_allows_clean_worktree(monkeypatch):
+    monkeypatch.setattr(BUILD, "dirty_paths", lambda: [])
+
+    BUILD.check_clean_tree()

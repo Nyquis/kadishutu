@@ -420,21 +420,98 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--no-archive-prune", dest="archive_prune", action="store_false",
         help="Keep all old build archives",
     )
+    parser.add_argument(
+        "--allow-dirty", action="store_true",
+        help="Build even though the working tree has uncommitted changes "
+             "(for throwaway builds only)",
+    )
+    parser.add_argument(
+        "--check-version", metavar="TAG",
+        help="Verify that TAG (for example v0.2.0) matches the project "
+             "version, then exit",
+    )
     return parser.parse_args(argv)
 
 
 def load_versions() -> tuple[dict, str]:
     with PYPROJECT.open("rb") as file:
-        project = tomllib.load(file)
-    version = project["project"]["version"]
+        pyproject = tomllib.load(file)
     with (ROOT / "pixi.toml").open("rb") as file:
-        pixi_version = tomllib.load(file)["workspace"]["version"]
-    if pixi_version != version:
+        workspace = tomllib.load(file)["workspace"]
+    project = pyproject["project"]
+    version = project["version"]
+    if workspace["version"] != version:
         raise SystemExit(
             f"Version mismatch: pyproject.toml has {version}, "
-            f"pixi.toml has {pixi_version}"
+            f"pixi.toml has {workspace['version']}"
         )
-    return project["tool"][TOOL_NAME], version
+    check_workspace_metadata(project, workspace)
+    return pyproject["tool"][TOOL_NAME], version
+
+
+def check_workspace_metadata(project: dict, workspace: dict) -> None:
+    """Fail when pixi.toml drifts from the pyproject metadata.
+
+    Both files repeat the same values. The version-only check used to miss
+    things like a stale author list, so compare the rest as well.
+    """
+    expected = {
+        "authors": [author["name"] for author in project.get("authors", [])],
+        "license": project.get("license"),
+        "description": project.get("description"),
+    }
+    for field, value in expected.items():
+        actual = workspace.get(field)
+        if actual != value:
+            raise SystemExit(
+                f"{field} mismatch: pyproject.toml has {value!r}, "
+                f"pixi.toml has {actual!r}"
+            )
+
+
+def check_version_tag(tag: str, version: str) -> None:
+    """Fail unless a release tag such as ``v0.2.0`` matches the version."""
+    expected = f"v{version}"
+    if tag != expected:
+        raise SystemExit(
+            f"Tag {tag} does not match the project version {version} "
+            f"(expected {expected})"
+        )
+    print(f"Tag {tag} matches version {version}")
+
+
+def git_lines(args: list[str]) -> list[str] | None:
+    """Run a git command in the repository, or return None outside one."""
+    try:
+        output = subprocess.check_output(
+            ["git", *args],
+            cwd=ROOT,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return [line for line in output.splitlines() if line.strip()]
+
+
+def dirty_paths() -> list[str]:
+    """Uncommitted paths, so a build cannot claim a commit it lacks."""
+    return git_lines(["status", "--porcelain"]) or []
+
+
+def check_clean_tree() -> None:
+    """Refuse to package a checkout with uncommitted changes."""
+    dirty = dirty_paths()
+    if not dirty:
+        return
+    print("The working tree has uncommitted changes:", file=sys.stderr)
+    for line in dirty:
+        print(f"  {line}", file=sys.stderr)
+    raise SystemExit(
+        "Commit them, or pass --allow-dirty for a throwaway build. The "
+        "artifact name uses the current commit, so a dirty build does not "
+        "match the commit it claims."
+    )
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -442,6 +519,13 @@ def main(argv: list[str] | None = None) -> None:
     if args.keep_previous < 0:
         raise SystemExit("--keep-previous must be 0 or greater")
     config, version = load_versions()
+
+    if args.check_version is not None:
+        check_version_tag(args.check_version, version)
+        return
+
+    if not args.allow_dirty:
+        check_clean_tree()
 
     app_path = build(upx=args.upx, prune=not args.no_prune)
     targets = archive(
