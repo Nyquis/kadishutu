@@ -3,7 +3,7 @@ name = "kadishutu"
 # Keep in sync with `version` in pyproject.toml.
 version = "0.2.0"
 description = "A save editor for Shin Megami Tensei V: Vengeance."
-authors = ["fnrir"]
+authors = ["Nyquis"]
 license = "Apache-2.0"
 readme = "README.md"
 channels = ["conda-forge"]
