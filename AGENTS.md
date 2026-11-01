@@ -123,6 +123,12 @@ pixi run python -m tools.save_lab.leveling_metadata
 - Keep item names unchanged. Put potential mappings in tooltips.
 - Use scroll areas for dense or tall screens. Verify at 900x620; rows must not
   overlap or be compressed to zero height.
+- Skills: keep the help label's vertical size policy `Fixed`; the table must
+  stay near the top.
+- Affinities: content lives in a scroll area; group boxes keep their natural
+  height.
+- Demon detail: scroll area; the growth tables must keep their row heights even
+  with the graphic visible.
 - Demon creation:
   - safe mode shows only `Compendium == 1`
   - Advanced shows enemy entries, muted and marked `· Enemy`
@@ -158,6 +164,7 @@ pixi run python -m tools.save_lab.leveling_metadata
 - Keep manual checks in `docs/manual-testing.md` only; do not add `.github`
   templates.
 - Update relevant docs with behavior changes:
+  - `docs/README.md` - documentation index
   - `docs/safety.md` - advanced mode, warnings, presets
   - `docs/leveling.md` - stat/EXP tables and estimates
   - `docs/GameSave.md` / `docs/SaveSchema.md` - save offsets and fallbacks

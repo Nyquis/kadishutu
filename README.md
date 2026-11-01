@@ -1,9 +1,28 @@
-# Qadištu (カディシュトゥ, Kadishutu) save editor
+# Qadistu (Kadishutu) save editor
 
 A save editor for Shin Megami Tensei V: Vengeance.
 
 Windows 11 is the primary target. Linux and macOS support is best-effort.
-Running from source requires Python 3.11–3.13.
+Running from source requires Python 3.11-3.13.
+
+## Read this first
+
+- This is an unofficial editor. Back up your save before making changes.
+- **Apply Changes** updates the in-memory save. **Save to Disk** writes it and
+  creates a timestamped `.bak` file.
+- **Advanced** mode unlocks level, EXP, stored Current stats, and raw skill IDs.
+  Warnings stay visible; the game may still recalculate edited values.
+- Item sources are intentionally not shown. The editor documents mechanics, not
+  where to find items.
+- See [docs/safety.md](docs/safety.md) for the full safety model.
+
+## Quick start
+
+1. Back up the save file you intend to edit.
+2. Open the save and confirm the player name, level, and location look right.
+3. Make changes, then click **Apply Changes**.
+4. Click **Save to Disk**.
+5. Reopen the save in the editor and verify it in the game.
 
 ## Installation
 
@@ -184,32 +203,20 @@ savefile.save_finished(path)
 
 ## Additional setup
 
-Some data is not bundled with the editor. While not strictly necessary, adding
-it gives you a better experience with the editor.
+Most generated metadata is bundled: item limits and flags, miracles, quests,
+and the Nahobino leveling tables. The editor works without extra game dumps.
 
-The files can be dumped/saved/exported with
-[umodel](https://www.gildor.org/en/projects/umodel).
-
-(Don't use the Linux version, it is outdated.)
-
-[Fmodel](https://fmodel.app/) should also work, but it is hit or miss for me.
-
-### Game data
-
-```txt
-Game/Blueprints/Gamedata/BinTable/GodParameter/Table/GodParameterDataTable.uexp
-Game/Blueprints/Gamedata/BinTable/Mission/MissionTable.uexp
-```
-
-(GodParameter means Miracle.)
-
-### Game image data
+Optional image data still improves character and element icons:
 
 ```txt
 Game/Design/UI/CharaIcon/Textures/*
 Game/Design/UI/Icon/Element/Textures/icon_element_01.tga
 Game/Design/UI/LoadingCharaIcon/*
 ```
+
+Dump them with [umodel](https://www.gildor.org/en/projects/umodel) or
+[Fmodel](https://fmodel.app/). Do not modify the game installation. Place the
+export under the app data `game_data_export` directory described below.
 
 ### App data directory
 
@@ -293,67 +300,108 @@ More troubleshooting information is in [docs/Troubleshooting.md](docs/Troublesho
 
 ## Project status
 
-NOTE: This is tested with the Switch version of the game (`010069C01AB82000`
-with all DLCs more specifically), but it also works with the PC version.
+PC / Steam is the primary target for this fork. The format is inherited from
+the Switch editor, but treat Switch-specific behavior as unverified here.
 
-### What works?
+### What works
 
-- Encryption/decryption
-- Viewing and editing of the following values
-  - Player names
-  - Time of saving (it is a bit weird, but it works)
-  - Used DLCs (this will not give you DLC-exclusive content; it is mainly for
-    importing a save file from a copy with DLCs)
-  - Play time
-  - Miracles and unlocking them
-  - Summoned demons and player placement
-  - For the player and demons:
-    - Affinities, potentials, stats, skills, EXP, level, innate skill
-  - Player stat points
-  - Demons (demon IDs)
-  - Team composition (summoned demons and their order)
-  - Macca, Glory
-  - Items
-  - Essences (partially)
-  - Position
-  - Early compendium and quest support
-  - Alignment
-  - Number of cycles, endings, clear state, and late-game flags
-  - Game difficulty
-  - SysSave system settings: audio, camera, display, messages, battle,
-    controls, language, and Mitama dances
-- Summoning new demons partially works, but it is not recommended because the
-  demon block is not fully understood
+**Player and party**
+
+- Names, play time, Macca, Glory, and stat points
+- Player stats, healable HP/MP, affinities, potentials, skills, and innate skill
+- Party composition and demon order
+- Difficulty
+
+**Demons**
+
+- Demon stats, EXP, level, skills, learn type, affinities, and potentials
+- Demon creation, with compendium-only filtering in safe mode
+- Growth tables with core-stat weights and approximate HP/MP gains
+- Innate skills and skill schedules in the data tables
+
+**Items and progression**
+
+- Items, item limits, and item flags
+- Essences
+- Progression item grants: Gospels, Grimoires, Balms, Incenses, and Sutras
+- Miracles and miracle unlocks
+
+**World and story**
+
+- Position and laylines
+- Alignment choices
+- Cycles, endings, clear state, and late-game flags
+- Early compendium and quest support
+
+**System and safety**
+
+- SysSave audio, camera, display, message, battle, control, and language settings
+- Global Advanced mode with non-blocking warnings
+- Timestamped backups and save verification
+- Save location fallback: exact mapping, last layline, then map region
 
 ### Known limitations
 
 - The CLI is functional but unpolished.
-- The demon block and some compendium/quest data are not fully understood.
+- Some compendium and quest data is not fully understood.
+- Newly created demons are experimental; keep a backup.
+- Some SysSave flags are not exposed yet.
+- SysSave Voice volume mapping is still unresolved.
+- Some title-save locations are unmapped; the preview falls back to the last
+  layline or map region.
 - Plugins and scripts are trusted code rather than sandboxed extensions.
-- Some SysSave advanced/DLC flags are not exposed yet.
 
 ### Planned
 
-- Editing more data
-  - Properly implementing compendium and quest support
-    (Tao and Yoko might be in a separate block)
-  - Full demon support
+- Complete demon, compendium, and quest support
 - Better CLI
-- Allowing the user to add files that modify the demon/skill database, in
-  correlation with mods
-- Rewrite the core in Rust once the format is better understood
+- More SysSave coverage
+- Optional user-supplied data files for mods
+- A core rewrite once the format is better understood
 
 ## Documentation
 
-The save-file documentation is in the `docs` folder:
+See [docs/README.md](docs/README.md) for the full index.
+
+Start here:
+
+- [Safety and advanced editing](docs/safety.md)
+- [Manual testing catalog](docs/manual-testing.md)
+
+Mechanics and UI:
+
+- [Leveling and growth](docs/leveling.md)
+- [Troubleshooting](docs/Troubleshooting.md)
+
+Save format and internals:
 
 - [GameSave.md](docs/GameSave.md)
-- [SysSave.md](docs/SysSave.md)
 - [SaveSchema.md](docs/SaveSchema.md)
-- [Safety.md](docs/safety.md)
-- [Leveling.md](docs/leveling.md)
-- [Troubleshooting.md](docs/Troubleshooting.md)
-- [Manual testing](docs/manual-testing.md)
+- [SysSave.md](docs/SysSave.md)
+- [Random offsets](docs/random_offsets.md)
+
+Research notes:
+
+- [Cheatroom blog post translation](docs/cheatroom_blog_post_translation.md)
+
+Developer material:
+
+- [AGENTS.md](AGENTS.md)
+- [Data tables and generators](src/kadishutu/data/tables/README.md)
+
+## Contributing
+
+Before changing behavior:
+
+1. Run `pixi run test` and `pixi run lint`.
+2. Run `pixi run typecheck` and check that no new errors appear.
+3. Update `docs/manual-testing.md` when adding a manual check.
+4. Keep extracted game data under `lab/`; never commit it.
+5. Do not add `.github` PR or issue templates; manual testing stays in the
+   single catalog.
+
+Read [AGENTS.md](AGENTS.md) for project conventions, domain notes, and the
+release workflow.
 
 ## License
 

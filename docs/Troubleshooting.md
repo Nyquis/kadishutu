@@ -46,3 +46,28 @@ If the skill potential of a demon is below 1, the skill potential can't be
 increased (neither in-game with sutras, nor by editing).
 
 As for the player, it might be recalculated based on bought miracles.
+
+
+## Advanced mode is stuck on
+
+Use the `Advanced: ON` button in the status bar or **Edit > Advanced editing**
+to turn it off. The setting is remembered in QSettings under
+`ui/advanced_mode`; deleting that key resets it.
+
+## Location shows UNKNOWN
+
+`title_save_location` is only partially mapped. The preview falls back to the
+last used layline and then to the map region. A save that has no layline and
+no known map region can still show `UNKNOWN`; this is not a save error.
+
+## Voice volume looks wrong
+
+Voice is not the `0x5e0` slot. That slot is currently exposed incorrectly.
+BGM (`0x5e4`), Ambient (`0x5e8`), and SE (`0x5ec`) are verified. Voice is one
+of the remaining slots and is still being investigated.
+
+## UI text overlaps or collapses
+
+Dense screens should use a scroll area. If a table or group collapses when the
+window is short, report the screen name and approximate size. The Skills and
+Affinities screens were fixed for 900x620; similar reports help catch others.

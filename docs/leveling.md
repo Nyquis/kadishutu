@@ -3,6 +3,18 @@
 This note records what the game data already explains about leveling, and what
 still needs in-game measurements.
 
+## What the editor shows
+
+| UI | Data | Confidence |
+|---|---|---|
+| Nahobino base stats per level | `PlayerGrow` table 2 | verified against saves |
+| EXP to next level | `PlayerGrow` table 3 | verified curve shape |
+| Stat points | save `stat_points` | verified as allocated total |
+| Demon core-stat weights | `Players.csv` growth fields | verified input |
+| Demon `Avg/level` | `3 x weight / Growth Total` | model; not a per-level roll |
+| Demon HP/MP `Est. /level` | `growth / 4`, `growth / 6` | corpus estimate; unconfirmed |
+| Demon EXP requirement | Nahobino curve x level multiplier | multiplier is community-measured |
+
 ## Nahobino stats
 
 `PlayerGrow` (`Project/Content/Blueprints/Gamedata/BinTable/Common/PlayerGrow`)

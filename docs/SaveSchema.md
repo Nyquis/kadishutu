@@ -4,6 +4,9 @@ This is a working cross-reference between the binary save layout, the
 `docs/GameSave.md` offset notes, and the C++ structs exposed by the
 SMT5V modding headers.
 
+`GameSave.md` is the offset-first reference. This document groups the same
+material by struct and confidence level.
+
 It is not a complete format specification. Treat anything marked **inferred**
 as a hypothesis to verify against a real save before writing.
 

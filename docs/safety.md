@@ -3,6 +3,15 @@
 The editor warns about unusual or game-managed values but does not block them.
 A save that the game will accept is still allowed.
 
+## Read this first
+
+- Back up the save before editing. Saving to disk also creates a timestamped
+  `.bak` copy.
+- **Apply Changes** updates the in-memory save. **Save to Disk** writes it.
+- **Advanced** mode unlocks level, EXP, stored Current stats, and raw skill IDs.
+- Warnings remain after unlocking a field; the game may overwrite the value.
+- The HP = 1 preset changes Healable HP only and is intentionally temporary.
+
 ## Advanced editing
 
 Advanced editing is a global toggle in the status bar (`Advanced: OFF`) and in

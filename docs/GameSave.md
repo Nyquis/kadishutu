@@ -5,6 +5,35 @@ Size: 449680 bytes (end at 0x6dc90)
 For a cross-reference between these offsets and the game's C++ save structs,
 see [SaveSchema.md](SaveSchema.md).
 
+## Contents
+
+- [Decryption](#decryption)
+- [Structure](#structure)
+- [Save location](#save-location)
+- [Stats info](#stats-info)
+- [Level info](#level-info)
+- [Skill info](#skill-info)
+- [Affinity info](#affinity-info)
+- [Potential info](#potential-info)
+- [Demon info](#demon-info)
+- [Miracle info](#miracle-info)
+- [Item info](#item-info)
+- [Essence info](#essence-info)
+- [Location info](#location-info)
+- [Tracking info](#tracking-info)
+- [Demon Compendium](#demon-compendium)
+- [Quest info](#quest-info)
+- [Alignment info](#alignment-info)
+- [Notes](#notes)
+
+## Status legend
+
+- **verified** - observed in a real save and/or covered by tests
+- **inferred** - consistent with the structs and offsets, but not fully proven
+- **unknown** - not mapped yet
+
+`SaveSchema.md` carries the same labels in table form.
+
 ## Decryption
 
 The decryption algorithm is stored in [encryption.py](../src/kadishutu/encryption.py).
