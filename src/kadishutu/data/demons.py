@@ -13,6 +13,11 @@ from .tools.unused import is_unused
 DEMON_DATA_PATH = TABLES_PATH / "SMT5V NKM Base Table_Navi Devil Data - Players.csv"
 
 
+def _bool_from_csv(_type, value: str) -> bool:
+    return value.strip() == "1"
+
+
+
 @dataclass
 class DemonStats:
     hp: int
@@ -196,6 +201,7 @@ class DemonDataTab(FromCsv):
     name: str
     race: DemonRace
     level: int
+    compendium: bool
     stats: DemonStats
     growth: DemonGrowth
     skills: list[Skill]
@@ -231,6 +237,10 @@ class DemonDataTab(FromCsv):
             },
             "level": {
                 "field_name": "Level",
+            },
+            "compendium": {
+                "field_name": "Compendium",
+                "converter": _bool_from_csv,
             },
             "stats": {
                 "eval": DemonStats.from_data,
@@ -289,6 +299,7 @@ class Demon:
     id: int
     name: str
     level: int
+    compendium: bool
     stats: DemonStats
     growth: DemonGrowth
     skills: list[Skill]
@@ -302,6 +313,7 @@ class Demon:
         return cls(
             demon.id, demon.name,
             demon.level,
+            demon.compendium,
             demon.stats,
             demon.growth,
             demon.skills,

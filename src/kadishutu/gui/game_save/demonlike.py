@@ -63,13 +63,14 @@ class DemonLikeEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         )
         self.derived_note.setObjectName("Muted")
         self.derived_note.setWordWrap(True)
+        self.separate_badge = RiskBadge(
+            "separate fields",
+            Risk.INFO,
+            "Level, EXP, stats and skills are stored separately. "
+            "Editing one does not update the others.",
+        )
         self.dl_layout.addLayout(hboxed(
-            RiskBadge(
-                "derived",
-                Risk.DERIVED,
-                "Level, EXP, stats and skills are stored separately. "
-                "Editing one does not update the others.",
-            ),
+            self.separate_badge,
             self.derived_note,
         ))
 

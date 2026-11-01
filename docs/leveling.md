@@ -87,6 +87,11 @@ The growth fields are now parsed into `DemonGrowth`
 (`kadishutu.data.demons`). The weights are relative, not flat per-level gains:
 for example Idun is `19/25/13/16/28/21/22`, total `100`.
 
+A normal level-up grants three core-stat points, so the demon screen shows the
+expected gain as `3 x weight / Growth Total`. This is an average, not a
+guaranteed per-level roll. HP/MP use separate growth values and are shown
+without an expected column.
+
 Observed save deltas over several levels do **not** match the raw weights.
 Demon stats in saves also reflect other adjustments that are not yet
 understood. A controlled level-up diff is still needed before the exact

@@ -149,6 +149,10 @@ QLabel#Muted {
     color: $text_muted;
 }
 
+QListWidget::item {
+    padding: 3px 6px;
+}
+
 QLabel#Warning {
     color: $danger;
 }
@@ -160,10 +164,6 @@ QLabel#RiskBadge {
 
 QLabel#RiskBadge[risk="transient"] {
     color: $accent;
-}
-
-QLabel#RiskBadge[risk="derived"] {
-    color: $danger;
 }
 
 QLabel#RiskBadge[risk="danger"] {

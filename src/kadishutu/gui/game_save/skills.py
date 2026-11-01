@@ -2,7 +2,6 @@ from abc import abstractmethod
 from dataclasses import dataclass
 
 from PySide6.QtWidgets import (
-    QCheckBox,
     QComboBox,
     QGridLayout,
     QHBoxLayout,
@@ -24,6 +23,7 @@ from kadishutu.data.skills import (
     LearnSkillType,
 )
 
+from ..advanced import advanced_mode
 from ..iconloader import ICON_LOADER, handle_image_loading_error
 from ..shared import (
     SHIBOKEN_MAX,
@@ -170,10 +170,8 @@ class SkillEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.l = QVBoxLayout(self)
 
         top = QHBoxLayout()
-        self.advanced = QCheckBox("Show skill IDs", self)
-        self.advanced.setToolTip("Show raw skill IDs for debugging.")
-        self.advanced.checkStateChanged.connect(self.set_ids_visible)
-        top.addWidget(self.advanced)
+        self.advanced_mode = advanced_mode()
+        self.advanced_mode.changed.connect(self.set_ids_visible)
         help_label = QLabel(LEARN_TYPE_HELP, self)
         help_label.setObjectName("Muted")
         help_label.setWordWrap(True)
@@ -188,6 +186,10 @@ class SkillEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         ):
             header = QLabel(title, self)
             header.setObjectName("Muted")
+            if title == "Skill":
+                header.setToolTip(
+                    "Raw skill IDs are visible in Advanced mode."
+                )
             self.grid.addWidget(header, 0, column)
             self.headers.append(header)
 
@@ -245,11 +247,11 @@ class SkillEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
                 SkillRow(skill_box, learn_type_box, icon, mp_cost, innate)
             )
 
-        self.set_ids_visible(False)
+        self.set_ids_visible()
         self.stack_refresh()
 
     def set_ids_visible(self, *_):
-        visible = self.advanced.isChecked()
+        visible = self.advanced_mode.enabled
         for row in self.rows:
             row.skill_box.int_box.setVisible(visible)
 

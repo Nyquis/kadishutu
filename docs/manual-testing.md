@@ -25,6 +25,7 @@ Update this block and the per-area status after each manual pass.
 | Alignment | Not run | | |
 | Meta | Not run | | |
 | Demons | Not run | | |
+| Demon creation | Not run | | |
 | Leveling | Not run | | |
 | Safety and presets | Not run | | |
 | Progression | Not run | | |
@@ -121,17 +122,29 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 |---|---|---|---|---|---|
 | DEMON-01 | Open Efreet → Skills | Fire Pleroma does not show `491` by default | Not run | | |
 | DEMON-02 | Check learn types | Fire Pleroma is Default; Maragion is Library | Not run | | |
-| DEMON-03 | Enable Show skill IDs | Raw IDs appear | Not run | | |
+| DEMON-03 | Enable Advanced editing | Raw skill IDs appear | Not run | | |
 | DEMON-04 | Hover Agi | Mechanics-only summary appears | Not run | | |
 | DEMON-05 | Open Stats | Natural/Bonuses/Current/Healable labels appear | Not run | | |
 | DEMON-06 | Recalculate current | Current becomes Natural + Bonuses | Not run | | |
 | DEMON-07 | Heal HP/MP | Healable copies Current HP/MP | Not run | | |
-| DEMON-08 | Enable direct Current editing | Current fields become editable | Not run | | |
+| DEMON-08 | Enable Advanced editing | Current fields become editable | Not run | | |
 | DEMON-09 | Change affinity | Value applies and persists | Not run | | |
 | DEMON-10 | Change potential | Signed value applies and persists | Not run | | |
 | DEMON-11 | Save, reload, and load demon in game | Stats/skills/affinities/potentials are sane | Not run | | |
-| DEMON-12 | Open a demon screen | Growth weights and EXP-to-next line are shown | Not run | | |
-| DEMON-13 | Change the demon ID | Growth weights follow the new species | Not run | | |
+| DEMON-12 | Open a demon screen | Growth table shows Current, Weight, and Avg/level plus the EXP-to-next line | Not run | | |
+| DEMON-13 | Change the demon ID | Growth table follows the new species | Not run | | |
+| DEMON-14 | Check the level/EXP note | Badge says `separate fields`, not `derived` | Not run | | |
+
+## Demon creation
+
+| ID | Test | Expected | Status | Build | Notes |
+|---|---|---|---|---|---|
+| CREATE-01 | Open Create demon with Advanced off | Only compendium demons are listed; Agrat enemy variants are absent | Not run | | |
+| CREATE-02 | Enable Advanced | Enemy/NPC entries appear, muted and marked `· Enemy` | Not run | | |
+| CREATE-03 | Select an enemy entry in Advanced | Preview warning appears; creation remains available | Not run | | |
+| CREATE-04 | Turn Advanced off with an enemy selected | Selection clears and Create is disabled | Not run | | |
+| CREATE-05 | Resize to 900×620 | Form and preview do not overlap; the screen scrolls | Not run | | |
+| CREATE-06 | Create a normal demon, save, and load in game | Demon appears correctly in storage and party | Not run | | |
 
 ## Leveling
 
@@ -152,7 +165,7 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 | SAFE-03 | Restart the app | Advanced setting is remembered | Not run | | |
 | SAFE-04 | Use Set HP to 1 | Healable HP becomes 1, max HP is unchanged, warning appears | Not run | | |
 | SAFE-05 | Save, reopen, and load the HP=1 save | Value persists; note whether the game restores it after death | Not run | | |
-| SAFE-06 | Check risk badges and tooltips | game-managed and derived explanations are readable | Not run | | |
+| SAFE-06 | Check risk badges and tooltips | `game-managed` and `separate fields` explanations are readable | Not run | | |
 
 ## Progression
 

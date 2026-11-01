@@ -15,7 +15,11 @@ from PySide6.QtWidgets import (
 
 from kadishutu.core.game_save.demons import DEMON_TABLE_SIZE, DemonEditor
 from kadishutu.data.demons import DEMON_ID_MAP, DEMON_NAME_MAP
-from kadishutu.data.leveling import demon_exp_to_next
+from kadishutu.data.leveling import (
+    DEMON_STAT_POINTS_PER_LEVEL,
+    demon_exp_to_next,
+    expected_stat_gain,
+)
 
 from ..iconloader import ICON_LOADER, DisabledError, handle_image_loading_error
 from ..shared import (
@@ -29,6 +33,17 @@ from .shared import GameScreenMixin
 
 if TYPE_CHECKING:
     from _typeshed import SupportsRichComparison
+
+
+GROWTH_ROWS = (
+    ("HP", "hp"),
+    ("MP", "mp"),
+    ("STR", "strength"),
+    ("VIT", "vitality"),
+    ("MAG", "magic"),
+    ("AGI", "agility"),
+    ("LUK", "luck"),
+)
 
 
 class DemonIdnWidget(QWidget, ModifiedMixin):
@@ -92,14 +107,60 @@ class DemonEditorScreen(DemonLikeEditorScreen, AppliableWidget):
         )
         self.dl_layout.insertWidget(0, self.demon_idn_widget)
 
-        self.growth_label = QLabel()
-        self.growth_label.setWordWrap(True)
-        self.growth_label.setToolTip(
-            "Relative stat-growth weights from the game's demon table. "
-            "Level-up gains, fusion and essence effects are not predicted "
-            "here."
+        self.growth_box = QWidget()
+        self.growth_box.setMaximumWidth(520)
+        growth_layout = QVBoxLayout(self.growth_box)
+        growth_layout.setContentsMargins(0, 0, 0, 0)
+        growth_layout.setSpacing(2)
+        self.growth_title = QLabel(self.growth_box)
+        self.growth_title.setObjectName("SectionTitle")
+        growth_layout.addWidget(self.growth_title)
+        self.growth_grid = QGridLayout()
+        self.growth_grid.setHorizontalSpacing(16)
+        self.growth_grid.setColumnStretch(0, 1)
+        growth_layout.addLayout(self.growth_grid)
+        self.growth_cells: dict[str, tuple[QLabel, QLabel, QLabel]] = {}
+
+        for column, (title, tooltip) in enumerate((
+            ("Stat", ""),
+            ("Current", "Natural + bonuses. Open Stats for details."),
+            (
+                "Weight",
+                "Relative weight per stat point. HP/MP use separate growth.",
+            ),
+            (
+                "Avg/level",
+                "Approximate core-stat gain per level: "
+                "3 x weight / Growth Total, before prayers and fusion.",
+            ),
+        )):
+            header = QLabel(title, self.growth_box)
+            header.setObjectName("Muted")
+            if tooltip:
+                header.setToolTip(tooltip)
+            self.growth_grid.addWidget(header, 0, column)
+
+        for row, (label_text, key) in enumerate(GROWTH_ROWS, 1):
+            name = QLabel(label_text, self.growth_box)
+            current = QLabel("-", self.growth_box)
+            weight = QLabel("-", self.growth_box)
+            average = QLabel("-", self.growth_box)
+            average.setObjectName("Muted")
+            self.growth_grid.addWidget(name, row, 0)
+            self.growth_grid.addWidget(current, row, 1)
+            self.growth_grid.addWidget(weight, row, 2)
+            self.growth_grid.addWidget(average, row, 3)
+            self.growth_cells[key] = (current, weight, average)
+
+        self.growth_footer = QLabel(
+            f"Avg/level assumes {DEMON_STAT_POINTS_PER_LEVEL} points per "
+            "level. Prayers and fusion add more.",
+            self.growth_box,
         )
-        self.dl_layout.insertWidget(1, self.growth_label)
+        self.growth_footer.setObjectName("Muted")
+        self.growth_footer.setWordWrap(True)
+        growth_layout.addWidget(self.growth_footer)
+        self.dl_layout.insertWidget(1, self.growth_box)
 
         self.demon_graphic = QLabel()
         self.l.addWidget(self.demon_graphic)
@@ -114,13 +175,33 @@ class DemonEditorScreen(DemonLikeEditorScreen, AppliableWidget):
         return demon_exp_to_next(self.demon.level, meta.level)
 
     def refresh_growth(self):
-        growth = self.demon_idn_widget.demon.growth
-        self.growth_label.setText(
-            f"Growth weights: HP {growth.hp} / MP {growth.mp}\n"
-            f"STR {growth.strength} / VIT {growth.vitality} / "
-            f"MAG {growth.magic} / AGI {growth.agility} / "
-            f"LUK {growth.luck}"
+        meta = self.demon_idn_widget.demon
+        growth = meta.growth
+        current = self.demon.stats.current
+        total = growth.total
+        self.growth_title.setText(f"Growth (total {total})")
+        self.growth_title.setToolTip(
+            "Weights are normalized by Growth Total. "
+            f"{DEMON_STAT_POINTS_PER_LEVEL} core-stat points are granted "
+            "per normal level."
         )
+        for key, (current_label, weight_label, average_label) in (
+            self.growth_cells.items()
+        ):
+            current_label.setText(str(getattr(current, key)))
+            weight = getattr(growth, key)
+            if key in ("hp", "mp"):
+                weight_label.setText(str(weight) if total else "-")
+                average_label.setText("-")
+                continue
+            if not total:
+                weight_label.setText("-")
+                average_label.setText("-")
+                continue
+            weight_label.setText(f"{100 * weight / total:.1f}%")
+            average_label.setText(
+                f"+{expected_stat_gain(weight, total):.2f}"
+            )
 
     def graphic_refresh(self):
         self.refresh_growth()

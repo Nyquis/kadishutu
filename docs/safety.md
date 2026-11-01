@@ -18,12 +18,15 @@ or recalculates:
 Advanced mode unlocks those fields. The warnings stay visible, and the game
 may still overwrite the value later.
 
+There are no per-screen advanced checkboxes. The global toggle is the single
+gate for level/EXP, stored Current stats, and raw skill IDs.
+
 ## Risk badges
 
 | Badge | Meaning |
 |---|---|
 | `game-managed` | The game may recalculate this after battle, death, revival, level-up, and so on. |
-| `derived` | Related fields are stored separately and are not updated automatically. |
+| `separate fields` | Related fields are stored separately and are not updated automatically. |
 | no badge | A normal stored value. |
 
 Current and Healable HP/MP are game-managed. Changing them is valid, but the
@@ -39,6 +42,29 @@ The Stats screen has a **Set HP to 1** button.
 - The editor shows a warning when the value is 1.
 
 This is intentionally a warning, not a restriction. The save remains valid.
+
+## Demon growth
+
+The demon screen shows a compact growth table:
+
+- `Current` stats
+- normalized `Weight` for the five core stats
+- `Avg/level`, based on three stat points per normal level-up
+
+HP/MP keep their separate growth values and have no `Avg/level` column.
+Prayers and fusion add points outside this table.
+
+## Demon creation
+
+The creation list uses the game's `Compendium` flag:
+
+- Safe mode shows only normal compendium demons.
+- Advanced mode also shows enemy, boss, shadow, and NPC entries.
+- Non-compendium entries are muted and marked `· Enemy`.
+- Selecting one shows a warning; turning Advanced off clears the selection.
+
+The whole creation screen scrolls, so the form and preview do not overlap on
+short windows.
 
 ## Progression screen
 

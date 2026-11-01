@@ -419,7 +419,9 @@ def test_skill_screen_labels_learn_type_and_hides_ids(window, editor):
     assert row.learn_type_box.currentData() == LearnSkillType.Library.value
     assert "Magic attack" in screen.rows[2].skill_box.str_box.toolTip()
 
-    screen.advanced.setChecked(True)
+    from kadishutu.gui.advanced import advanced_mode
+
+    advanced_mode().set_enabled(True)
     assert not row.skill_box.int_box.isHidden()
 
     row.learn_type_box.setCurrentIndex(

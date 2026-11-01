@@ -1,5 +1,4 @@
 from PySide6.QtWidgets import (
-    QCheckBox,
     QGridLayout,
     QLabel,
     QPushButton,
@@ -81,14 +80,6 @@ class StatEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             ),
             transient_note,
         ))
-
-        self.advanced = QCheckBox("Edit current directly", self)
-        self.advanced.setToolTip(
-            "Advanced: edit the stored Current block instead of "
-            "recalculating it from Natural + Bonuses."
-        )
-        self.advanced.checkStateChanged.connect(self.set_current_editable)
-        root.addWidget(self.advanced)
 
         self.advanced_mode = advanced_mode()
         self.advanced_mode.changed.connect(self.on_advanced_mode_changed)
@@ -186,20 +177,16 @@ class StatEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         )
         root.addStretch()
 
-        self.set_current_editable()
         self.on_advanced_mode_changed()
         self.stack_refresh()
 
     def on_advanced_mode_changed(self, *_):
         enabled = self.advanced_mode.enabled
-        self.advanced.setEnabled(enabled)
-        if not enabled:
-            self.advanced.setChecked(False)
         self.advanced_note.setVisible(not enabled)
         self.set_current_editable()
 
     def set_current_editable(self, *_):
-        editable = self.advanced.isChecked() and self.advanced_mode.enabled
+        editable = self.advanced_mode.enabled
         for widget in self.widgets["current"].values():
             widget.setReadOnly(not editable)
 
@@ -256,7 +243,7 @@ class StatEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             for stat, widget in self.widgets[ty].items():
                 widget.update_if_modified(self.apply_widget(ty, stat))
 
-        if self.advanced.isChecked():
+        if self.advanced_mode.enabled:
             for stat, widget in self.widgets["current"].items():
                 widget.update_if_modified(
                     self.apply_widget("current", stat)

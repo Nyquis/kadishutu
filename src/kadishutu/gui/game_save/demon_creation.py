@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QBrush, QPalette
 from PySide6.QtWidgets import (
     QComboBox,
     QFrame,
@@ -18,6 +19,7 @@ from PySide6.QtWidgets import (
 
 from kadishutu.data.demons import DEMON_ID_MAP, Demon
 
+from ..advanced import advanced_mode
 from ..components import Card, PageHeader
 from ..shared import AppliableWidget
 from .shared import GameScreenMixin
@@ -74,8 +76,20 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.demons = self.save.demons
         self.team = self.save.team
         self.stat_values: dict[str, QLabel] = {}
+        self.advanced_mode = advanced_mode()
+        self.advanced_mode.changed.connect(self.on_advanced_changed)
 
-        self.outer = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+        self.scroll = QScrollArea(self)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.content = QWidget()
+        self.content.setObjectName("ScrollContent")
+        self.scroll.setWidget(self.content)
+        root.addWidget(self.scroll)
+
+        self.outer = QVBoxLayout(self.content)
         self.outer.setContentsMargins(24, 24, 24, 24)
         self.outer.setSpacing(16)
 
@@ -83,11 +97,11 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
             "Create demon",
             "Experimental: create in an empty storage slot, then save and "
             "verify in-game. Keep a backup.",
-            self,
+            self.content,
         )
         self.outer.addWidget(self.header)
 
-        self.success_card = Card(self)
+        self.success_card = Card(self.content)
         success_layout = QHBoxLayout(self.success_card)
         success_layout.setContentsMargins(18, 14, 18, 14)
         success_layout.setSpacing(12)
@@ -110,7 +124,7 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.body.setSpacing(16)
         self.outer.addLayout(self.body, 1)
 
-        self.form_card = Card(self)
+        self.form_card = Card(self.content)
         form = QVBoxLayout(self.form_card)
         form.setContentsMargins(20, 18, 20, 18)
         form.setSpacing(10)
@@ -123,9 +137,13 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.search.textChanged.connect(lambda _: self.refresh_demon_list())
         form.addWidget(self.search)
         self.species_list = QListWidget(self.form_card)
-        self.species_list.setMinimumHeight(260)
+        self.species_list.setMinimumHeight(200)
         self.species_list.currentItemChanged.connect(self.species_selected)
         form.addWidget(self.species_list, 1)
+        self.list_note = QLabel("", self.form_card)
+        self.list_note.setObjectName("Muted")
+        self.list_note.setWordWrap(True)
+        form.addWidget(self.list_note)
 
         slot_label = QLabel("Storage slot", self.form_card)
         slot_label.setObjectName("SectionTitle")
@@ -144,8 +162,8 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.level_label.setObjectName("Muted")
         form.addWidget(self.level_label)
         level_note = QLabel(
-            "Created at the species' default level. Change level later in the "
-            "demon editor, with the existing warning.",
+            "Created at the species' default level; change it later in the "
+            "demon editor.",
             self.form_card,
         )
         level_note.setObjectName("Muted")
@@ -153,8 +171,7 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
         form.addWidget(level_note)
 
         party_note = QLabel(
-            "The demon will be added to the first free party-order slot so "
-            "it is visible in the demon selector.",
+            "Added to the first free party slot.",
             self.form_card,
         )
         party_note.setObjectName("Muted")
@@ -179,7 +196,7 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
 
         self.body.addWidget(self.form_card, 1)
 
-        self.preview_card = Card(self)
+        self.preview_card = Card(self.content)
         preview_outer = QVBoxLayout(self.preview_card)
         preview_outer.setContentsMargins(0, 0, 0, 0)
         self.preview_scroll = QScrollArea(self.preview_card)
@@ -198,10 +215,17 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.preview_layout.addWidget(preview_title)
         self.preview_name = QLabel("Select a demon", preview_inner)
         self.preview_name.setObjectName("PageTitle")
+        self.preview_name.setWordWrap(True)
         self.preview_layout.addWidget(self.preview_name)
         self.preview_meta = QLabel("", preview_inner)
         self.preview_meta.setObjectName("Muted")
+        self.preview_meta.setWordWrap(True)
         self.preview_layout.addWidget(self.preview_meta)
+        self.preview_warning = QLabel("", preview_inner)
+        self.preview_warning.setObjectName("Warning")
+        self.preview_warning.setWordWrap(True)
+        self.preview_warning.hide()
+        self.preview_layout.addWidget(self.preview_warning)
 
         stats_title = QLabel("Stats", preview_inner)
         stats_title.setObjectName("SectionTitle")
@@ -256,16 +280,29 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
     def refresh_demon_list(self):
         query = self.search.text().strip().lower()
         selected_id = self.selected.id if self.selected else None
+        show_all = self.advanced_mode.enabled
         self.species_list.blockSignals(True)
         self.species_list.clear()
         selected_item: QListWidgetItem | None = None
         for demon in DEMONS:
+            if not show_all and not demon.compendium:
+                continue
             if query and query not in demon.name.lower():
                 continue
+            suffix = "" if demon.compendium else "  ·  Enemy"
             item = QListWidgetItem(
-                f"{demon.name}  ·  Lv {demon.level}"
+                f"{demon.name}  ·  Lv {demon.level}{suffix}"
             )
             item.setData(Qt.ItemDataRole.UserRole, demon.id)
+            if not demon.compendium:
+                item.setForeground(QBrush(
+                    self.palette().color(
+                        QPalette.ColorRole.PlaceholderText
+                    )
+                ))
+                item.setToolTip(
+                    "Enemy/NPC entry, not a normal compendium demon."
+                )
             self.species_list.addItem(item)
             if demon.id == selected_id:
                 selected_item = item
@@ -275,6 +312,14 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
         if selected_item is None and self.selected is not None:
             self.selected = None
             self.update_preview()
+        if show_all:
+            self.list_note.setText(
+                "Showing all entries, including enemy/NPC variants."
+            )
+        else:
+            self.list_note.setText(
+                "Enemy/NPC entries are hidden. Enable Advanced to show them."
+            )
         self.validate_form()
 
     def species_selected(
@@ -295,19 +340,28 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
         if demon is None:
             self.preview_name.setText("Select a demon")
             self.preview_meta.setText("")
+            self.preview_warning.hide()
             for label in self.stat_values.values():
-                label.setText("—")
+                label.setText("-")
             self.preview_skills.setText("")
             self.preview_innate.setText("")
             self.preview_affinities.setText("")
             self.preview_potentials.setText("")
-            self.level_label.setText("Default level: —")
+            self.level_label.setText("Default level: -")
             return
 
         self.preview_name.setText(demon.name)
         self.preview_meta.setText(
-            f"ID {demon.id}  ·  Default level {demon.level}"
+            f"ID {demon.id}  \u00b7  Default level {demon.level}"
         )
+        if demon.compendium:
+            self.preview_warning.hide()
+        else:
+            self.preview_warning.setText(
+                "Enemy/NPC entry. Not a normal compendium demon; "
+                "creation may be experimental."
+            )
+            self.preview_warning.show()
         self.level_label.setText(f"Default level: {demon.level}")
         for _, key in STAT_NAMES:
             self.stat_values[key].setText(
@@ -318,16 +372,19 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.preview_innate.setText(
             f"Innate: {demon.innate_skill.name}"
         )
-        affinities = "  ·  ".join(
+        affinities = "  \u00b7  ".join(
             f"{name} {getattr(demon.affinities, key).name}"
             for name, key in AFFINITY_NAMES
         )
         self.preview_affinities.setText(f"Affinities: {affinities}")
-        potentials = "  ·  ".join(
+        potentials = "  \u00b7  ".join(
             f"{name} {getattr(demon.potentials, key):+d}"
             for name, key in POTENTIAL_NAMES
         )
         self.preview_potentials.setText(f"Potentials: {potentials}")
+
+    def on_advanced_changed(self, *_):
+        self.refresh_demon_list()
 
     def validate_form(self):
         if self.created_slot is not None:
@@ -335,6 +392,12 @@ class DemonCreationScreen(QWidget, GameScreenMixin, AppliableWidget):
             return
         if self.selected is None:
             self.validation.setText("Choose a demon to continue.")
+            self.create_button.setEnabled(False)
+            return
+        if not self.advanced_mode.enabled and not self.selected.compendium:
+            self.validation.setText(
+                "Enemy/NPC entries require Advanced editing."
+            )
             self.create_button.setEnabled(False)
             return
         if self.slot_box.currentData() is None:

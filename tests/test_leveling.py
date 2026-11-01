@@ -112,3 +112,12 @@ def test_demon_growth_components_match_total():
             + growth.luck
         )
         assert components == growth.total, demon.name
+
+
+def test_expected_demon_stat_gain():
+    from kadishutu.data.leveling import expected_stat_gain
+
+    assert expected_stat_gain(28, 100) == pytest.approx(0.84)
+    assert expected_stat_gain(26, 102) == pytest.approx(3 * 26 / 102)
+    assert expected_stat_gain(0, 100) == 0.0
+    assert expected_stat_gain(20, 0) == 0.0

@@ -35,6 +35,20 @@ DEMON_EXP_MULTIPLIERS = (
     10.0,
 )
 
+# Normal demon level-ups grant this many points to the five core stats.
+DEMON_STAT_POINTS_PER_LEVEL = 3
+
+
+def expected_stat_gain(
+    weight: int,
+    total: int,
+    points_per_level: int = DEMON_STAT_POINTS_PER_LEVEL,
+) -> float:
+    """Expected core-stat gain per level from a growth weight."""
+    if total <= 0:
+        return 0.0
+    return points_per_level * weight / total
+
 
 @dataclass(frozen=True)
 class LevelStats:
