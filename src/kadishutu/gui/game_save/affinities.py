@@ -1,8 +1,10 @@
 from PySide6.QtCore import QSignalBlocker
 from PySide6.QtWidgets import (
+    QFrame,
     QGridLayout,
     QGroupBox,
     QLabel,
+    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -41,17 +43,29 @@ class AffinityEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.elem_aff_map: dict[str, MComboBox] = {}
         self.group_titles: list[str] = []
 
-        root = QVBoxLayout(self)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        self.scroll_area = QScrollArea(self)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+        self.content = QWidget()
+        self.content.setObjectName("ScrollContent")
+        self.scroll_area.setWidget(self.content)
+        outer.addWidget(self.scroll_area)
+
+        root = QVBoxLayout(self.content)
+        root.setContentsMargins(24, 24, 24, 24)
+        root.setSpacing(12)
         help_label = QLabel(
             "Editing current affinities. Original stored affinities are "
             "left untouched.",
-            self,
+            self.content,
         )
         help_label.setObjectName("Muted")
         help_label.setWordWrap(True)
         root.addWidget(help_label)
 
-        legend = QLabel(AFFINITY_HELP, self)
+        legend = QLabel(AFFINITY_HELP, self.content)
         legend.setObjectName("Muted")
         legend.setWordWrap(True)
         root.addWidget(legend)
@@ -78,7 +92,7 @@ class AffinityEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         target: dict[str, MComboBox],
     ):
         self.group_titles.append(title)
-        group = QGroupBox(title, self)
+        group = QGroupBox(title, self.content)
         grid = QGridLayout(group)
         for column, header_text in enumerate(("Icon", "Type", "Affinity")):
             header = QLabel(header_text, group)

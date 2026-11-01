@@ -405,3 +405,51 @@ def test_demon_growth_rows_keep_height_with_graphic(window, editor):
     ]
     assert min(heights) > 5
     window.hide()
+
+
+def test_skill_screen_help_does_not_expand(window, editor):
+    from PySide6.QtWidgets import QApplication
+
+    from kadishutu.gui.game_save.skills import SkillEditorScreen
+
+    demon = make_demon(editor)
+    screen = SkillEditorScreen(demon.skills, demon.innate_skill)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    window.resize(900, 620)
+    window.show()
+    app = QApplication.instance()
+    assert app is not None
+    app.processEvents()
+
+    top_item = screen.l.itemAt(0)
+    assert top_item is not None
+    assert top_item.geometry().height() < 60
+    assert screen.grid.geometry().top() < 100
+    window.hide()
+
+
+def test_affinity_screen_scrolls_instead_of_collapsing(window, editor):
+    from PySide6.QtWidgets import QApplication, QGroupBox, QScrollArea
+
+    from kadishutu.gui.game_save.affinities import AffinityEditorScreen
+
+    demon = make_demon(editor)
+    screen = AffinityEditorScreen(demon.affinities)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    window.resize(900, 620)
+    window.show()
+    app = QApplication.instance()
+    assert app is not None
+    app.processEvents()
+
+    assert isinstance(screen.scroll_area, QScrollArea)
+    assert screen.scroll_area.widget() is screen.content
+    groups = screen.findChildren(QGroupBox)
+    assert len(groups) == 2
+    for group in groups:
+        assert group.height() >= group.minimumSizeHint().height()
+    window.hide()

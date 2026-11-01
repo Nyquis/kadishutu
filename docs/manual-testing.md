@@ -7,7 +7,7 @@ checks later.
 
 | Field | Value |
 |---|---|
-| Build | `ac79421` |
+| Build | `384da3c` |
 | Game | SMT5V |
 | OS | Windows |
 | Tester | |
@@ -136,6 +136,8 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 | DEMON-13 | Change the demon ID | Growth table follows the new species | Not run | | |
 | DEMON-14 | Check the level/EXP note | Badge says `separate fields`, not `derived` | Not run | | |
 | DEMON-15 | Resize the demon detail to 900×620 with the graphic visible | Growth tables do not overlap; the screen scrolls | Not run | | |
+| DEMON-16 | Open Skills at 900×620 | No large empty band above the table | Not run | | |
+| DEMON-17 | Open Affinities at a short height | Groups do not collapse; the screen scrolls | Not run | | |
 
 ## Demon creation
 

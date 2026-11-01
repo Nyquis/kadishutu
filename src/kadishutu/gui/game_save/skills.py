@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QLabel,
+    QSizePolicy,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -170,16 +171,22 @@ class SkillEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.l = QVBoxLayout(self)
 
         top = QHBoxLayout()
+        top.setContentsMargins(0, 0, 0, 0)
         self.advanced_mode = advanced_mode()
         self.advanced_mode.changed.connect(self.set_ids_visible)
         help_label = QLabel(LEARN_TYPE_HELP, self)
         help_label.setObjectName("Muted")
-        help_label.setWordWrap(True)
+        help_label.setToolTip(LEARN_TYPE_HELP)
+        help_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
         top.addWidget(help_label, 1)
         self.l.addLayout(top)
 
         self.grid = QGridLayout()
         self.l.addLayout(self.grid)
+        self.l.addStretch(1)
 
         for column, title in enumerate(
             ("Slot", "Icon", "Skill", "MP cost", "Learn type")
