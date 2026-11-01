@@ -350,6 +350,7 @@ The save-file documentation is in the `docs` folder:
 - [GameSave.md](docs/GameSave.md)
 - [SysSave.md](docs/SysSave.md)
 - [SaveSchema.md](docs/SaveSchema.md)
+- [Safety.md](docs/safety.md)
 - [Leveling.md](docs/leveling.md)
 - [Troubleshooting.md](docs/Troubleshooting.md)
 - [Manual testing](docs/manual-testing.md)

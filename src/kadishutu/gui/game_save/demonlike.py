@@ -1,9 +1,17 @@
 
-from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QAbstractSpinBox,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from kadishutu.core.game_save.demonlike import DemonLikeEditor
 from kadishutu.data.leveling import exp_progress
 
+from ..advanced import advanced_mode
+from ..components import Risk, RiskBadge
 from ..shared import QU8, QU32, AppliableWidget, hboxed
 from .affinities import AffinityEditorScreen
 from .potentials import PotentialEditorScreen
@@ -48,7 +56,35 @@ class DemonLikeEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.exp_hint.setWordWrap(True)
         self.dl_layout.addWidget(self.exp_hint)
 
-        self.last_box = 2
+        self.derived_note = QLabel(
+            "Changing level or EXP does not recalculate stats or learn "
+            "skills. The game may correct them on the next level-up.",
+            self,
+        )
+        self.derived_note.setObjectName("Muted")
+        self.derived_note.setWordWrap(True)
+        self.dl_layout.addLayout(hboxed(
+            RiskBadge(
+                "derived",
+                Risk.DERIVED,
+                "Level, EXP, stats and skills are stored separately. "
+                "Editing one does not update the others.",
+            ),
+            self.derived_note,
+        ))
+
+        self.advanced_mode = advanced_mode()
+        self.advanced_mode.changed.connect(self.refresh_advanced_state)
+        self.level_note = QLabel(
+            "Advanced editing is off. Enable it in the status bar to change "
+            "level or EXP.",
+            self,
+        )
+        self.level_note.setObjectName("Muted")
+        self.level_note.setWordWrap(True)
+        self.dl_layout.addWidget(self.level_note)
+
+        self.last_box = 5
 
         for name, fun in [
             ("Stats", lambda: StatEditorScreen(
@@ -71,6 +107,18 @@ class DemonLikeEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         for widget in self.side_panel_widgets:
             self.dl_layout.addWidget(widget)
         self.dl_layout.addStretch()
+        self.refresh_advanced_state()
+
+    def refresh_advanced_state(self, *_):
+        editable = self.advanced_mode.enabled
+        for box in (self.level_box, self.exp_box):
+            box.setReadOnly(not editable)
+            box.setButtonSymbols(
+                QAbstractSpinBox.ButtonSymbols.UpDownArrows
+                if editable
+                else QAbstractSpinBox.ButtonSymbols.NoButtons
+            )
+        self.level_note.setVisible(not editable)
 
     def stack_refresh(self):
         self.level_box.setValue(self.demon.level)

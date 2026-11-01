@@ -92,6 +92,15 @@ Demon stats in saves also reflect other adjustments that are not yet
 understood. A controlled level-up diff is still needed before the exact
 formula can be predicted.
 
+## Editor behavior
+
+The Progression screen uses this data for a read-only plan and grants
+Gospels/Grimoires instead of writing level-ups directly. In-game items run the
+real level-up logic, including stat growth, prayers, caps, and skill learning.
+
+Level and EXP fields are locked unless Advanced editing is enabled. Changing
+them never updates stats or skills automatically.
+
 ## Still unknown
 
 - Exact demon per-level stat gain formula (weights are confirmed inputs only).

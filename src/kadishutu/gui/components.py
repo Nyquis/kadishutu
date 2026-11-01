@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from enum import Enum
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFrame,
@@ -9,6 +11,30 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+
+class Risk(Enum):
+    INFO = "info"
+    TRANSIENT = "transient"
+    DERIVED = "derived"
+    DANGER = "danger"
+
+
+class RiskBadge(QLabel):
+    """Small inline badge that explains how a field behaves."""
+
+    def __init__(
+        self,
+        text: str,
+        risk: Risk = Risk.INFO,
+        tooltip: str = "",
+        parent: QWidget | None = None,
+    ) -> None:
+        super().__init__(text, parent)
+        self.setObjectName("RiskBadge")
+        self.setProperty("risk", risk.value)
+        if tooltip:
+            self.setToolTip(tooltip)
 
 
 class PageHeader(QWidget):

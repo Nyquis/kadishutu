@@ -13,7 +13,9 @@ from kadishutu.core.game_save.stats import (
     StatBlockEditor,
 )
 
-from ..shared import QU16, AppliableWidget
+from ..advanced import advanced_mode
+from ..components import Risk, RiskBadge
+from ..shared import QU16, AppliableWidget, hboxed
 from .shared import GameScreenMixin
 
 STAT_COLUMNS = (
@@ -63,6 +65,23 @@ class StatEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         help_label.setWordWrap(True)
         root.addWidget(help_label)
 
+        transient_note = QLabel(
+            "Current and Healable HP/MP are game-managed. The game may "
+            "clamp or restore them after battle, death, revival, or healing.",
+            self,
+        )
+        transient_note.setObjectName("Muted")
+        transient_note.setWordWrap(True)
+        root.addLayout(hboxed(
+            RiskBadge(
+                "game-managed",
+                Risk.TRANSIENT,
+                "These stored values can be changed, but the game may "
+                "recalculate them later.",
+            ),
+            transient_note,
+        ))
+
         self.advanced = QCheckBox("Edit current directly", self)
         self.advanced.setToolTip(
             "Advanced: edit the stored Current block instead of "
@@ -70,6 +89,17 @@ class StatEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         )
         self.advanced.checkStateChanged.connect(self.set_current_editable)
         root.addWidget(self.advanced)
+
+        self.advanced_mode = advanced_mode()
+        self.advanced_mode.changed.connect(self.on_advanced_mode_changed)
+        self.advanced_note = QLabel(
+            "Advanced editing is off. Enable it in the status bar to edit "
+            "stored Current values directly.",
+            self,
+        )
+        self.advanced_note.setObjectName("Muted")
+        self.advanced_note.setWordWrap(True)
+        root.addWidget(self.advanced_note)
 
         self.grid = QGridLayout()
         root.addLayout(self.grid)
@@ -137,16 +167,54 @@ class StatEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.heal_button.setToolTip(HEALABLE_TIP)
         self.heal_button.clicked.connect(self.on_heal)
         buttons.addWidget(self.heal_button, 0, 1)
+        self.hp_one_button = QPushButton("Set HP to 1", self)
+        self.hp_one_button.setToolTip(
+            "Preset: set Healable HP to 1 and leave max HP unchanged. "
+            "The game may restore it after death, revival, or healing."
+        )
+        self.hp_one_button.clicked.connect(self.on_set_hp_one)
+        buttons.addWidget(self.hp_one_button, 0, 2)
         root.addLayout(buttons)
+
+        self.hp_warning = QLabel(self)
+        self.hp_warning.setObjectName("Warning")
+        self.hp_warning.setWordWrap(True)
+        self.hp_warning.setVisible(False)
+        root.addWidget(self.hp_warning)
+        self.widgets["healable"]["hp"].valueChanged.connect(
+            self.update_hp_warning
+        )
         root.addStretch()
 
         self.set_current_editable()
+        self.on_advanced_mode_changed()
         self.stack_refresh()
 
+    def on_advanced_mode_changed(self, *_):
+        enabled = self.advanced_mode.enabled
+        self.advanced.setEnabled(enabled)
+        if not enabled:
+            self.advanced.setChecked(False)
+        self.advanced_note.setVisible(not enabled)
+        self.set_current_editable()
+
     def set_current_editable(self, *_):
-        editable = self.advanced.isChecked()
+        editable = self.advanced.isChecked() and self.advanced_mode.enabled
         for widget in self.widgets["current"].values():
             widget.setReadOnly(not editable)
+
+    def on_set_hp_one(self):
+        self.widgets["healable"]["hp"].setValue(1)
+
+    def update_hp_warning(self, value: int):
+        if value != 1:
+            self.hp_warning.setVisible(False)
+            return
+        self.hp_warning.setText(
+            "Healable HP is set to 1. Max HP is unchanged. The game may "
+            "restore or clamp it after battle, death, revival, or healing."
+        )
+        self.hp_warning.setVisible(True)
 
     def recalculate_preview(self):
         for stat in STATS_NAMES:

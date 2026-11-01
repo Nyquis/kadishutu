@@ -26,6 +26,8 @@ Update this block and the per-area status after each manual pass.
 | Meta | Not run | | |
 | Demons | Not run | | |
 | Leveling | Not run | | |
+| Safety and presets | Not run | | |
+| Progression | Not run | | |
 | Laylines | Not run | | |
 | SysSave | Not run | | |
 | Data pipeline | Not run | | |
@@ -140,6 +142,27 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 | LVL-03 | Open a demon at its base level | EXP to next is 1.5x the Nahobino value | Not run | | |
 | LVL-04 | Level a demon up once in game and diff the save | Displayed EXP-to-next changes as predicted | Not run | | |
 | LVL-05 | Level the Nahobino up once in game and diff the save | Progress resets and stats match the next table row | Not run | | |
+
+## Safety and presets
+
+| ID | Test | Expected | Status | Build | Notes |
+|---|---|---|---|---|---|
+| SAFE-01 | Open a demon with Advanced off | Level/EXP are locked and the note is visible | Not run | | |
+| SAFE-02 | Toggle Advanced in the status bar | Fields unlock; action and button stay in sync | Not run | | |
+| SAFE-03 | Restart the app | Advanced setting is remembered | Not run | | |
+| SAFE-04 | Use Set HP to 1 | Healable HP becomes 1, max HP is unchanged, warning appears | Not run | | |
+| SAFE-05 | Save, reopen, and load the HP=1 save | Value persists; note whether the game restores it after death | Not run | | |
+| SAFE-06 | Check risk badges and tooltips | game-managed and derived explanations are readable | Not run | | |
+
+## Progression
+
+| ID | Test | Expected | Status | Build | Notes |
+|---|---|---|---|---|---|
+| PROG-01 | Open Progression | Level, EXP progress, and target level are shown | Not run | | |
+| PROG-02 | Set a target level | EXP and Gospel counts update | Not run | | |
+| PROG-03 | Use Set Gospels to cover target | Existing stock is not lowered and the limit is respected | Not run | | |
+| PROG-04 | Grant Gospels/Grimoires with +1/+5/Max and Apply | Inventory amounts update | Not run | | |
+| PROG-05 | Grant a Gospel, save, and use it in game | Game performs the level-up normally | Not run | | |
 
 ## Laylines
 

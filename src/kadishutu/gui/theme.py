@@ -149,6 +149,28 @@ QLabel#Muted {
     color: $text_muted;
 }
 
+QLabel#Warning {
+    color: $danger;
+}
+
+QLabel#RiskBadge {
+    color: $text_muted;
+    font-size: 9pt;
+}
+
+QLabel#RiskBadge[risk="transient"] {
+    color: $accent;
+}
+
+QLabel#RiskBadge[risk="derived"] {
+    color: $danger;
+}
+
+QLabel#RiskBadge[risk="danger"] {
+    color: $danger;
+    font-weight: 600;
+}
+
 QLabel#StatValue {
     font-size: 18px;
     font-weight: 600;

@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
     QStackedWidget,
     QStatusBar,
     QToolBar,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -39,6 +40,7 @@ from kadishutu.core.shared.pc_saves import SaveFile, discover_saves
 from kadishutu.data.save_locs import SAVE_LOCS
 from kadishutu.plugin.loader import PLUGIN_MANAGER
 
+from .advanced import advanced_mode
 from .backup_manager import BackupManagerDialog
 from .components import Card, PageHeader
 from .game_save import GameSaveEditorScreen
@@ -453,6 +455,18 @@ class MainWindow(QMainWindow):
         )
         self.edit_menu.addAction(self.undo_button)
         self.edit_menu.addAction(self.apply_button)
+        self.edit_menu.addSeparator()
+        self.advanced = advanced_mode()
+        self.advanced_action = QAction("Advanced editing", self)
+        self.advanced_action.setCheckable(True)
+        self.advanced_action.setChecked(self.advanced.enabled)
+        self.advanced_action.setToolTip(
+            "Unlock fields the game manages or derives, such as level, EXP, "
+            "stored Current stats, and transient HP values. Warnings stay "
+            "visible."
+        )
+        self.advanced_action.toggled.connect(self.advanced.set_enabled)
+        self.edit_menu.addAction(self.advanced_action)
         self.menuBar().addMenu(self.edit_menu)
 
         self.navigate_menu = QMenu("Navigate", self)
@@ -538,6 +552,33 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self.status_bar)
         self.status_label = QLabel("No save open", self)
         self.status_bar.addWidget(self.status_label)
+
+        self.advanced_button = QToolButton(self)
+        self.advanced_button.setCheckable(True)
+        self.advanced_button.setAutoRaise(True)
+        self.advanced_button.setChecked(self.advanced.enabled)
+        self.advanced_button.toggled.connect(self.advanced.set_enabled)
+        self.status_bar.addPermanentWidget(self.advanced_button)
+        self.advanced.changed.connect(self._sync_advanced)
+        self._sync_advanced(self.advanced.enabled)
+
+    def _sync_advanced(self, enabled: bool) -> None:
+        for widget in (self.advanced_action, self.advanced_button):
+            widget.blockSignals(True)
+            widget.setChecked(enabled)
+            widget.blockSignals(False)
+        if enabled:
+            self.advanced_button.setText("Advanced: ON")
+            self.advanced_button.setToolTip(
+                "Advanced editing is enabled. Level, EXP, stored Current "
+                "stats and other game-managed fields can be changed."
+            )
+        else:
+            self.advanced_button.setText("Advanced: OFF")
+            self.advanced_button.setToolTip(
+                "Enable advanced editing to change level, EXP, stored "
+                "Current stats and other game-managed fields."
+            )
 
     def stack_add(self, widget: QWidget):
         if not self.confirm_leaving(include_applied=False):

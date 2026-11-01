@@ -30,6 +30,7 @@ from .items import ItemEditorScreen
 from .miracles import MiracleEditorScreen
 from .player import PlayerEditorScreen
 from .plugin import GameSavePluginScreen
+from .progression import ProgressionScreen
 from .teleport import TeleporterScreen
 
 
@@ -88,6 +89,11 @@ class GameSaveEditorScreen(SaveScreenMixin, QWidget, AppliableWidget):
             ("DLC", "Manage downloadable content", DlcEditorScreen),
             ("Player", "Names, stats, and healing", PlayerEditorScreen),
             ("Demons", "Party, compendium, and affinities", DemonSelectorScreen),
+            (
+                "Progression",
+                "Level-up and stat-up items",
+                ProgressionScreen,
+            ),
             ("Miracles", "Unlock and upgrade miracles", MiracleEditorScreen),
             ("Items", "Consumables, relics, and key items", ItemEditorScreen),
             ("Essences", "Essence inventory", EssenceEditorScreen),
