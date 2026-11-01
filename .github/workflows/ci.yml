@@ -58,7 +58,7 @@ jobs:
           cache: true
       # A health check, not a release: no UPX (not installed here), thrown away.
       - name: Build
-        run: pixi run python src/build.py --no-archive-prune --no-upx
+        run: pixi run -e dev python src/build.py --no-archive-prune --no-upx
       - name: Smoke test the frozen executable
         shell: pwsh
         run: |

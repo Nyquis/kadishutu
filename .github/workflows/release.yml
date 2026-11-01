@@ -30,7 +30,7 @@ jobs:
 
       # Fail before spending a minute on PyInstaller if the tag is wrong.
       - name: Verify tag matches project version
-        run: pixi run python src/build.py --check-version ${{ github.ref_name }}
+        run: pixi run -e dev python src/build.py --check-version ${{ github.ref_name }}
 
       # Pinned so the published artifact matches local builds. UPX is not
       # available on the runner, and conda-forge does not package it. It is
@@ -54,7 +54,7 @@ jobs:
           & "$bin\upx.exe" --version | Select-Object -First 2
 
       - name: Build
-        run: pixi run python src/build.py --no-archive-prune
+        run: pixi run -e dev python src/build.py --no-archive-prune
 
       - name: Locate the archive
         id: artifact
