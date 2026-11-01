@@ -82,8 +82,8 @@ class InvertedBoolEditor(BoolEditor):
     def read(self) -> bool:
         return not super().read()
 
-    def write(self, value: bool):
-        super().write(not value)
+    def write(self, v: int) -> None:
+        super().write(int(not v))
 
 
 class BFloat16Editor(EditorGetter):

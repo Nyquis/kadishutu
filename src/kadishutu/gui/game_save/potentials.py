@@ -64,11 +64,11 @@ class QPotentialBox(QSpinBox, ModifiedMixin):
     def validate(self, text: str, pos: int):
         stripped = text.strip()
         if stripped in ("", "+", "-"):
-            return QValidator.Intermediate, text, pos
+            return QValidator.State.Intermediate, text, pos
         body = stripped[1:] if stripped[0] in "+-" else stripped
         if body.isdigit() and int(body) <= 9:
-            return QValidator.Acceptable, text, pos
-        return QValidator.Invalid, text, pos
+            return QValidator.State.Acceptable, text, pos
+        return QValidator.State.Invalid, text, pos
 
 
 class PotentialEditorScreen(QWidget, GameScreenMixin, AppliableWidget):

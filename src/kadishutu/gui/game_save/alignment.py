@@ -179,7 +179,7 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         combo = MComboBox(self.inner)
         combo.setMinimumWidth(260)
         combo.setSizeAdjustPolicy(
-            QComboBox.AdjustToMinimumContentsLengthWithIcon
+            QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
         )
         combo.setMinimumContentsLength(40)
         status = QLabel(self.inner)

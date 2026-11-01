@@ -27,13 +27,8 @@ pixi run build      # PyInstaller + zip
 
 Do not install tools globally. Do not use `pytest`, `ruff`, or `mypy` directly.
 
-`mypy` currently reports six pre-existing errors in:
-
-- `src/kadishutu/core/sys_save.py`
-- `src/kadishutu/gui/game_save/potentials.py`
-- `src/kadishutu/gui/game_save/alignment.py`
-
-Do not treat those as regressions and do not fix unrelated ones unless asked.
+`pixi run typecheck` is expected to be clean. If it reports errors, fix them
+in the same change or document why they are intentional.
 
 ## Layout
 
