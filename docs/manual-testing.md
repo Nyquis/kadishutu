@@ -158,11 +158,12 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 
 | ID | Test | Expected | Status | Build | Notes |
 |---|---|---|---|---|---|
-| PROG-01 | Open Progression | Level, EXP progress, and target level are shown | Not run | | |
-| PROG-02 | Set a target level | EXP and Gospel counts update | Not run | | |
-| PROG-03 | Use Set Gospels to cover target | Existing stock is not lowered and the limit is respected | Not run | | |
-| PROG-04 | Grant Gospels/Grimoires with +1/+5/Max and Apply | Inventory amounts update | Not run | | |
-| PROG-05 | Grant a Gospel, save, and use it in game | Game performs the level-up normally | Not run | | |
+| PROG-01 | Open Progression | Item sections are shown; no Nahobino level planner is present | Not run | | |
+| PROG-02 | Check the item groups | Level-up, Balm, Incense, and Sutra groups are all present | Not run | | |
+| PROG-03 | Grant items with +1/+5/Max and Apply | Inventory amounts update | Not run | | |
+| PROG-04 | Hover Sutras | Tooltip names the potential; item name is unchanged | Not run | | |
+| PROG-05 | Resize to the minimum window size | Rows do not overlap and the screen scrolls | Not run | | |
+| PROG-06 | Grant a Sutra, save, and use it in game | Inventory persists and the game applies the potential increase | Not run | | |
 
 ## Laylines
 

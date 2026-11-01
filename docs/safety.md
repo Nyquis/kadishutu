@@ -42,24 +42,27 @@ This is intentionally a warning, not a restriction. The save remains valid.
 
 ## Progression screen
 
-The Progression category plans levels and grants items:
+The Progression category grants items:
 
-- current level and EXP progress
-- target level
-- EXP and Gospels needed
-- Gospel and Grimoire amounts
-- Balm and Incense amounts
+- Gospels and Grimoires
+- Balms for Nahobino stats
+- Incenses for demon stats
+- Sutras for demon potentials
 
-The screen does **not** emulate a level-up. It changes inventory amounts, and
-the game applies the actual level-up or stat increase. That keeps random demon
-growth, prayer bonuses, caps, and skill learning in the game where they belong.
+The screen does **not** plan levels or emulate a level-up. It changes inventory
+amounts, and the game applies the actual level-up or stat increase. That keeps
+random demon growth, prayer bonuses, caps, and skill learning in the game where
+they belong.
 
-Gospels and Grimoires grant exactly one level in game. The `Set Gospels to
-cover target` button never lowers an existing stock and respects the item
-limit.
+Each row has `+1`, `+5`, and `Max` buttons and respects the item limit. Hover a
+row to see the item's effect and ID. Sutra tooltips name the potential without
+renaming the item, for example:
 
-Balms and incenses are stat-up items. Their exact caps and messages are applied
-by the game, not by the editor.
+- `Aiding Sutra` -> Support potential
+- `Healing Sutra` -> Recovery potential
+- `Calamity Sutra` -> Ailment potential
+
+The screen scrolls, so the item rows stay readable at narrow window sizes.
 
 ## Backups
 

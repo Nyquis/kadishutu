@@ -143,42 +143,76 @@ def test_demon_level_and_exp_are_locked_until_advanced(window, editor):
     assert screen.level_note.isHidden()
 
 
-def test_progression_plans_levels_and_grants_items(window, editor):
+def test_progression_covers_all_boost_items(window, editor):
+    from kadishutu.data.items import ITEMS
     from kadishutu.gui.game_save.progression import ProgressionScreen
 
-    editor.save.player.level = 4
-    editor.save.player.exp = 0
     screen = ProgressionScreen(window)
     window.stack_add(screen)
     screen.stack_refresh()
-    screen.target_box.setValue(6)
 
-    assert screen.levels_needed() == 2
-    assert screen.exp_needed() == 126 + 198
+    boost_ids = {item.id for item in ITEMS if item.is_boost}
 
-    screen.set_gospels_for_target()
-    assert screen.item_boxes[82].value() == 2
+    assert set(screen.item_boxes) == boost_ids
+    assert {82, 98, 107, 108} <= set(screen.item_boxes)
 
-    screen.add_items(screen.item_boxes[83], 5)
+
+def test_progression_grants_level_and_potential_items(window, editor):
+    from kadishutu.gui.game_save.progression import ProgressionScreen
+
+    screen = ProgressionScreen(window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    screen.add_items(screen.item_boxes[82], 2)
+    screen.add_items(screen.item_boxes[107], 1)
     screen.on_apply_changes()
 
     assert editor.save.items.from_id(82).amount == 2
-    assert editor.save.items.from_id(83).amount == 5
+    assert editor.save.items.from_id(107).amount == 1
 
 
-def test_progression_does_not_lower_existing_stock(window, editor):
+def test_progression_has_no_level_planner(window, editor):
     from kadishutu.gui.game_save.progression import ProgressionScreen
 
-    editor.save.player.level = 10
-    editor.save.items.from_id(82).amount = 40
     screen = ProgressionScreen(window)
     window.stack_add(screen)
     screen.stack_refresh()
-    screen.target_box.setValue(12)
 
-    screen.set_gospels_for_target()
+    assert not hasattr(screen, "target_box")
+    assert not hasattr(screen, "plan_button")
+    assert not hasattr(screen, "levels_needed")
 
-    assert screen.item_boxes[82].value() == 40
+
+def test_progression_uses_a_scroll_area(window, editor):
+    from PySide6.QtWidgets import QScrollArea
+
+    from kadishutu.gui.game_save.progression import ProgressionScreen
+
+    screen = ProgressionScreen(window)
+    window.stack_add(screen)
+
+    assert isinstance(screen.scroll, QScrollArea)
+    assert screen.scroll.widget() is screen.content
+    assert screen.scroll.widgetResizable()
+
+
+def test_progression_keeps_item_names_and_puts_mapping_in_tooltip(
+    window, editor
+):
+    from kadishutu.gui.game_save.progression import ProgressionScreen
+
+    screen = ProgressionScreen(window)
+    window.stack_add(screen)
+
+    aiding = screen.item_rows[107]
+    calamity = screen.item_rows[108]
+    assert aiding.label.text() == "Aiding Sutra"
+    assert calamity.label.text() == "Calamity Sutra"
+    assert "Support potential" in aiding.label.toolTip()
+    assert "Ailment potential" in calamity.label.toolTip()
+    assert "Item ID: 107" in aiding.label.toolTip()
+    assert screen.item_rows[84].label.text() == "Health Balm"
 
 
 def test_game_save_has_progression_category(editor):
