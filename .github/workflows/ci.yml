@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Weekly packaging check: catches PyInstaller breakage before a release.
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: lint and typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.11.3
+        with:
+          pixi-version: v0.59.0
+          environments: default, dev
+          cache: true
+      - run: pixi run lint
+      - run: pixi run typecheck
+
+  test:
+    name: test (windows)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.11.3
+        with:
+          pixi-version: v0.59.0
+          environments: default, dev
+          cache: true
+      - run: pixi run test -q
+
+  package:
+    name: package (scheduled)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.11.3
+        with:
+          pixi-version: v0.59.0
+          environments: default, dev
+          cache: true
+      # A health check, not a release: no UPX (not installed here), thrown away.
+      - name: Build
+        run: pixi run python src/build.py --no-archive-prune --no-upx
+      - name: Smoke test the frozen executable
+        shell: pwsh
+        run: |
+          $exe = "dist/pyinstaller/windows/kadishutu/kadishutu.exe"
+          if (-not (Test-Path $exe)) { throw "Packaged executable is missing." }
+          $process = Start-Process -FilePath $exe -ArgumentList "help" -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Packaged executable exited with $($process.ExitCode)."
+          }

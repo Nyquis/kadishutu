@@ -143,6 +143,19 @@ pixi run python -m tools.save_lab.leveling_metadata
 - Run `pixi run lint` and `pixi run test` before committing.
 - Run `pixi run typecheck` and confirm no new errors.
 
+## CI
+
+GitHub Actions runs `.github/workflows/ci.yml` on pull requests, pushes to
+`main`, and weekly.
+
+- `lint and typecheck` runs on ubuntu.
+- `test` runs `pixi run test -q` on windows, the primary target.
+- `package` runs only on the weekly schedule and on manual dispatch. It builds
+  without UPX, relies on the build's own leak gate, and runs
+  `kadishutu.exe help` to prove the frozen executable boots.
+
+Do not add a package build to pull requests: it is slow and publishes nothing.
+
 ## Git and release workflow
 
 - Commit before building: the artifact name uses `git rev-parse --short HEAD`.
@@ -165,7 +178,7 @@ pixi run python -m tools.save_lab.leveling_metadata
 ## Documentation
 
 - Keep manual checks in `docs/manual-testing.md` only; do not add `.github`
-  templates.
+  issue or pull request templates. CI workflows live in `.github/workflows/`.
 - Update relevant docs with behavior changes:
   - `docs/README.md` - documentation index
   - `docs/safety.md` - advanced mode, warnings, presets
