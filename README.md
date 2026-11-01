@@ -8,6 +8,8 @@ Running from source requires Python 3.11-3.13.
 ## Read this first
 
 - This is an unofficial editor. Back up your save before making changes.
+- This is a side project maintained in spare time; see
+  [Project status](#project-status) before relying on it.
 - **Apply Changes** updates the in-memory save. **Save to Disk** writes it and
   creates a timestamped `.bak` file.
 - **Advanced** mode unlocks level, EXP, stored Current stats, and raw skill IDs.
@@ -28,7 +30,8 @@ Running from source requires Python 3.11-3.13.
 
 ### Prebuilt binary
 
-If a prebuilt binary is available for your platform, download it from the
+Releases are built from version tags and may lag behind `main`. Download the
+latest one from the
 [release page](https://github.com/Nyquis/kadishutu/releases). The binaries are
 built with PyInstaller, so antivirus software may flag them even though they
 are not malicious.
@@ -309,6 +312,17 @@ More troubleshooting information is in [docs/Troubleshooting.md](docs/Troublesho
 
 ## Project status
 
+This is a personal side project. I build it mainly for my own use and cannot
+give it much time, so:
+
+- releases are irregular and may stop without notice;
+- there is no roadmap and no support commitment;
+- issues and pull requests may sit unanswered for a long time;
+- if you depend on it, be prepared to fix things yourself.
+
+It is shared because it might be useful to someone else, not because it is a
+product.
+
 PC / Steam is the primary target for this fork. The format is inherited from
 the Switch editor, but treat Switch-specific behavior as unverified here.
 
@@ -360,7 +374,9 @@ the Switch editor, but treat Switch-specific behavior as unverified here.
   layline or map region.
 - Plugins and scripts are trusted code rather than sandboxed extensions.
 
-### Planned
+### Possible future work
+
+These are intentions, not commitments, and any of them may never happen:
 
 - Complete demon, compendium, and quest support
 - Better CLI

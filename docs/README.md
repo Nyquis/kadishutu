@@ -29,6 +29,11 @@ Start with the safety guide before editing a real save.
 - [Cheatroom blog post translation](cheatroom_blog_post_translation.md) -
   alignment research. Not a user guide.
 
+## Releases and versioning
+
+Releases use SemVer tags such as `v0.2.0`. The older `alpha-<shortsha>` tags are
+unversioned build snapshots carried over from upstream; they are not releases.
+
 ## Developer material
 
 - [AGENTS.md](../AGENTS.md) - project conventions, commands, domain rules, and
