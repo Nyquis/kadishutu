@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.59.0
@@ -36,7 +36,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.59.0
@@ -50,7 +50,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.59.0
