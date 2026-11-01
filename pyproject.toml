@@ -11,7 +11,10 @@ requires-python = ">=3.11,<3.14"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE", "LICENSES/MIT.txt"]
 authors = [
-    { name = "fnrir", email = "stepien241@gmail.com" },
+    { name = "Nyquis" },
+]
+maintainers = [
+    { name = "Nyquis" },
 ]
 dependencies = [
     "mashumaro>=3.23,<4",

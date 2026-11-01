@@ -416,6 +416,8 @@ See [LICENSES/MIT.txt](LICENSES/MIT.txt) and [NOTICE](NOTICE) for details.
 
 ## Credits
 
+- [Qadistu / Kadishutu](https://github.com/fnr1r/kadishutu)
+  by fnrir and contributors — the upstream project this fork is based on
 - [zmbkilla's SMTVV Save Editor](https://github.com/zmbkilla/SMTV-VSaveEditor/tree/e8def6cd038d1a3d23d5bdc7612b1fd13808dfaf)
   for most working offsets, the AES key, innate skill IDs, and demon IDs
 
@@ -426,6 +428,3 @@ And some save editors for the original game:
 - [this save editor](https://github.com/Amuyea-gbatemp/Shin-Megami-Tensei-V-Save-Editor)
   for information on how other types of data are stored
 
-## External links
-
-[![This project is also on GameBanana.](https://gamebanana.com/tools/embeddables/17599?type=large)](https://gamebanana.com/tools/17599)

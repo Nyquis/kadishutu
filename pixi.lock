@@ -615,7 +615,7 @@ packages:
 - pypi: ./
   name: kadishutu
   version: 0.2.0
-  sha256: 33d612022dd104b0f1b284d90cfb806ce87824617ddfcf58b8a5bac6dc424328
+  sha256: 51afe13947677e437d0eb6ecbcbc58005b613c9003e1813fbc2b9cb9d57083a3
   requires_dist:
   - mashumaro>=3.23,<4
   - platformdirs>=4,<5
