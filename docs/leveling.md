@@ -88,8 +88,8 @@ The growth fields are now parsed into `DemonGrowth`
 for example Idun is `19/25/13/16/28/21/22`, total `100`.
 
 Observed save deltas over several levels do **not** match the raw weights.
-Demon stats in saves can also include allocated points, fusion bonuses and
-essence effects. A controlled level-up diff is still needed before the exact
+Demon stats in saves also reflect other adjustments that are not yet
+understood. A controlled level-up diff is still needed before the exact
 formula can be predicted.
 
 ## Still unknown

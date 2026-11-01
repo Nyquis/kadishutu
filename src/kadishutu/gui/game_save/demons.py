@@ -96,13 +96,17 @@ class DemonEditorScreen(DemonLikeEditorScreen, AppliableWidget):
         self.growth_label.setWordWrap(True)
         self.growth_label.setToolTip(
             "Relative stat-growth weights from the game's demon table. "
-            "Allocated stat points, fusion bonuses and level-up rounding "
-            "are not predicted here."
+            "Level-up gains, fusion and essence effects are not predicted "
+            "here."
         )
         self.dl_layout.insertWidget(1, self.growth_label)
 
         self.demon_graphic = QLabel()
         self.l.addWidget(self.demon_graphic)
+        self.exp_hint.setToolTip(
+            "Demon EXP requirements scale the Nahobino curve by a factor "
+            "based on the demon's levels above its species' base level."
+        )
         self.refresh_growth()
 
     def exp_required(self) -> int | None:
