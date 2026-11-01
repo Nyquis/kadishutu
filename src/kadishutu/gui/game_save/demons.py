@@ -3,11 +3,13 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtWidgets import (
     QComboBox,
+    QFrame,
     QGridLayout,
     QHBoxLayout,
     QLabel,
     QMenu,
     QPushButton,
+    QScrollArea,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -103,7 +105,19 @@ class DemonEditorScreen(DemonLikeEditorScreen, AppliableWidget):
 
     def __init__(self, demon: DemonEditor, *args, **kwargs):
         super().__init__(demon, *args, **kwargs)
-        self.l = QHBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+        self.scroll_area = QScrollArea(self)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+        self.content = QWidget()
+        self.content.setObjectName("ScrollContent")
+        self.scroll_area.setWidget(self.content)
+        root.addWidget(self.scroll_area)
+
+        self.l = QHBoxLayout(self.content)
+        self.l.setContentsMargins(24, 24, 24, 24)
+        self.l.setSpacing(16)
         self.l.addLayout(self.dl_layout)
 
         self.demon_idn_widget = DemonIdnWidget(

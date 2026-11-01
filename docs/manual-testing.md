@@ -63,6 +63,7 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 | SAVE-02 | Switch screens with unapplied edits | App warns or preserves the edits | Not run | | |
 | SAVE-03 | Restore a backup from the backup manager | Restored save opens correctly | Not run | | |
 | SAVE-04 | Open a save with an invalid hash | App warns before opening | Not run | | |
+| SAVE-05 | Open a save whose title location is not mapped | Preview shows the last layline or map region, not `UNKNOWN` | Not run | | |
 
 ## Difficulty
 
@@ -134,6 +135,7 @@ Status values: `Not run`, `Pass`, `Fail`, `Blocked`, `Deferred`.
 | DEMON-12 | Open a demon screen | HP/MP and core-stat growth tables show Current, Weight %, and estimated/average gains | Not run | | |
 | DEMON-13 | Change the demon ID | Growth table follows the new species | Not run | | |
 | DEMON-14 | Check the level/EXP note | Badge says `separate fields`, not `derived` | Not run | | |
+| DEMON-15 | Resize the demon detail to 900×620 with the graphic visible | Growth tables do not overlap; the screen scrolls | Not run | | |
 
 ## Demon creation
 

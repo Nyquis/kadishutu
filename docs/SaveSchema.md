@@ -104,7 +104,7 @@ Known header offsets from `docs/GameSave.md`:
 | `0x4fc` | Difficulty | verified |
 | `0x502` | Cycles copy | verified |
 | `0x503` | Endings copy | verified |
-| `0x524` | Save location | inferred |
+| `0x524` | Save location | inferred; preview falls back to last layline/map region |
 | `0x528` | Clear flag | inferred |
 | `0x5d0` | Play time, seconds | verified |
 | `0x5d4` | Moon phase | inferred |

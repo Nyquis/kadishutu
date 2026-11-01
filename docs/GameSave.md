@@ -335,6 +335,17 @@ File path: `/Engine/Source/Runtime/Core/Public/Misc/DateTime.h`
 
 (an unsigned int / u32 (4 bytes))
 
+The local `save_locs.json` table is incomplete, so the open-save preview falls
+back to the last used layline and then to the map region:
+
+1. exact `title_save_location` mapping, if present;
+2. last layline name;
+3. region derived from the current map ID;
+4. `UNKNOWN`.
+
+For example, a save with `title_save_location = 149`, map ID `0x40`, and
+last layline `0x4a` displays `Da'at: Shinjuku - Yoyogi`.
+
 ## Stats info
 
 ### Singular Stat value

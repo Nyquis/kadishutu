@@ -37,7 +37,7 @@ from kadishutu.core.game_save import GameSaveEditor
 # Like (for example) rustfmt
 from kadishutu.core.shared.file_handling import DecryptedSave
 from kadishutu.core.shared.pc_saves import SaveFile, discover_saves
-from kadishutu.data.save_locs import SAVE_LOCS
+from kadishutu.data.save_locs import save_location_name
 from kadishutu.plugin.loader import PLUGIN_MANAGER
 
 from .advanced import advanced_mode
@@ -125,8 +125,8 @@ class FileSelectorPreview(QWidget):
     def update_preview(self, save: GameSaveEditor):
         self.name.setText("Name: " + save.player.names.save_name.get())
         try:
-            save_loc = SAVE_LOCS[save.position.title_save_location]
-        except KeyError:
+            save_loc = save_location_name(save.position) or "UNKNOWN"
+        except AttributeError:
             save_loc = "UNKNOWN"
         self.location.setText("Location: " + save_loc)
         self.difficulty.setText("Difficulty: " + save.difficulty.name)

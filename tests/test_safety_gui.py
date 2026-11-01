@@ -359,3 +359,49 @@ def test_skill_ids_are_gated_by_global_advanced(window, editor):
 
     advanced_mode().set_enabled(False)
     assert row.skill_box.int_box.isHidden()
+
+
+def test_demon_screen_is_scrollable(window, editor):
+    from PySide6.QtWidgets import QScrollArea
+
+    from kadishutu.gui.game_save.demons import DemonEditorScreen
+
+    demon = make_demon(editor)
+    screen = DemonEditorScreen(demon, window)
+    window.stack_add(screen)
+
+    assert isinstance(screen.scroll_area, QScrollArea)
+    assert screen.scroll_area.widget() is screen.content
+    assert screen.scroll_area.widgetResizable()
+
+
+def test_demon_growth_rows_keep_height_with_graphic(window, editor):
+    from PySide6.QtGui import QColor, QPixmap
+    from PySide6.QtWidgets import QApplication
+
+    from kadishutu.gui.game_save.demons import DemonEditorScreen
+
+    demon = make_demon(editor)
+    screen = DemonEditorScreen(demon, window)
+    window.stack_add(screen)
+    screen.stack_refresh()
+
+    pixmap = QPixmap(240, 240)
+    pixmap.fill(QColor("#333333"))
+    screen.demon_graphic.setPixmap(pixmap)
+    screen.demon_graphic.setFixedSize(240, 240)
+    screen.demon_graphic.show()
+
+    window.resize(900, 620)
+    window.show()
+    app = QApplication.instance()
+    assert app is not None
+    app.processEvents()
+
+    heights = [
+        label.height()
+        for cells in screen.growth_cells.values()
+        for label in cells
+    ]
+    assert min(heights) > 5
+    window.hide()

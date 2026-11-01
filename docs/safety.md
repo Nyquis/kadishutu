@@ -56,6 +56,9 @@ can be 98–104. `Avg/level` assumes three core-stat points per normal level-up.
 HP/MP `Est. /level` is a corpus estimate (`growth / 4` and `growth / 6`), not a
 confirmed game formula. Prayers and fusion add points outside both tables.
 
+The demon detail screen scrolls, so the growth tables keep their row heights
+even when the demon graphic is visible on a short window.
+
 ## Demon creation
 
 The creation list uses the game's `Compendium` flag:
