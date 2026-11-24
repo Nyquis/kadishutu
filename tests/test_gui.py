@@ -504,132 +504,6 @@ def test_alignment_summary_reports_weighted_points(main_window, tmp_path: Path):
     assert "Preservation" in text
 
 
-def test_alignment_preset_flips_only_already_chosen_rows(
-    main_window, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
-    # 0x69CF6 bit 2 is the Law choice; the other rows start unselected.
-    screen = make_alignment_screen(
-        main_window, tmp_path, {0x69CF6: 0x04}
-    )
-    class AutoConfirm:
-        StandardButton = QMessageBox.StandardButton
-
-        @staticmethod
-        def question(*args, **kwargs):
-            return QMessageBox.StandardButton.Yes
-
-        @staticmethod
-        def information(*args, **kwargs):
-            return None
-
-    monkeypatch.setattr(
-        "kadishutu.gui.game_save.alignment.QMessageBox", AutoConfirm
-    )
-
-    chosen = next(row for row in screen.rows if row.offset == 0x69CF6)
-    untouched = next(row for row in screen.rows if row.offset == 0x69CF8)
-    assert chosen.combo.currentData() == 2
-    assert untouched.combo.currentData() is None
-
-    screen.preset.setCurrentIndex(1)
-    screen.apply_preset()
-
-    assert chosen.combo.currentData() == 3
-    assert untouched.combo.currentData() is None
-
-    # Clear the modified flags so closing the window does not prompt.
-    screen.stack_refresh()
-
-def make_quest_screen(main_window, tmp_path: Path, bits=None):
-    from kadishutu.gui.game_save.game_save import GameSaveEditorScreen
-    from kadishutu.gui.game_save.quests import QuestEditorScreen
-
-    raw = DecryptedSave(bytearray(GAME_SAVE_SIZE))
-    raw.data[0x40:0x44] = b"GVAS"
-    for offset, value in (bits or {}).items():
-        raw.data[offset] = value
-    path = tmp_path / "quests.sav"
-    raw.save_finished(path, backup=False)
-
-    editor = GameSaveEditorScreen(
-        path, DecryptedSave.auto_open(path), main_window
-    )
-    main_window.stack_add(editor)
-    screen = QuestEditorScreen(editor)
-    main_window.stack_add(screen)
-    QApplication.processEvents()
-    return screen
-
-
-def test_quest_screen_lists_every_quest(main_window, tmp_path: Path):
-    screen = make_quest_screen(main_window, tmp_path)
-
-    assert len(screen.rows) == 224
-    assert screen.count_label.text() == "224 / 224 quests"
-
-
-def test_quest_screen_filters_by_canon(main_window, tmp_path: Path):
-    screen = make_quest_screen(main_window, tmp_path)
-
-    screen.canon_filter.setCurrentIndex(2)  # Vengeance only
-    assert screen.count_label.text().startswith("40 / 224")
-
-    screen.canon_filter.setCurrentIndex(1)  # Creation only
-    assert screen.count_label.text().startswith("9 / 224")
-
-
-def test_quest_screen_applies_state(main_window, tmp_path: Path):
-    from kadishutu.core.game_save.quests import QuestState
-
-    screen = make_quest_screen(main_window, tmp_path)
-    row = screen.rows[0]
-
-    row.combo.setCurrentIndex(row.combo.findData(QuestState.Done))
-    screen.on_apply_changes()
-
-    editor = screen.quests.from_meta(row.quest)
-    assert editor.state == QuestState.Done
-
-    # Reset so closing the window does not prompt.
-    editor.state = QuestState.NotStarted
-    screen.stack_refresh()
-
-
-def test_quest_screen_uses_detected_creation_canon(
-    main_window, tmp_path: Path
-):
-    screen = make_quest_screen(main_window, tmp_path, {0x53A: 1})
-
-    assert screen.detected_canon == "creation"
-    assert screen.canon_filter.currentData() == "creation"
-    assert screen.count_label.text().startswith("9 / 224")
-    assert "Creation" in screen.detected_label.text()
-
-    # The filter stays a manual override.
-    screen.canon_filter.setCurrentIndex(0)
-    assert screen.count_label.text() == "224 / 224 quests"
-
-
-def test_quest_screen_uses_detected_vengeance_canon(
-    main_window, tmp_path: Path
-):
-    screen = make_quest_screen(main_window, tmp_path, {0x53A: 2})
-
-    assert screen.detected_canon == "vengeance"
-    assert screen.canon_filter.currentData() == "vengeance"
-    assert screen.count_label.text().startswith("40 / 224")
-
-
-def test_quest_screen_without_detection_shows_everything(
-    main_window, tmp_path: Path
-):
-    screen = make_quest_screen(main_window, tmp_path)
-
-    assert screen.detected_canon is None
-    assert screen.canon_filter.currentData() == "all"
-    assert "not detected" in screen.detected_label.text()
-
-
 def make_cross_cycle_screen(main_window, tmp_path: Path, bits=None):
     from kadishutu.gui.game_save.cross_cycle import CrossCycleEditorScreen
     from kadishutu.gui.game_save.game_save import GameSaveEditorScreen
@@ -691,29 +565,44 @@ def test_meta_screen_without_detection_shows_everything(
     assert "not detected" in screen.canon_label.text()
 
 
-def test_alignment_screen_marks_creation_choices_inapplicable(
+def test_alignment_screen_shows_shared_and_creation_choices(
     main_window, tmp_path: Path
 ):
     screen = make_alignment_screen(main_window, tmp_path, {0x53A: 1})
 
     assert screen.detected_canon == "creation"
-    assert screen.scroll.isHidden()
-    assert not screen.flags_toggle.isHidden()
-    assert not screen.preset.isEnabled()
-    assert not screen.apply_preset_button.isEnabled()
+    assert screen.canon_filter.currentData() == "detected"
+    assert screen.count_label.text() == "10 / 19 choices"
     assert "Canon of Creation" in screen.canon_label.text()
 
-    screen.flags_toggle.setChecked(True)
-    assert not screen.scroll.isHidden()
 
-
-def test_alignment_screen_keeps_presets_for_vengeance(
+def test_alignment_screen_shows_shared_and_vengeance_choices(
     main_window, tmp_path: Path
 ):
     screen = make_alignment_screen(main_window, tmp_path, {0x53A: 2})
 
-    assert screen.detected_canon == "vengeance"
-    assert not screen.scroll.isHidden()
-    assert screen.flags_toggle.isHidden()
-    assert screen.preset.isEnabled()
+    assert screen.count_label.text() == "18 / 19 choices"
     assert "Canon of Vengeance" in screen.canon_label.text()
+
+
+def test_alignment_canon_filter_can_be_overridden(
+    main_window, tmp_path: Path
+):
+    screen = make_alignment_screen(main_window, tmp_path, {0x53A: 1})
+
+    screen.canon_filter.setCurrentIndex(screen.canon_filter.findData("all"))
+    assert screen.count_label.text() == "19 / 19 choices"
+
+    index = screen.canon_filter.findData("vengeance")
+    screen.canon_filter.setCurrentIndex(index)
+    assert screen.count_label.text() == "18 / 19 choices"
+
+
+def test_alignment_without_detection_shows_every_choice(
+    main_window, tmp_path: Path
+):
+    screen = make_alignment_screen(main_window, tmp_path, {})
+
+    assert screen.detected_canon is None
+    assert screen.count_label.text() == "19 / 19 choices"
+    assert "not detected" in screen.canon_label.text()

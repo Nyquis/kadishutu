@@ -12,7 +12,8 @@
                     "Choose the law choice"
                 ],
                 "group": "supreme-throne-final",
-                "weight": 0
+                "weight": 0,
+                "canon": "vengeance"
             },
             {
                 "bit": 3,
@@ -24,7 +25,8 @@
                     "Choose the chaos choice"
                 ],
                 "group": "supreme-throne-final",
-                "weight": 0
+                "weight": 0,
+                "canon": "vengeance"
             }
         ]
     },
@@ -86,7 +88,8 @@
                     "Explain the situation"
                 ],
                 "group": "diet-building-angels",
-                "weight": 0
+                "weight": 0,
+                "canon": "vengeance"
             },
             {
                 "bit": 3,
@@ -97,7 +100,8 @@
                     "[When talking to angels in front of the diet building]",
                     "Force your way through"
                 ],
-                "group": "diet-building-angels"
+                "group": "diet-building-angels",
+                "canon": "vengeance"
             },
             {
                 "bit": 4,
@@ -222,7 +226,8 @@
                 "text": [
                     "Finish off Vouivre"
                 ],
-                "group": "heart-of-garnet"
+                "group": "heart-of-garnet",
+                "canon": "vengeance"
             },
             {
                 "bit": 5,
@@ -232,7 +237,8 @@
                 "text": [
                     "Spare Vouivre"
                 ],
-                "group": "heart-of-garnet"
+                "group": "heart-of-garnet",
+                "canon": "vengeance"
             },
             {
                 "bit": 6,
@@ -244,7 +250,8 @@
                     "I think the future is bright"
                 ],
                 "group": "yuzuru-future",
-                "weight": 3
+                "weight": 3,
+                "canon": "vengeance"
             },
             {
                 "bit": 7,
@@ -256,7 +263,8 @@
                     "I can't believe in the future"
                 ],
                 "group": "yuzuru-future",
-                "weight": 3
+                "weight": 3,
+                "canon": "vengeance"
             }
         ]
     },
@@ -272,7 +280,8 @@
                     "[After the Battle with Khonsu]",
                     "I think it's believable"
                 ],
-                "group": "khonsu"
+                "group": "khonsu",
+                "canon": "creation"
             },
             {
                 "bit": 1,
@@ -283,7 +292,8 @@
                     "[After the Battle with Khonsu]",
                     "I don't believe it"
                 ],
-                "group": "khonsu"
+                "group": "khonsu",
+                "canon": "creation"
             },
             {
                 "bit": 2,
@@ -294,7 +304,8 @@
                     "[After the Battle with Mara]",
                     "I understand"
                 ],
-                "group": "mara"
+                "group": "mara",
+                "canon": "vengeance"
             },
             {
                 "bit": 3,
@@ -305,7 +316,8 @@
                     "[After the Battle with Mara]",
                     "I don't know"
                 ],
-                "group": "mara"
+                "group": "mara",
+                "canon": "vengeance"
             },
             {
                 "bit": 4,
@@ -335,7 +347,8 @@
                 "text": [
                     "Defeat Kudlak"
                 ],
-                "group": "hunter-vampire"
+                "group": "hunter-vampire",
+                "canon": "vengeance"
             },
             {
                 "bit": 7,
@@ -345,7 +358,8 @@
                 "text": [
                     "Defeat Kresnik"
                 ],
-                "group": "hunter-vampire"
+                "group": "hunter-vampire",
+                "canon": "vengeance"
             }
         ]
     },
@@ -383,7 +397,8 @@
                     "[Before the Battle with Beelzebub]",
                     "For Creation"
                 ],
-                "group": "beelzebub"
+                "group": "beelzebub",
+                "canon": "vengeance"
             },
             {
                 "bit": 3,
@@ -395,7 +410,8 @@
                     "To stop Tiamat"
                 ],
                 "group": "beelzebub",
-                "weight": 0
+                "weight": 0,
+                "canon": "vengeance"
             },
             {
                 "bit": 4,
@@ -407,7 +423,8 @@
                     "Because he saw hope for the future of humanity"
                 ],
                 "group": "zeus-odin",
-                "weight": 3
+                "weight": 3,
+                "canon": "vengeance"
             },
             {
                 "bit": 5,
@@ -419,7 +436,8 @@
                     "Despair over the past of other people"
                 ],
                 "group": "zeus-odin",
-                "weight": 3
+                "weight": 3,
+                "canon": "vengeance"
             },
             {
                 "bit": 6,
@@ -431,7 +449,8 @@
                     "I believed it would come"
                 ],
                 "group": "supreme-throne-ending",
-                "weight": 3
+                "weight": 3,
+                "canon": "vengeance"
             },
             {
                 "bit": 7,
@@ -443,7 +462,8 @@
                     "That's not allowed."
                 ],
                 "group": "supreme-throne-ending",
-                "weight": 3
+                "weight": 3,
+                "canon": "vengeance"
             }
         ]
     }

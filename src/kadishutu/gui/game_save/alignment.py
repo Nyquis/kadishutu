@@ -7,7 +7,6 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QLabel,
     QLineEdit,
-    QMessageBox,
     QPushButton,
     QScrollArea,
     QVBoxLayout,
@@ -123,33 +122,21 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.advanced.checkStateChanged.connect(self.set_raw_visible)
         controls.addWidget(self.advanced, 1, 0, 1, 2)
 
-        # Flipping an alignment rewrites choices that are already made; it
-        # never picks a side for a decision the player has not taken.
-        self.preset = QComboBox(self)
-        for label, key, tooltip in [
-            (
-                "Flip chosen to Preservation (Law)",
-                "law",
-                "Switch every choice you already made to its Law option.",
-            ),
-            (
-                "Flip chosen to Reformation (Chaos)",
-                "chaos",
-                "Switch every choice you already made to its Chaos option.",
-            ),
+        self.canon_filter = QComboBox(self)
+        for label, key in [
+            ("Detected canon", "detected"),
+            ("Canon of Creation", "creation"),
+            ("Canon of Vengeance", "vengeance"),
+            ("Both canons", "all"),
         ]:
-            self.preset.addItem(label, key)
-            self.preset.setItemData(
-                self.preset.count() - 1, tooltip, 3
-            )
-        controls.addWidget(self.preset, 1, 2)
-        self.apply_preset_button = QPushButton("Apply to chosen", self)
-        self.apply_preset_button.setToolTip(
-            "Only rows with an existing choice are changed. Unselected rows, "
-            "unknown alignments, and rows with both bits set are left alone."
+            self.canon_filter.addItem(label, key)
+        self.canon_filter.setToolTip(
+            "Detected from the save at 0x53a; override it here if needed."
         )
-        self.apply_preset_button.clicked.connect(self.apply_preset)
-        controls.addWidget(self.apply_preset_button, 1, 3)
+        self.canon_filter.currentIndexChanged.connect(
+            lambda _: self.on_canon_changed()
+        )
+        controls.addWidget(self.canon_filter, 1, 2, 1, 2)
 
         self.clear_button = QPushButton("Clear visible", self)
         self.clear_button.clicked.connect(self.clear_visible)
@@ -173,12 +160,6 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.note_label.setObjectName("Muted")
         self.note_label.setWordWrap(True)
         root.addWidget(self.note_label)
-
-        self.flags_toggle = QCheckBox(
-            "Show Vengeance-arc choice flags", self
-        )
-        self.flags_toggle.toggled.connect(lambda _: self.update_canon_view())
-        root.addWidget(self.flags_toggle)
 
         self.scroll = QScrollArea(self)
         self.scroll.setWidgetResizable(True)
@@ -208,49 +189,50 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
         self.set_raw_visible()
         self.stack_refresh()
-        self.update_canon_view()
+        self.update_canon_label()
 
-    def update_canon_view(self):
-        if self.detected_canon == "creation":
-            self.canon_label.setText(
-                "Detected canon: Canon of Creation. Creation tracks alignment "
-                "as primary and secondary Law/Chaos choices with a Humanity "
-                "fallback, and its endings are Law, Chaos, Neutral, and True "
-                "Neutral. The flags on this screen belong to the Vengeance "
-                "arc and do not apply to this save."
-            )
-            self.flags_toggle.setVisible(True)
-            self.scroll.setVisible(self.flags_toggle.isChecked())
-            self.preset.setEnabled(False)
-            self.apply_preset_button.setEnabled(False)
-            self.preset.setToolTip(
-                "Presets only apply to the Vengeance-arc choice flags."
-            )
-            self.apply_preset_button.setToolTip(
-                "Presets only apply to the Vengeance-arc choice flags."
-            )
-            return
+    def active_canon(self) -> str | None:
+        key = self.canon_filter.currentData()
+        if key == "detected":
+            return self.detected_canon
+        if key == "all":
+            return None
+        return key
 
-        self.flags_toggle.setVisible(False)
-        self.scroll.setVisible(True)
-        self.preset.setEnabled(True)
-        self.apply_preset_button.setEnabled(True)
-        self.preset.setToolTip("")
-        self.apply_preset_button.setToolTip(
-            "Only rows with an existing choice are changed. Unselected rows, "
-            "unknown alignments, and rows with both bits set are left alone."
+    def on_canon_changed(self):
+        self.update_canon_label()
+        self.filter_rows()
+
+    def update_canon_label(self):
+        raw = (
+            f"0x{self.save.data[0x53A]:02x}"
+            if len(self.save.data) > 0x53A
+            else "?"
         )
-        if self.detected_canon == "vengeance":
-            self.canon_label.setText(
-                "Detected canon: Canon of Vengeance. Law is Preservation and "
-                "Chaos is Reformation; a two-point lead decides the path and "
-                "one point or less is Humanity."
+        if self.detected_canon == "creation":
+            detected = f"Canon of Creation (0x53a = {raw})"
+        elif self.detected_canon == "vengeance":
+            detected = f"Canon of Vengeance (0x53a = {raw})"
+        else:
+            detected = f"not detected (0x53a = {raw})"
+
+        active = self.active_canon()
+        if active is None:
+            shown = "Showing every mapped choice from both canons."
+        elif active == "creation":
+            shown = (
+                "Showing shared choices and Creation choices. "
+                "Creation-specific choices are not mapped yet, so only shared "
+                "ones appear. Creation decides its ending at Empyrean, not "
+                "from these points."
             )
         else:
-            self.canon_label.setText(
-                "Canon not detected. Showing the Vengeance-arc choice flags; "
-                "the totals below only apply to Canon of Vengeance."
+            shown = (
+                "Showing shared choices and Vengeance choices. Law is "
+                "Preservation and Chaos is Reformation; a two-point lead "
+                "decides the path, one point or less is Humanity."
             )
+        self.canon_label.setText(f"Detected canon: {detected}. {shown}")
 
     @staticmethod
     def flat_data() -> list[tuple[int, AlignmentChoice]]:
@@ -416,6 +398,12 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             return row.choice.side_quest is not None
         return True
 
+    def matches_canon(self, row: AlignmentRow) -> bool:
+        canon = self.active_canon()
+        if canon is None:
+            return True
+        return row.choice.canon in ("shared", canon)
+
     def filter_rows(self):
         query = self.search.text().strip().lower()
         visible: list[int] = []
@@ -424,6 +412,7 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
                 self.matches_query(row, query)
                 and self.matches_selection(row)
                 and self.matches_kind(row)
+                and self.matches_canon(row)
             )
             for widget in row.widgets:
                 widget.setVisible(matches)
@@ -443,9 +432,10 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.update_summary()
 
     def update_summary(self):
+        rows = self.visible_rows()
         selected = law = chaos = unknown = invalid = 0
         law_points = chaos_points = 0
-        for row in self.rows:
+        for row in rows:
             if row.invalid and not row.combo.get_modified():
                 invalid += 1
                 continue
@@ -461,17 +451,17 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
                 chaos_points += option.weight
             else:
                 unknown += 1
-        unselected = len(self.rows) - selected - invalid
+        unselected = len(rows) - selected - invalid
         score = AlignmentScore(law_points, chaos_points)
         if self.detected_canon == "creation":
             text = (
-                f"Vengeance-arc flags · Selected {selected}/{len(self.rows)} · "
+                f"Selected {selected}/{len(rows)} · "
                 f"Law {law} ({law_points} pts) · "
                 f"Chaos {chaos} ({chaos_points} pts)"
             )
         else:
             text = (
-                f"Selected {selected}/{len(self.rows)} · "
+                f"Selected {selected}/{len(rows)} · "
                 f"Law {law} ({law_points} pts) · "
                 f"Chaos {chaos} ({chaos_points} pts) · "
                 f"Net {score.net:+d} → {VERDICT_LABELS[score.verdict]} · "
@@ -511,41 +501,6 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
     def visible_rows(self) -> list[AlignmentRow]:
         return [self.rows[index] for index in sorted(self.visible_indices)]
-
-    def apply_preset(self):
-        target = self.preset.currentData()
-        label = VERDICT_LABELS.get(target, target)
-        rows = [
-            row
-            for row in self.visible_rows()
-            if not row.invalid
-            and self.selected_option(row) is not None
-            and any(
-                option.alignment == target for option in row.choice.options
-            )
-        ]
-        if not rows:
-            QMessageBox.information(
-                self,
-                "Nothing to flip",
-                "No visible row has an existing choice that can be flipped.",
-            )
-            return
-        answer = QMessageBox.question(
-            self,
-            "Flip alignment",
-            f"Switch {len(rows)} already-chosen row(s) to {label}?\n\n"
-            "Rows without a choice are left alone.",
-        )
-        if answer != QMessageBox.StandardButton.Yes:
-            return
-        for row in rows:
-            option = next(
-                option
-                for option in row.choice.options
-                if option.alignment == target
-            )
-            row.combo.setCurrentIndex(row.combo.findData(option.bit))
 
     def clear_visible(self):
         for row in self.visible_rows():

@@ -31,7 +31,6 @@ from .miracles import MiracleEditorScreen
 from .player import PlayerEditorScreen
 from .plugin import GameSavePluginScreen
 from .progression import ProgressionScreen
-from .quests import QuestEditorScreen
 from .teleport import TeleporterScreen
 
 
@@ -96,7 +95,6 @@ class GameSaveEditorScreen(SaveScreenMixin, QWidget, AppliableWidget):
                 ProgressionScreen,
             ),
             ("Miracles", "Unlock and upgrade miracles", MiracleEditorScreen),
-            ("Quests", "Quest state for every mission", QuestEditorScreen),
             ("Items", "Consumables, relics, and key items", ItemEditorScreen),
             ("Essences", "Essence inventory", EssenceEditorScreen),
             (

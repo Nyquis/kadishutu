@@ -18,6 +18,8 @@ class AlignmentBit(JsonListMixin):
     # Community-reported point weight; see `docs/GameSave.md`.
     # 1 = low-impact choice, 3 = high-impact choice, 0 = no points.
     weight: int = 1
+    # Which storyline this choice belongs to: shared, creation, or vengeance.
+    canon: str = "shared"
 
     @property
     def is_unknown(self) -> bool:
@@ -62,6 +64,10 @@ class AlignmentChoice:
             if option.bit == bit:
                 return option
         return None
+
+    @property
+    def canon(self) -> str:
+        return self.options[0].canon
 
     @property
     def is_unknown(self) -> bool:

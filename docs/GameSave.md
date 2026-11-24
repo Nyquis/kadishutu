@@ -904,19 +904,6 @@ valid states and reports rows whose stored flags are inconsistent.
 Quest names come from `MissionInfo.uexp` in the user's game data export; without
 that export they fall back to `Quest N`.
 
-### Quest canons
-
-The canon is read from `0x53a` (see [Canon value](#canon-value)); canon-exclusive
-quests are the fallback signal when that byte is unexpected:
-
-- `quest_canon.json` tags quests that exist only in one storyline.
-- Side quests without a tag appear under both canons.
-- The map is community-sourced and intentionally partial; unknown marketing
-  copy is not turned into data.
-
-The Quests screen uses these tags for filtering and leaves everything else
-shared. It does not claim to know the active canon by itself.
-
 ## NEW flag info
 
 - 0x69a82 - Skills NEW flag  
@@ -979,10 +966,15 @@ These are community measurements, not values read from the save.
 The **Alignment preset** flips only choices the save already has: unselected
 rows, unknown alignments, and rows with both bits set are left alone.
 
-On a Creation save the screen hides these Vengeance-arc flags behind a toggle
-and disables the preset, because the mapped choices do not exist in that canon.
-Creation tracks a primary/secondary Law/Chaos split with a Humanity fallback,
-and its ending is decided by the final Empyrean choice rather than this score.
+Each choice carries a `canon` tag: `shared`, `creation`, or `vengeance`. The
+screen filters on the detected canon and always keeps shared choices, so a
+Creation save shows shared plus Creation choices and a Vengeance save shows
+shared plus Vengeance choices. The canon combo overrides the detection.
+
+Creation-specific choices are not mapped yet, so Creation currently shows the
+shared entries only. Creation tracks a primary/secondary Law/Chaos split with a
+Humanity fallback, and its ending is decided at Empyrean rather than by these
+points.
 
 Missing or uncertain entries:
 

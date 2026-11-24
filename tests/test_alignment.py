@@ -1,4 +1,5 @@
 from kadishutu.core.game_save import GameSaveEditor
+from kadishutu.core.game_save.game import detected_canon
 from kadishutu.core.shared.file_handling import DecryptedSave
 from kadishutu.data.alignment import ALIGNMENT_OFFSET_MAP, AlignmentScore
 
@@ -136,3 +137,26 @@ def test_alignment_editor_reads_and_writes_heart_of_garnet_bits():
     editor.set_flag(4, False)
     assert editor.get_flag(4) is False
     assert editor.byte == 0x20
+
+
+def test_alignment_choices_are_tagged_by_canon():
+    counts = {"shared": 0, "creation": 0, "vengeance": 0}
+    for byte in ALIGNMENT_OFFSET_MAP.values():
+        for choice in byte.choices():
+            counts[choice.canon] += 1
+    assert counts == {"shared": 9, "creation": 1, "vengeance": 9}
+
+
+def test_detected_canon_reads_the_save_screen_field():
+    data = bytearray(0x600)
+
+    data[0x53A] = 1
+    assert detected_canon(data) == "creation"
+    data[0x53A] = 2
+    assert detected_canon(data) == "vengeance"
+    data[0x53A] = 0
+    assert detected_canon(data) is None
+
+
+def test_detected_canon_tolerates_short_data():
+    assert detected_canon(bytearray(1)) is None

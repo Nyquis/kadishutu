@@ -10,7 +10,8 @@
                 "Choose the law choice (?)"
             ],
             "group": null,
-            "weight": 1
+            "weight": 1,
+            "canon": "shared"
         }
     ]
 }
