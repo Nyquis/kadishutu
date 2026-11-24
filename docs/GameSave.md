@@ -389,6 +389,10 @@ back to the last used layline and then to the map region:
 For example, a save with `title_save_location = 149`, map ID `0x40`, and
 last layline `0x4a` displays `Da'at: Shinjuku - Yoyogi`.
 
+Never display `UNKNOWN` when a layline or map region is available. A full
+extraction of the name table is still open work; until it lands, keep the
+fallback order above.
+
 ## Stats info
 
 ### Singular Stat value

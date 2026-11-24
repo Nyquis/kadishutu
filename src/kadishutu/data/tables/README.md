@@ -60,6 +60,9 @@ Run the CUE4Parse CLI export first and place the JSON output under
 `lab/dumps/game-tables-json/`. Demon and map data already have committed local
 datasets (`Players.csv`, `laylines.json`), so they do not need extraction yet.
 
+Demon IDs that are easy to confuse: Agrat canonical is ID 392; enemy variants
+are 568/570/571/576; shadows are 762/763.
+
 ## Leveling metadata
 
 `nahobino_leveling.json` is generated from the `PlayerGrow` asset:

@@ -184,3 +184,7 @@ Values are in the following order:
 - Sound Effects
 
 With values ranging from 0x3f80 (MAX) to 0x0000 (MIN).
+
+The Voice slider is **not** at `0x5e0`, despite the block starting there.
+Candidates are `0x5f0` and `0x5f4`, still unresolved. BGM is `0x5e4`, Ambient
+Noise `0x5e8`, Sound Effects `0x5ec`.
