@@ -229,6 +229,20 @@ across cycles.
 The Meta screen also exposes the inferred clear-save flag at `0x528` and the
 Satan-beaten late-game flag at `0x69ce4` bit 4.
 
+### Canon value
+
+- `0x53a` - `1` = Canon of Creation, `2` = Canon of Vengeance.
+- `0x69ca2` splits the same way (`0x28` / `0xf0`) but behaves like an internal
+  progress value; prefer `0x53a`.
+
+This is a strong correlation: it holds across every save on hand, at every
+progress level, and is independent of difficulty (`0x4fc` is equal in both).
+It has **not** been verified by editing the byte and loading the game, so the
+editor treats it as detected, not as a switch it can change.
+
+The canon is chosen at the start of the game; taking Yoko's hand selects the
+Canon of Vengeance.
+
 ## Difficulty values
 
 For some reason, there are two values that dictate difficulty.
@@ -883,9 +897,8 @@ that export they fall back to `Quest N`.
 
 ### Quest canons
 
-The canon is chosen at the start of the game (taking Yoko's hand selects Canon
-of Vengeance), and the save exposes no single canon byte. Canon-exclusive
-quests are the practical signal:
+The canon is read from `0x53a` (see [Canon value](#canon-value)); canon-exclusive
+quests are the fallback signal when that byte is unexpected:
 
 - `quest_canon.json` tags quests that exist only in one storyline.
 - Side quests without a tag appear under both canons.

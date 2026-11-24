@@ -41,6 +41,23 @@ class Endings(IntFlag):
     VengeanceChaos = auto()
 
 
+# The canon is a small enum in the pre-loaded save-screen block, next to
+# difficulty, cycles, and endings. Observed as 1/2 across every save on hand,
+# but not yet verified by editing it and loading the game.
+CANON_OFFSET = 0x53A
+CANON_BY_VALUE = {
+    1: "creation",
+    2: "vengeance",
+}
+
+
+def detected_canon(data: bytes | bytearray) -> str | None:
+    """Return ``creation``/``vengeance`` from the save, or None if unknown."""
+    if len(data) <= CANON_OFFSET:
+        return None
+    return CANON_BY_VALUE.get(data[CANON_OFFSET])
+
+
 class GameSaveEditor(BaseMasterEditor):
     unreal_engine_internals = UnrealInternalEditor.disp()
     # Pre-loaded section

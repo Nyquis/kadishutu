@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from kadishutu.core.game_save.game import CANON_OFFSET, detected_canon
 from kadishutu.core.game_save.quests import QuestState
 from kadishutu.data.quests import QUESTS, Quest
 
@@ -47,6 +48,12 @@ class QuestEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.quests = self.save.quests
         self.rows: list[QuestRow] = []
         self.visible_indices: set[int] = set()
+        self.detected_canon = detected_canon(self.save.data)
+        self.canon_raw = (
+            self.save.data[CANON_OFFSET]
+            if len(self.save.data) > CANON_OFFSET
+            else None
+        )
 
         root = QVBoxLayout(self)
 
@@ -94,6 +101,12 @@ class QuestEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         controls.addWidget(self.count_label, 0, 5)
         root.addLayout(controls)
 
+        self.detected_label = QLabel(self)
+        self.detected_label.setObjectName("Muted")
+        self.detected_label.setWordWrap(True)
+        root.addWidget(self.detected_label)
+        self.update_detected_label()
+
         self.note_label = QLabel(
             "Canon tags are community-sourced and only mark quests that are "
             "exclusive to one storyline. Untagged quests appear under both.",
@@ -125,7 +138,32 @@ class QuestEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         for quest in QUESTS:
             self.add_row(quest)
 
+        self.apply_detected_filter()
         self.stack_refresh()
+
+    def update_detected_label(self):
+        if self.detected_canon is not None:
+            label = CANON_LABELS[self.detected_canon]
+            self.detected_label.setText(
+                f"Detected canon: {label} (0x{CANON_OFFSET:03x} = "
+                f"{self.canon_raw}). The filter starts here; change it to "
+                "override."
+            )
+            return
+        raw = "?" if self.canon_raw is None else f"0x{self.canon_raw:02x}"
+        self.detected_label.setText(
+            f"Canon not detected (0x{CANON_OFFSET:03x} = {raw}). "
+            "Choose a filter manually."
+        )
+
+    def apply_detected_filter(self):
+        if self.detected_canon is None:
+            return
+        index = self.canon_filter.findData(self.detected_canon)
+        if index < 0:
+            return
+        with QSignalBlocker(self.canon_filter):
+            self.canon_filter.setCurrentIndex(index)
 
     def add_row(self, quest: Quest):
         index = len(self.rows) + 1

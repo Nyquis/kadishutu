@@ -540,12 +540,14 @@ def test_alignment_preset_flips_only_already_chosen_rows(
     # Clear the modified flags so closing the window does not prompt.
     screen.stack_refresh()
 
-def make_quest_screen(main_window, tmp_path: Path):
+def make_quest_screen(main_window, tmp_path: Path, bits=None):
     from kadishutu.gui.game_save.game_save import GameSaveEditorScreen
     from kadishutu.gui.game_save.quests import QuestEditorScreen
 
     raw = DecryptedSave(bytearray(GAME_SAVE_SIZE))
     raw.data[0x40:0x44] = b"GVAS"
+    for offset, value in (bits or {}).items():
+        raw.data[offset] = value
     path = tmp_path / "quests.sav"
     raw.save_finished(path, backup=False)
 
@@ -591,3 +593,38 @@ def test_quest_screen_applies_state(main_window, tmp_path: Path):
     # Reset so closing the window does not prompt.
     editor.state = QuestState.NotStarted
     screen.stack_refresh()
+
+
+def test_quest_screen_uses_detected_creation_canon(
+    main_window, tmp_path: Path
+):
+    screen = make_quest_screen(main_window, tmp_path, {0x53A: 1})
+
+    assert screen.detected_canon == "creation"
+    assert screen.canon_filter.currentData() == "creation"
+    assert screen.count_label.text().startswith("9 / 224")
+    assert "Creation" in screen.detected_label.text()
+
+    # The filter stays a manual override.
+    screen.canon_filter.setCurrentIndex(0)
+    assert screen.count_label.text() == "224 / 224 quests"
+
+
+def test_quest_screen_uses_detected_vengeance_canon(
+    main_window, tmp_path: Path
+):
+    screen = make_quest_screen(main_window, tmp_path, {0x53A: 2})
+
+    assert screen.detected_canon == "vengeance"
+    assert screen.canon_filter.currentData() == "vengeance"
+    assert screen.count_label.text().startswith("40 / 224")
+
+
+def test_quest_screen_without_detection_shows_everything(
+    main_window, tmp_path: Path
+):
+    screen = make_quest_screen(main_window, tmp_path)
+
+    assert screen.detected_canon is None
+    assert screen.canon_filter.currentData() == "all"
+    assert "not detected" in screen.detected_label.text()
