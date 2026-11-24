@@ -874,6 +874,27 @@ The end is assumed to be at 0x5b412 due to the last id in the quest data table.
 
 `0x59d52 + 26 * (223 + 1)`
 
+Each entry holds five flags interpreted as `QuestState`: not started, in
+progress, report, done, plus seen/updated markers. The editor exposes the four
+valid states and reports rows whose stored flags are inconsistent.
+
+Quest names come from `MissionInfo.uexp` in the user's game data export; without
+that export they fall back to `Quest N`.
+
+### Quest canons
+
+The canon is chosen at the start of the game (taking Yoko's hand selects Canon
+of Vengeance), and the save exposes no single canon byte. Canon-exclusive
+quests are the practical signal:
+
+- `quest_canon.json` tags quests that exist only in one storyline.
+- Side quests without a tag appear under both canons.
+- The map is community-sourced and intentionally partial; unknown marketing
+  copy is not turned into data.
+
+The Quests screen uses these tags for filtering and leaves everything else
+shared. It does not claim to know the active canon by itself.
+
 ## NEW flag info
 
 - 0x69a82 - Skills NEW flag  

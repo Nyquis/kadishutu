@@ -94,3 +94,14 @@ The data is based on the save experiments in `docs/GameSave.md` and
 `docs/cheatroom_blog_post_translation.md`. Some choices are still marked
 `"unknown"` where the alignment has not been verified. The editor also reports
 unmapped bits instead of silently ignoring them.
+
+`weight` holds the community-reported point value: `1` for low-impact choices,
+`3` for high-impact choices, `0` for choices that record a decision but grant
+no points. It is hand-maintained, not generated.
+
+## Quest canons
+
+`quest_canon.json` tags quest IDs that exist only in the Canon of Creation or
+only in the Canon of Vengeance. It is hand-curated from community quest lists,
+not generated from the game files, and is intentionally incomplete: untagged
+quests are treated as shared. Add entries only with a source.

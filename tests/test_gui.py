@@ -539,3 +539,55 @@ def test_alignment_preset_flips_only_already_chosen_rows(
 
     # Clear the modified flags so closing the window does not prompt.
     screen.stack_refresh()
+
+def make_quest_screen(main_window, tmp_path: Path):
+    from kadishutu.gui.game_save.game_save import GameSaveEditorScreen
+    from kadishutu.gui.game_save.quests import QuestEditorScreen
+
+    raw = DecryptedSave(bytearray(GAME_SAVE_SIZE))
+    raw.data[0x40:0x44] = b"GVAS"
+    path = tmp_path / "quests.sav"
+    raw.save_finished(path, backup=False)
+
+    editor = GameSaveEditorScreen(
+        path, DecryptedSave.auto_open(path), main_window
+    )
+    main_window.stack_add(editor)
+    screen = QuestEditorScreen(editor)
+    main_window.stack_add(screen)
+    QApplication.processEvents()
+    return screen
+
+
+def test_quest_screen_lists_every_quest(main_window, tmp_path: Path):
+    screen = make_quest_screen(main_window, tmp_path)
+
+    assert len(screen.rows) == 224
+    assert screen.count_label.text() == "224 / 224 quests"
+
+
+def test_quest_screen_filters_by_canon(main_window, tmp_path: Path):
+    screen = make_quest_screen(main_window, tmp_path)
+
+    screen.canon_filter.setCurrentIndex(2)  # Vengeance only
+    assert screen.count_label.text().startswith("40 / 224")
+
+    screen.canon_filter.setCurrentIndex(1)  # Creation only
+    assert screen.count_label.text().startswith("9 / 224")
+
+
+def test_quest_screen_applies_state(main_window, tmp_path: Path):
+    from kadishutu.core.game_save.quests import QuestState
+
+    screen = make_quest_screen(main_window, tmp_path)
+    row = screen.rows[0]
+
+    row.combo.setCurrentIndex(row.combo.findData(QuestState.Done))
+    screen.on_apply_changes()
+
+    editor = screen.quests.from_meta(row.quest)
+    assert editor.state == QuestState.Done
+
+    # Reset so closing the window does not prompt.
+    editor.state = QuestState.NotStarted
+    screen.stack_refresh()

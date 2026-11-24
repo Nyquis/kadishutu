@@ -98,6 +98,24 @@ except Exception as e:
     printexcept("Failed to load quest data", e)
     QUEST_DATA = []
 
+QUEST_CANON_PATH = TABLES_PATH / "quest_canon.json"
+
+
+@dataclass
+class QuestCanon(JsonListMixin):
+    id: int
+    canon: str
+
+
+try:
+    QUEST_CANON_MAP = {
+        entry.id: entry.canon
+        for entry in QuestCanon.load_path(QUEST_CANON_PATH)
+    }
+except Exception as e:
+    printexcept("Failed to load quest canon data", e)
+    QUEST_CANON_MAP = {}
+
 
 @dataclass
 class Quest:
@@ -145,6 +163,11 @@ class Quest:
     @property
     def offset(self) -> int:
         return QUEST_TABLE_OFFSET + QUEST_ENTRY_SIZE * self.id
+
+    @property
+    def canon(self) -> str | None:
+        """``creation``/``vengeance`` for canon-exclusive quests, else None."""
+        return QUEST_CANON_MAP.get(self.id)
 
 
 QUESTS = Quest.load_quests()
