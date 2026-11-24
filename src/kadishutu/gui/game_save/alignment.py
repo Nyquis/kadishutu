@@ -86,23 +86,37 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.search.textChanged.connect(lambda _: self.filter_rows())
         search_row.addWidget(self.search, 1)
 
-        canon_title = QLabel("Canon:", self)
-        search_row.addWidget(canon_title)
+        search_row.addWidget(QLabel("Canon:", self))
         self.canon_filter = QComboBox(self)
         for label, key in [
-            ("Detected", "detected"),
             ("Creation", "creation"),
             ("Vengeance", "vengeance"),
-            ("Both", "all"),
+            ("Both", "both"),
         ]:
             self.canon_filter.addItem(label, key)
+        default = self.detected_canon or "both"
+        self.canon_filter.setCurrentIndex(
+            max(self.canon_filter.findData(default), 0)
+        )
         self.canon_filter.setToolTip(
-            "Detected from the save at 0x53a; override it here if needed."
+            "Detected from the save at 0x53a. Change it to override."
         )
         self.canon_filter.currentIndexChanged.connect(
             lambda _: self.on_canon_changed()
         )
         search_row.addWidget(self.canon_filter)
+
+        search_row.addWidget(QLabel("Route:", self))
+        self.route_filter = QComboBox(self)
+        self.route_filter.setMinimumWidth(130)
+        self.route_filter.setToolTip(
+            "Sets choices you already made to that side. Decisions you have "
+            "not made are left alone, and Apply Changes writes the result."
+        )
+        self.route_filter.currentIndexChanged.connect(
+            lambda _: self.on_route_changed()
+        )
+        search_row.addWidget(self.route_filter)
         root.addLayout(search_row)
 
         filter_row = QHBoxLayout()
@@ -146,6 +160,12 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.count_label.setObjectName("Muted")
         filter_row.addWidget(self.count_label)
         root.addLayout(filter_row)
+
+        self.route_note = QLabel(self)
+        self.route_note.setObjectName("Muted")
+        self.route_note.setWordWrap(True)
+        root.addWidget(self.route_note)
+        self.rebuild_routes()
 
         summary_row = QHBoxLayout()
         summary_row.setSpacing(18)
@@ -351,9 +371,7 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
     def active_canon(self) -> str | None:
         key = self.canon_filter.currentData()
-        if key == "detected":
-            return self.detected_canon
-        if key == "all":
+        if key == "both":
             return None
         return key
 
@@ -363,9 +381,68 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             return True
         return row.choice.canon in ("shared", canon)
 
+    def rebuild_routes(self):
+        canon = self.canon_filter.currentData()
+        if canon == "creation":
+            options = [
+                ("No change", None),
+                ("Law", "law"),
+                ("Neutral", "neutral"),
+                ("True Neutral", "true-neutral"),
+                ("Chaos", "chaos"),
+            ]
+        else:
+            options = [("No change", None), ("Law", "law"), ("Chaos", "chaos")]
+        previous = self.route_filter.currentData()
+        with QSignalBlocker(self.route_filter):
+            self.route_filter.clear()
+            for label, key in options:
+                self.route_filter.addItem(label, key)
+            index = self.route_filter.findData(previous)
+            self.route_filter.setCurrentIndex(index if index >= 0 else 0)
+
     def on_canon_changed(self):
+        self.rebuild_routes()
+        self.route_note.setText("")
         self.update_canon_label()
         self.filter_rows()
+
+    def on_route_changed(self):
+        route = self.route_filter.currentData()
+        self.route_note.setText("")
+        if route is None:
+            return
+        if route in ("neutral", "true-neutral"):
+            self.route_note.setText(
+                "Neutral and True Neutral are decided at Empyrean, not by "
+                "these points. Choices were left unchanged."
+            )
+            with QSignalBlocker(self.route_filter):
+                self.route_filter.setCurrentIndex(0)
+            return
+        label = "Law" if route == "law" else "Chaos"
+        changed = 0
+        for row in self.rows:
+            if row.invalid or self.selected_option(row) is None:
+                continue
+            target = next(
+                (
+                    option
+                    for option in row.choice.options
+                    if option.alignment == route
+                ),
+                None,
+            )
+            if target is None or row.combo.currentData() == target.bit:
+                continue
+            row.combo.setCurrentIndex(row.combo.findData(target.bit))
+            changed += 1
+        self.route_note.setText(
+            f"Set {changed} already-made choice(s) to {label}. Decisions you "
+            "have not made are untouched; Apply Changes writes the result."
+        )
+        with QSignalBlocker(self.route_filter):
+            self.route_filter.setCurrentIndex(0)
 
     def update_canon_label(self):
         raw = (
@@ -394,6 +471,12 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
                 "Showing shared and Vengeance choices. A two-point lead "
                 "decides the path; one point or less is Humanity."
             )
+        if (
+            self.detected_canon is not None
+            and active is not None
+            and active != self.detected_canon
+        ):
+            shown = f"Canon overridden. {shown}"
         self.canon_label.setText(f"Detected canon: {detected}. {shown}")
 
     def filter_rows(self):

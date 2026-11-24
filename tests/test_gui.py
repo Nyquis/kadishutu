@@ -569,7 +569,7 @@ def test_alignment_screen_shows_shared_and_creation_choices(
     screen = make_alignment_screen(main_window, tmp_path, {0x53A: 1})
 
     assert screen.detected_canon == "creation"
-    assert screen.canon_filter.currentData() == "detected"
+    assert screen.canon_filter.currentData() == "creation"
     assert screen.count_label.text() == "10 / 19 choices"
     assert "Canon of Creation" in screen.canon_label.text()
 
@@ -588,7 +588,7 @@ def test_alignment_canon_filter_can_be_overridden(
 ):
     screen = make_alignment_screen(main_window, tmp_path, {0x53A: 1})
 
-    screen.canon_filter.setCurrentIndex(screen.canon_filter.findData("all"))
+    screen.canon_filter.setCurrentIndex(screen.canon_filter.findData("both"))
     assert screen.count_label.text() == "19 / 19 choices"
 
     index = screen.canon_filter.findData("vengeance")
@@ -602,5 +602,65 @@ def test_alignment_without_detection_shows_every_choice(
     screen = make_alignment_screen(main_window, tmp_path, {})
 
     assert screen.detected_canon is None
+    assert screen.canon_filter.currentData() == "both"
     assert screen.count_label.text() == "19 / 19 choices"
     assert "not detected" in screen.canon_label.text()
+
+
+def test_alignment_creation_route_options(
+    main_window, tmp_path: Path
+):
+    screen = make_alignment_screen(main_window, tmp_path, {0x53A: 1})
+    assert [
+        screen.route_filter.itemText(index)
+        for index in range(screen.route_filter.count())
+    ] == ["No change", "Law", "Neutral", "True Neutral", "Chaos"]
+
+
+def test_alignment_vengeance_route_options(
+    main_window, tmp_path: Path
+):
+    screen = make_alignment_screen(main_window, tmp_path, {0x53A: 2})
+    assert [
+        screen.route_filter.itemText(index)
+        for index in range(screen.route_filter.count())
+    ] == ["No change", "Law", "Chaos"]
+
+
+def test_alignment_route_sets_only_chosen_choices(
+    main_window, tmp_path: Path
+):
+    screen = make_alignment_screen(
+        main_window, tmp_path, {0x53A: 2, 0x69CF6: 0x04}
+    )
+    chosen = next(row for row in screen.rows if row.offset == 0x69CF6)
+    unselected = next(row for row in screen.rows if row.offset == 0x69CF8)
+    assert chosen.combo.currentData() == 2
+    assert unselected.combo.currentData() is None
+
+    screen.route_filter.setCurrentIndex(
+        screen.route_filter.findData("chaos")
+    )
+
+    assert chosen.combo.currentData() == 3
+    assert unselected.combo.currentData() is None
+    assert "Apply Changes" in screen.route_note.text()
+    screen.stack_refresh()
+
+
+def test_alignment_neutral_route_leaves_choices_alone(
+    main_window, tmp_path: Path
+):
+    screen = make_alignment_screen(
+        main_window, tmp_path, {0x53A: 1, 0x69CF6: 0x04}
+    )
+    chosen = next(row for row in screen.rows if row.offset == 0x69CF6)
+    before = chosen.combo.currentData()
+
+    screen.route_filter.setCurrentIndex(
+        screen.route_filter.findData("neutral")
+    )
+
+    assert chosen.combo.currentData() == before
+    assert "Empyrean" in screen.route_note.text()
+    screen.stack_refresh()

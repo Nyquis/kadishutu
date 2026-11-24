@@ -963,9 +963,13 @@ page](https://megatenwiki.com/wiki/Alignment_(Shin_Megami_Tensei_V:_Vengeance))
 [ludo.guide choice list](https://www.ludo.guide/guide/shin-megami-tensei-v-vengeance/alignment-choice-guide).
 These are community measurements, not values read from the save.
 
-The **Alignment preset** was removed: the screen only edits the choices you
-pick, and **Apply Changes** writes them. Rows holding both values at once show
-`Both are set — pick one` in their dropdown instead of a separate status column.
+The **Route** selector offers that canon's endings: Law, Neutral, True Neutral,
+and Chaos for Creation; Law and Chaos for Vengeance. Picking Law or Chaos sets
+the choices you already made to that side; decisions you have not made are left
+alone, and **Apply Changes** writes the result. Neutral and True Neutral leave
+the choices unchanged because they are decided at Empyrean. Rows holding both
+values at once show `Both are set — pick one` in their dropdown instead of a
+separate status column.
 
 Each choice carries a `canon` tag: `shared`, `creation`, or `vengeance`. The
 screen filters on the detected canon and always keeps shared choices, so a
