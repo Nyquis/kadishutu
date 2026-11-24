@@ -126,6 +126,10 @@ pixi run -e dev build
 `build` produces the release: a `kadishutu` folder plus a
 `kadishutu-<platform>-v<version>-<commit>.zip` archive next to it.
 
+Close the packaged app before rebuilding. The build refuses to start while
+`kadishutu.exe` is running, because PyInstaller replaces the release folder
+in place.
+
 The build keeps the new archive plus the four newest previous archives, so at
 most five build archives are retained. Use `--keep-previous N` to change that
 or `--no-archive-prune` to keep everything.

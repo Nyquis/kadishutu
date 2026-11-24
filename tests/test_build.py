@@ -259,3 +259,50 @@ def test_check_clean_tree_allows_clean_worktree(monkeypatch):
     monkeypatch.setattr(BUILD, "dirty_paths", lambda: [])
 
     BUILD.check_clean_tree()
+
+
+def test_running_instances_ignores_other_platforms(monkeypatch):
+    monkeypatch.setattr(BUILD.platform, "system", lambda: "Linux")
+
+    assert BUILD.running_instances() == []
+
+
+def test_running_instances_parses_tasklist(monkeypatch):
+    monkeypatch.setattr(BUILD.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(
+        BUILD.subprocess,
+        "check_output",
+        lambda *args, **kwargs: (
+            "kadishutu.exe                 60172 Console    1    123,456 K\n"
+        ),
+    )
+
+    assert BUILD.running_instances() == [
+        "kadishutu.exe                 60172 Console    1    123,456 K"
+    ]
+
+
+def test_running_instances_ignores_tasklist_noise(monkeypatch):
+    monkeypatch.setattr(BUILD.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(
+        BUILD.subprocess,
+        "check_output",
+        lambda *args, **kwargs: "INFO: No tasks are running.\n",
+    )
+
+    assert BUILD.running_instances() == []
+
+
+def test_check_not_running_refuses_to_build(monkeypatch):
+    monkeypatch.setattr(
+        BUILD, "running_instances", lambda: ["kadishutu.exe 60172"]
+    )
+
+    with pytest.raises(SystemExit, match="Close it"):
+        BUILD.check_not_running()
+
+
+def test_check_not_running_allows_build(monkeypatch):
+    monkeypatch.setattr(BUILD, "running_instances", lambda: [])
+
+    BUILD.check_not_running()

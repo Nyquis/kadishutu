@@ -134,6 +134,8 @@ executable boots. Do not add a package build to pull requests.
 - Conventional commit messages, for example `feat(ui): ...`, `fix(ui): ...`.
 - Commit before building. The artifact name uses `git rev-parse --short HEAD`
   and the build refuses a dirty tree; `--allow-dirty` is for throwaway builds.
+- Close a running `kadishutu.exe` before building. The build refuses to start
+  while the packaged app holds files in the release folder.
 - `pixi run build` produces
   `dist/pyinstaller/windows/kadishutu-windows-v<version>-<shortsha>.zip`.
 - Publish by pushing a `v*` tag; `.github/workflows/release.yml` builds and

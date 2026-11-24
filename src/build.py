@@ -519,6 +519,42 @@ def check_clean_tree() -> None:
     )
 
 
+def running_instances() -> list[str]:
+    """Rows from tasklist for a running executable, or an empty list.
+
+    A running build locks files inside the release folder, so PyInstaller
+    cannot replace it.
+    """
+    if platform.system() != "Windows":
+        return []
+    try:
+        output = subprocess.check_output(
+            ["tasklist", "/FI", f"IMAGENAME eq {NAME}.exe", "/NH"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return []
+    prefix = f"{NAME}.exe".lower()
+    return [
+        line.strip()
+        for line in output.splitlines()
+        if line.strip().lower().startswith(prefix)
+    ]
+
+
+def check_not_running() -> None:
+    """Fail before PyInstaller wipes a folder the app still has open."""
+    running = running_instances()
+    if not running:
+        return
+    raise SystemExit(
+        f"{NAME}.exe is running. Close it and build again: PyInstaller "
+        "replaces the release folder in place, and Windows will not let it "
+        "delete files the running app has loaded."
+    )
+
+
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     if args.keep_previous < 0:
@@ -528,6 +564,8 @@ def main(argv: list[str] | None = None) -> None:
     if args.check_version is not None:
         check_version_tag(args.check_version, version)
         return
+
+    check_not_running()
 
     if not args.allow_dirty:
         check_clean_tree()
