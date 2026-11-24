@@ -151,6 +151,21 @@ executable boots. Do not add a package build to pull requests.
 - Report the SHA-256 of the zip. Published releases carry a `SHA256SUMS.txt`.
 - Do not commit `dist/`, `build/`, `.pixi/`, or `lab/` contents.
 
+## GitHub identity
+
+- Do not switch the global `gh` account for repository work.
+- Git operations in this repository are pinned to the project account by the
+  remote URL and a repo-local credential helper, so pushes do not depend on the
+  active `gh` account.
+- `gh` has no per-repository account. For one admin command here, scope a token
+  to that command, for example:
+
+  ```shell
+  $env:GH_TOKEN = (gh auth token --user <project-account>); gh release view <tag> -R <owner>/<repo>
+  ```
+
+  Do not persist that token, and do not leave the active account changed.
+
 ## Versioning
 
 - Pre-1.0: minor (`0.3.0`) for new features or breaking changes, patch
