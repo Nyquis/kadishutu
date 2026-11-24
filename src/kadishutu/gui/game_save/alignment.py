@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from kadishutu.core.game_save.game import detected_canon
 from kadishutu.data.alignment import (
     ALIGNMENT_DATA,
     AlignmentBit,
@@ -59,6 +60,7 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.rows: list[AlignmentRow] = []
         self.visible_indices: set[int] = set()
         self.show_raw = False
+        self.detected_canon = detected_canon(self.save.data)
 
         root = QVBoxLayout(self)
 
@@ -70,6 +72,10 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         warning.setObjectName("Warning")
         warning.setWordWrap(True)
         root.addWidget(warning)
+
+        self.canon_label = QLabel(self)
+        self.canon_label.setWordWrap(True)
+        root.addWidget(self.canon_label)
 
         self.unknown_label = QLabel(self)
         self.unknown_label.setObjectName("Warning")
@@ -168,6 +174,12 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.note_label.setWordWrap(True)
         root.addWidget(self.note_label)
 
+        self.flags_toggle = QCheckBox(
+            "Show Vengeance-arc choice flags", self
+        )
+        self.flags_toggle.toggled.connect(lambda _: self.update_canon_view())
+        root.addWidget(self.flags_toggle)
+
         self.scroll = QScrollArea(self)
         self.scroll.setWidgetResizable(True)
         self.inner = QWidget(self.scroll)
@@ -196,6 +208,49 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
         self.set_raw_visible()
         self.stack_refresh()
+        self.update_canon_view()
+
+    def update_canon_view(self):
+        if self.detected_canon == "creation":
+            self.canon_label.setText(
+                "Detected canon: Canon of Creation. Creation tracks alignment "
+                "as primary and secondary Law/Chaos choices with a Humanity "
+                "fallback, and its endings are Law, Chaos, Neutral, and True "
+                "Neutral. The flags on this screen belong to the Vengeance "
+                "arc and do not apply to this save."
+            )
+            self.flags_toggle.setVisible(True)
+            self.scroll.setVisible(self.flags_toggle.isChecked())
+            self.preset.setEnabled(False)
+            self.apply_preset_button.setEnabled(False)
+            self.preset.setToolTip(
+                "Presets only apply to the Vengeance-arc choice flags."
+            )
+            self.apply_preset_button.setToolTip(
+                "Presets only apply to the Vengeance-arc choice flags."
+            )
+            return
+
+        self.flags_toggle.setVisible(False)
+        self.scroll.setVisible(True)
+        self.preset.setEnabled(True)
+        self.apply_preset_button.setEnabled(True)
+        self.preset.setToolTip("")
+        self.apply_preset_button.setToolTip(
+            "Only rows with an existing choice are changed. Unselected rows, "
+            "unknown alignments, and rows with both bits set are left alone."
+        )
+        if self.detected_canon == "vengeance":
+            self.canon_label.setText(
+                "Detected canon: Canon of Vengeance. Law is Preservation and "
+                "Chaos is Reformation; a two-point lead decides the path and "
+                "one point or less is Humanity."
+            )
+        else:
+            self.canon_label.setText(
+                "Canon not detected. Showing the Vengeance-arc choice flags; "
+                "the totals below only apply to Canon of Vengeance."
+            )
 
     @staticmethod
     def flat_data() -> list[tuple[int, AlignmentChoice]]:
@@ -408,13 +463,20 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
                 unknown += 1
         unselected = len(self.rows) - selected - invalid
         score = AlignmentScore(law_points, chaos_points)
-        text = (
-            f"Selected {selected}/{len(self.rows)} · "
-            f"Law {law} ({law_points} pts) · "
-            f"Chaos {chaos} ({chaos_points} pts) · "
-            f"Net {score.net:+d} → {VERDICT_LABELS[score.verdict]} · "
-            f"Unknown {unknown} · Unselected {unselected}"
-        )
+        if self.detected_canon == "creation":
+            text = (
+                f"Vengeance-arc flags · Selected {selected}/{len(self.rows)} · "
+                f"Law {law} ({law_points} pts) · "
+                f"Chaos {chaos} ({chaos_points} pts)"
+            )
+        else:
+            text = (
+                f"Selected {selected}/{len(self.rows)} · "
+                f"Law {law} ({law_points} pts) · "
+                f"Chaos {chaos} ({chaos_points} pts) · "
+                f"Net {score.net:+d} → {VERDICT_LABELS[score.verdict]} · "
+                f"Unknown {unknown} · Unselected {unselected}"
+            )
         if invalid:
             text += f" · Invalid {invalid}"
         self.summary_label.setText(text)

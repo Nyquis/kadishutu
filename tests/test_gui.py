@@ -628,3 +628,92 @@ def test_quest_screen_without_detection_shows_everything(
     assert screen.detected_canon is None
     assert screen.canon_filter.currentData() == "all"
     assert "not detected" in screen.detected_label.text()
+
+
+def make_cross_cycle_screen(main_window, tmp_path: Path, bits=None):
+    from kadishutu.gui.game_save.cross_cycle import CrossCycleEditorScreen
+    from kadishutu.gui.game_save.game_save import GameSaveEditorScreen
+
+    raw = DecryptedSave(bytearray(GAME_SAVE_SIZE))
+    raw.data[0x40:0x44] = b"GVAS"
+    for offset, value in (bits or {}).items():
+        raw.data[offset] = value
+    path = tmp_path / "meta.sav"
+    raw.save_finished(path, backup=False)
+
+    editor = GameSaveEditorScreen(
+        path, DecryptedSave.auto_open(path), main_window
+    )
+    main_window.stack_add(editor)
+    screen = CrossCycleEditorScreen(editor)
+    main_window.stack_add(screen)
+    QApplication.processEvents()
+    return screen
+
+
+def test_meta_screen_shows_creation_endings_first(
+    main_window, tmp_path: Path
+):
+    screen = make_cross_cycle_screen(main_window, tmp_path, {0x53A: 1})
+
+    assert screen.detected_canon == "creation"
+    assert not screen.canon_sections["Creation"].isHidden()
+    assert screen.canon_sections["Vengeance"].isHidden()
+    assert screen.endings_summary.text() == "0 / 4 endings marked"
+    assert not screen.other_canon_toggle.isHidden()
+    assert "Canon of Vengeance" in screen.other_canon_toggle.text()
+
+    screen.other_canon_toggle.setChecked(True)
+    assert not screen.canon_sections["Vengeance"].isHidden()
+
+
+def test_meta_screen_shows_vengeance_endings_first(
+    main_window, tmp_path: Path
+):
+    screen = make_cross_cycle_screen(main_window, tmp_path, {0x53A: 2})
+
+    assert screen.detected_canon == "vengeance"
+    assert screen.canon_sections["Creation"].isHidden()
+    assert not screen.canon_sections["Vengeance"].isHidden()
+    assert screen.endings_summary.text() == "0 / 2 endings marked"
+    assert "Canon of Creation" in screen.other_canon_toggle.text()
+
+
+def test_meta_screen_without_detection_shows_everything(
+    main_window, tmp_path: Path
+):
+    screen = make_cross_cycle_screen(main_window, tmp_path)
+
+    assert screen.detected_canon is None
+    assert not screen.canon_sections["Creation"].isHidden()
+    assert not screen.canon_sections["Vengeance"].isHidden()
+    assert screen.other_canon_toggle.isHidden()
+    assert "not detected" in screen.canon_label.text()
+
+
+def test_alignment_screen_marks_creation_choices_inapplicable(
+    main_window, tmp_path: Path
+):
+    screen = make_alignment_screen(main_window, tmp_path, {0x53A: 1})
+
+    assert screen.detected_canon == "creation"
+    assert screen.scroll.isHidden()
+    assert not screen.flags_toggle.isHidden()
+    assert not screen.preset.isEnabled()
+    assert not screen.apply_preset_button.isEnabled()
+    assert "Canon of Creation" in screen.canon_label.text()
+
+    screen.flags_toggle.setChecked(True)
+    assert not screen.scroll.isHidden()
+
+
+def test_alignment_screen_keeps_presets_for_vengeance(
+    main_window, tmp_path: Path
+):
+    screen = make_alignment_screen(main_window, tmp_path, {0x53A: 2})
+
+    assert screen.detected_canon == "vengeance"
+    assert not screen.scroll.isHidden()
+    assert screen.flags_toggle.isHidden()
+    assert screen.preset.isEnabled()
+    assert "Canon of Vengeance" in screen.canon_label.text()

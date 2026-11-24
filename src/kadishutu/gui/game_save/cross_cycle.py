@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import (
+    QCheckBox,
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
@@ -8,11 +9,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from kadishutu.core.game_save.game import Endings
+from kadishutu.core.game_save.game import Endings, detected_canon
 from kadishutu.data.endings import (
     CANON_DESCRIPTIONS,
     ENDING_INFOS,
     ENDING_ROUTES,
+    EndingInfo,
 )
 
 from ..shared import QU8, AppliableWidget, MCheckBox
@@ -24,6 +26,8 @@ class CrossCycleEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         super().__init__(*args, **kwargs)
         self.ending_map: dict[Endings, MCheckBox] = {}
         self.canon_headers: dict[str, QLabel] = {}
+        self.canon_sections: dict[str, QWidget] = {}
+        self.detected_canon = detected_canon(self.save.data)
         self.ending_details = [
             (Endings(info.flag), info)
             for info in ENDING_INFOS
@@ -75,6 +79,10 @@ class CrossCycleEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
         endings_group = QGroupBox("Endings achieved", self)
         endings_layout = QVBoxLayout(endings_group)
+        self.canon_label = QLabel(endings_group)
+        self.canon_label.setWordWrap(True)
+        endings_layout.addWidget(self.canon_label)
+
         self.endings_summary = QLabel(endings_group)
         self.endings_summary.setObjectName("Muted")
         endings_layout.addWidget(self.endings_summary)
@@ -89,20 +97,24 @@ class CrossCycleEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         endings_layout.addWidget(endings_note)
 
         for route in ENDING_ROUTES:
-            canon_header = QLabel(endings_group)
+            section = QWidget(endings_group)
+            section_layout = QVBoxLayout(section)
+            section_layout.setContentsMargins(0, 0, 0, 0)
+
+            canon_header = QLabel(section)
             canon_header.setStyleSheet(
                 "font-weight: 600; font-size: 14px; margin-top: 8px;"
             )
-            endings_layout.addWidget(canon_header)
+            section_layout.addWidget(canon_header)
             self.canon_headers[route] = canon_header
 
             canon_description = QLabel(
                 CANON_DESCRIPTIONS[route],
-                endings_group,
+                section,
             )
             canon_description.setObjectName("Muted")
             canon_description.setWordWrap(True)
-            endings_layout.addWidget(canon_description)
+            section_layout.addWidget(canon_description)
 
             route_layout = QGridLayout()
             row = 0
@@ -110,18 +122,33 @@ class CrossCycleEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
                 if info.route != route:
                     continue
                 tip = f"{info.full_label}\n{info.description}"
-                box = MCheckBox(endings_group)
+                box = MCheckBox(section)
                 box.setToolTip(tip)
                 box.checkStateChanged.connect(
                     lambda _: self.update_endings_summary()
                 )
-                label = QLabel(info.label, endings_group)
+                label = QLabel(info.label, section)
                 label.setToolTip(tip)
                 route_layout.addWidget(label, row, 0)
                 route_layout.addWidget(box, row, 1)
                 self.ending_map[flag] = box
                 row += 1
-            endings_layout.addLayout(route_layout)
+            section_layout.addLayout(route_layout)
+
+            self.canon_sections[route] = section
+            endings_layout.addWidget(section)
+
+        self.other_canon_toggle = QCheckBox(
+            "Show the other canon's endings", endings_group
+        )
+        self.other_canon_toggle.setToolTip(
+            "Endings are cumulative across cycles, so an older canon's "
+            "endings can still be marked in this save."
+        )
+        self.other_canon_toggle.toggled.connect(
+            lambda _: self.update_canon_view()
+        )
+        endings_layout.addWidget(self.other_canon_toggle)
 
         buttons = QHBoxLayout()
         self.mark_all_button = QPushButton("Mark all endings", endings_group)
@@ -148,16 +175,76 @@ class CrossCycleEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         root.addStretch()
 
         self.update_endings_summary()
+        self.update_canon_view()
+
+    def active_ending_details(self) -> list[tuple[Endings, EndingInfo]]:
+        if self.detected_canon is None:
+            return list(self.ending_details)
+        return [
+            (flag, info)
+            for flag, info in self.ending_details
+            if info.route.lower() == self.detected_canon
+        ]
+
+    def update_canon_view(self):
+        if self.detected_canon is None:
+            self.other_canon_toggle.setVisible(False)
+            self.canon_label.setText(
+                "Canon not detected (0x53a has an unexpected value). "
+                "Showing every ending; both canons are editable."
+            )
+            for section in self.canon_sections.values():
+                section.setVisible(True)
+            return
+
+        active_route = next(
+            route
+            for route in ENDING_ROUTES
+            if route.lower() == self.detected_canon
+        )
+        other_route = next(
+            route for route in ENDING_ROUTES if route != active_route
+        )
+        count = len(self.active_ending_details())
+        self.canon_label.setText(
+            f"Detected canon: Canon of {active_route} — {count} endings. "
+            f"The other canon's endings come from earlier cycles and are "
+            "hidden unless you reveal them."
+        )
+        self.other_canon_toggle.setVisible(True)
+        self.other_canon_toggle.setText(
+            f"Show Canon of {other_route} endings"
+        )
+        for route, section in self.canon_sections.items():
+            section.setVisible(
+                route == active_route or self.other_canon_toggle.isChecked()
+            )
 
     def update_endings_summary(self):
+        details = self.active_ending_details()
         achieved = sum(
             1
-            for box in self.ending_map.values()
-            if box.isChecked()
+            for flag, _ in details
+            if self.ending_map[flag].isChecked()
         )
         self.endings_summary.setText(
-            f"{achieved} / {len(self.ending_map)} endings marked"
+            f"{achieved} / {len(details)} endings marked"
         )
+        for route in ENDING_ROUTES:
+            route_details = [
+                (flag, info)
+                for flag, info in self.ending_details
+                if info.route == route
+            ]
+            route_achieved = sum(
+                1
+                for flag, _ in route_details
+                if self.ending_map[flag].isChecked()
+            )
+            self.canon_headers[route].setText(
+                f"Canon of {route} — "
+                f"{route_achieved} / {len(route_details)}"
+            )
         for route in ENDING_ROUTES:
             route_details = [
                 (flag, info)

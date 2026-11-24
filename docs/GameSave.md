@@ -229,6 +229,11 @@ across cycles.
 The Meta screen also exposes the inferred clear-save flag at `0x528` and the
 Satan-beaten late-game flag at `0x69ce4` bit 4.
 
+The Meta screen reads the canon and shows that canon's endings first: four for
+Creation (Neutral, Law, Chaos, True Neutral) and two for Vengeance (Law, Chaos).
+Endings are cumulative across cycles, so the other canon's bits may still be
+set; a toggle reveals them for cleanup.
+
 ### Canon value
 
 - `0x53a` - `1` = Canon of Creation, `2` = Canon of Vengeance.
@@ -973,6 +978,11 @@ These are community measurements, not values read from the save.
 
 The **Alignment preset** flips only choices the save already has: unselected
 rows, unknown alignments, and rows with both bits set are left alone.
+
+On a Creation save the screen hides these Vengeance-arc flags behind a toggle
+and disables the preset, because the mapped choices do not exist in that canon.
+Creation tracks a primary/secondary Law/Chaos split with a Humanity fallback,
+and its ending is decided by the final Empyrean choice rather than this score.
 
 Missing or uncertain entries:
 
