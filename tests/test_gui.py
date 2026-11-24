@@ -466,3 +466,76 @@ def test_theme_controller_persists_mode(qapp: QApplication, tmp_path: Path):
         controller.deleteLater()
         qapp.processEvents()
         apply_theme(qapp, ThemeMode.SYSTEM)
+
+GAME_SAVE_SIZE = 0x6DC90
+
+
+def make_alignment_screen(main_window, tmp_path: Path, bits: dict[int, int]):
+    from kadishutu.gui.game_save.alignment import AlignmentEditorScreen
+    from kadishutu.gui.game_save.game_save import GameSaveEditorScreen
+
+    raw = DecryptedSave(bytearray(GAME_SAVE_SIZE))
+    raw.data[0x40:0x44] = b"GVAS"
+    for offset, value in bits.items():
+        raw.data[offset] = value
+    path = tmp_path / "align.sav"
+    raw.save_finished(path, backup=False)
+
+    editor = GameSaveEditorScreen(
+        path, DecryptedSave.auto_open(path), main_window
+    )
+    main_window.stack_add(editor)
+    screen = AlignmentEditorScreen(editor)
+    main_window.stack_add(screen)
+    QApplication.processEvents()
+    return screen
+
+
+def test_alignment_summary_reports_weighted_points(main_window, tmp_path: Path):
+    # 0x69CFA bit 6 and 0x69CFC bit 4 are both high-impact Law choices.
+    screen = make_alignment_screen(
+        main_window, tmp_path, {0x69CFA: 0x40, 0x69CFC: 0x10}
+    )
+
+    text = screen.summary_label.text()
+
+    assert "Law 2 (6 pts)" in text
+    assert "Net +6" in text
+    assert "Preservation" in text
+
+
+def test_alignment_preset_flips_only_already_chosen_rows(
+    main_window, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    # 0x69CF6 bit 2 is the Law choice; the other rows start unselected.
+    screen = make_alignment_screen(
+        main_window, tmp_path, {0x69CF6: 0x04}
+    )
+    class AutoConfirm:
+        StandardButton = QMessageBox.StandardButton
+
+        @staticmethod
+        def question(*args, **kwargs):
+            return QMessageBox.StandardButton.Yes
+
+        @staticmethod
+        def information(*args, **kwargs):
+            return None
+
+    monkeypatch.setattr(
+        "kadishutu.gui.game_save.alignment.QMessageBox", AutoConfirm
+    )
+
+    chosen = next(row for row in screen.rows if row.offset == 0x69CF6)
+    untouched = next(row for row in screen.rows if row.offset == 0x69CF8)
+    assert chosen.combo.currentData() == 2
+    assert untouched.combo.currentData() is None
+
+    screen.preset.setCurrentIndex(1)
+    screen.apply_preset()
+
+    assert chosen.combo.currentData() == 3
+    assert untouched.combo.currentData() is None
+
+    # Clear the modified flags so closing the window does not prompt.
+    screen.stack_refresh()

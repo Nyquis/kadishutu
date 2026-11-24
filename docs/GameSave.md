@@ -903,21 +903,50 @@ Alignment choices are stored as an 8-byte bitfield from `0x69cf5` to
 - Law and Chaos choices are paired, and each pair is mutually exclusive.
   `alignment_data.json` records an explicit `group` for both sides of a choice.
 - Some choices are still unverified and use `"alignment": "unknown"`.
-- A bit does not directly represent a numeric Law/Chaos score. The editor
-  summarises selected Law/Chaos choices, but the game’s final alignment also
-  depends on its own weighting.
 - The editor presents one dropdown per choice: `Not chosen`, the Law option,
   or the Chaos option. If both bits are already set in a save, the row is
   marked invalid instead of silently choosing a side.
+
+#### Point weights
+
+The save stores choices, not a score, so the editor computes one from the
+community-reported point values in `weight`:
+
+- `1` - low-impact choice.
+- `3` - high-impact choice (`0x69cfa` bits 6/7, `0x69cfc` bits 4/5 and 6/7).
+- `0` - records the choice but grants no points (`0x69cf5`, the throne route
+  choice, and neutral options such as "To stop Tiamat").
+
+The Canon of Vengeance compares Preservation (Law) against Reformation
+(Chaos): a difference of **2 points or more** picks the leading side, and a
+difference of **1 or less** is Humanity. The editor shows the weighted totals,
+the net difference, and the resulting verdict.
+
+Two sources are not recoverable from these flags and are not counted:
+
+- Tao and Yoko battle bonuses: +1 per 50 battles alongside them, up to +3 each.
+- Any choice not yet mapped.
+
+Sources: the [Megami Tensei Wiki alignment
+page](https://megatenwiki.com/wiki/Alignment_(Shin_Megami_Tensei_V:_Vengeance))
+(low +1, high +3, Humanity threshold) and the
+[ludo.guide choice list](https://www.ludo.guide/guide/shin-megami-tensei-v-vengeance/alignment-choice-guide).
+These are community measurements, not values read from the save.
+
+The **Alignment preset** flips only choices the save already has: unselected
+rows, unknown alignments, and rows with both bits set are left alone.
 
 Missing or uncertain entries:
 
 - `0x69cfa` bits 4 and 5 are **Heart of Garnet**: Law for finishing off
   Vouivre, Chaos for sparing her.
-- `0x69cfc` bits 2 and 3 are still unverified: “For Creation” and
-  “To stop Tiamat”.
+- `0x69cfc` bit 3, "To stop Tiamat", is unverified and has no points. Bit 2,
+  "For Creation", is Preservation (Law) with 1 point.
 - `0x69cfa` bit 5 was previously missing from the data even though it is set
   in normal saves.
+
+Canon of Creation alignment choices are **not mapped**. These bytes cover the
+Vengeance arc; Creation saves should not be interpreted with this table.
 
 The original experimental breakdown is in
 [cheatroom_blog_post_translation.md](cheatroom_blog_post_translation.md).

@@ -1,6 +1,6 @@
 from kadishutu.core.game_save import GameSaveEditor
 from kadishutu.core.shared.file_handling import DecryptedSave
-from kadishutu.data.alignment import ALIGNMENT_OFFSET_MAP
+from kadishutu.data.alignment import ALIGNMENT_OFFSET_MAP, AlignmentScore
 
 GAME_SAVE_SIZE = 0x6DC90
 
@@ -39,9 +39,49 @@ def test_alignment_data_marks_unverified_alignments_as_unknown():
     byte = ALIGNMENT_OFFSET_MAP[0x69CFC]
     bits = {bit.bit: bit for bit in byte.bits}
 
-    assert bits[2].alignment == "unknown"
+    # "For Creation" is Preservation in community research; "To stop Tiamat"
+    # is still unverified.
+    assert bits[2].alignment == "law"
     assert bits[3].alignment == "unknown"
-    assert bits[2].is_unknown is True
+    assert bits[3].is_unknown is True
+
+
+def alignment_weight(offset: int, bit: int) -> int:
+    byte = ALIGNMENT_OFFSET_MAP[offset]
+    return {option.bit: option for option in byte.bits}[bit].weight
+
+
+def test_alignment_weights_follow_community_research():
+    # High-impact choices are worth 3 points.
+    for offset, low, high in [
+        (0x69CFA, 6, 7),
+        (0x69CFC, 4, 5),
+        (0x69CFC, 6, 7),
+    ]:
+        assert alignment_weight(offset, low) == 3
+        assert alignment_weight(offset, high) == 3
+
+    # The throne choice decides the route and adds no points.
+    assert alignment_weight(0x69CF5, 2) == 0
+    assert alignment_weight(0x69CF5, 3) == 0
+
+    # Low-impact choices are worth 1; neutral options are worth nothing.
+    assert alignment_weight(0x69CF6, 2) == 1
+    assert alignment_weight(0x69CF7, 2) == 0
+    assert alignment_weight(0x69CF7, 3) == 1
+    assert alignment_weight(0x69CFC, 2) == 1
+    assert alignment_weight(0x69CFC, 3) == 0
+
+
+def test_alignment_verdict_thresholds():
+    assert AlignmentScore(0, 0).verdict == "humanity"
+    assert AlignmentScore(1, 0).verdict == "humanity"
+    assert AlignmentScore(0, 1).verdict == "humanity"
+    assert AlignmentScore(2, 0).verdict == "law"
+    assert AlignmentScore(0, 2).verdict == "chaos"
+    assert AlignmentScore(3, 1).verdict == "law"
+    assert AlignmentScore(1, 3).verdict == "chaos"
+    assert AlignmentScore(3, 1).net == 2
 
 
 def test_alignment_byte_unknown_bits_helpers():

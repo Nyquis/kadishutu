@@ -15,10 +15,38 @@ class AlignmentBit(JsonListMixin):
     side_quest: str | None
     text: list[str]
     group: str | None = None
+    # Community-reported point weight; see `docs/GameSave.md`.
+    # 1 = low-impact choice, 3 = high-impact choice, 0 = no points.
+    weight: int = 1
 
     @property
     def is_unknown(self) -> bool:
         return self.alignment not in ("law", "chaos")
+
+
+@dataclass(frozen=True)
+class AlignmentScore:
+    """Weighted alignment totals for the Canon of Vengeance.
+
+    The weights are community-reported, not stored in the save. The game
+    treats a difference of two points or more as the leading alignment and a
+    smaller difference as Humanity.
+    """
+
+    law: int = 0
+    chaos: int = 0
+
+    @property
+    def net(self) -> int:
+        return self.law - self.chaos
+
+    @property
+    def verdict(self) -> str:
+        if self.net >= 2:
+            return "law"
+        if self.net <= -2:
+            return "chaos"
+        return "humanity"
 
 
 @dataclass

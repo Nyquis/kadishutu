@@ -9,7 +9,8 @@
             "text": [
                 "Choose the law choice (?)"
             ],
-            "group": null
+            "group": null,
+            "weight": 1
         }
     ]
 }

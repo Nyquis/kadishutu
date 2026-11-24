@@ -11,7 +11,8 @@
                     "Supreme Heaven Throne",
                     "Choose the law choice"
                 ],
-                "group": "supreme-throne-final"
+                "group": "supreme-throne-final",
+                "weight": 0
             },
             {
                 "bit": 3,
@@ -22,7 +23,8 @@
                     "Supreme Heaven Throne",
                     "Choose the chaos choice"
                 ],
-                "group": "supreme-throne-final"
+                "group": "supreme-throne-final",
+                "weight": 0
             }
         ]
     },
@@ -83,7 +85,8 @@
                     "[When talking to angels in front of the diet building]",
                     "Explain the situation"
                 ],
-                "group": "diet-building-angels"
+                "group": "diet-building-angels",
+                "weight": 0
             },
             {
                 "bit": 3,
@@ -240,7 +243,8 @@
                     "[After the match against Yuzuru Atsuta]",
                     "I think the future is bright"
                 ],
-                "group": "yuzuru-future"
+                "group": "yuzuru-future",
+                "weight": 3
             },
             {
                 "bit": 7,
@@ -251,7 +255,8 @@
                     "[After the match against Yuzuru Atsuta]",
                     "I can't believe in the future"
                 ],
-                "group": "yuzuru-future"
+                "group": "yuzuru-future",
+                "weight": 3
             }
         ]
     },
@@ -371,7 +376,7 @@
             },
             {
                 "bit": 2,
-                "alignment": "unknown",
+                "alignment": "law",
                 "place": "Da'at - Taito",
                 "side_quest": null,
                 "text": [
@@ -389,7 +394,8 @@
                     "[Before the battle with Beelzebub]",
                     "To stop Tiamat"
                 ],
-                "group": "beelzebub"
+                "group": "beelzebub",
+                "weight": 0
             },
             {
                 "bit": 4,
@@ -400,7 +406,8 @@
                     "[Before the battle with Zeus and Odin]",
                     "Because he saw hope for the future of humanity"
                 ],
-                "group": "zeus-odin"
+                "group": "zeus-odin",
+                "weight": 3
             },
             {
                 "bit": 5,
@@ -411,7 +418,8 @@
                     "[Before the battle with Zeus and Odin]",
                     "Despair over the past of other people"
                 ],
-                "group": "zeus-odin"
+                "group": "zeus-odin",
+                "weight": 3
             },
             {
                 "bit": 6,
@@ -422,7 +430,8 @@
                     "Supreme Heaven Throne",
                     "I believed it would come"
                 ],
-                "group": "supreme-throne-ending"
+                "group": "supreme-throne-ending",
+                "weight": 3
             },
             {
                 "bit": 7,
@@ -433,7 +442,8 @@
                     "Supreme Heaven Throne",
                     "That's not allowed."
                 ],
-                "group": "supreme-throne-ending"
+                "group": "supreme-throne-ending",
+                "weight": 3
             }
         ]
     }

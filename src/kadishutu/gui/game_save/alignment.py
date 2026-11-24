@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QScrollArea,
     QVBoxLayout,
@@ -17,6 +18,7 @@ from kadishutu.data.alignment import (
     ALIGNMENT_DATA,
     AlignmentBit,
     AlignmentChoice,
+    AlignmentScore,
 )
 
 from ..shared import AppliableWidget, MComboBox
@@ -26,6 +28,12 @@ ALIGNMENT_COLORS = {
     "law": "#64b5f6",
     "chaos": "#ef5350",
     "unknown": "#9e9e9e",
+}
+
+VERDICT_LABELS = {
+    "law": "Preservation",
+    "chaos": "Reformation",
+    "humanity": "Humanity",
 }
 
 
@@ -109,12 +117,34 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.advanced.checkStateChanged.connect(self.set_raw_visible)
         controls.addWidget(self.advanced, 1, 0, 1, 2)
 
-        self.law_button = QPushButton("Law visible", self)
-        self.law_button.clicked.connect(self.set_law_visible)
-        controls.addWidget(self.law_button, 1, 2)
-        self.chaos_button = QPushButton("Chaos visible", self)
-        self.chaos_button.clicked.connect(self.set_chaos_visible)
-        controls.addWidget(self.chaos_button, 1, 3)
+        # Flipping an alignment rewrites choices that are already made; it
+        # never picks a side for a decision the player has not taken.
+        self.preset = QComboBox(self)
+        for label, key, tooltip in [
+            (
+                "Flip chosen to Preservation (Law)",
+                "law",
+                "Switch every choice you already made to its Law option.",
+            ),
+            (
+                "Flip chosen to Reformation (Chaos)",
+                "chaos",
+                "Switch every choice you already made to its Chaos option.",
+            ),
+        ]:
+            self.preset.addItem(label, key)
+            self.preset.setItemData(
+                self.preset.count() - 1, tooltip, 3
+            )
+        controls.addWidget(self.preset, 1, 2)
+        self.apply_preset_button = QPushButton("Apply to chosen", self)
+        self.apply_preset_button.setToolTip(
+            "Only rows with an existing choice are changed. Unselected rows, "
+            "unknown alignments, and rows with both bits set are left alone."
+        )
+        self.apply_preset_button.clicked.connect(self.apply_preset)
+        controls.addWidget(self.apply_preset_button, 1, 3)
+
         self.clear_button = QPushButton("Clear visible", self)
         self.clear_button.clicked.connect(self.clear_visible)
         controls.addWidget(self.clear_button, 1, 4)
@@ -127,6 +157,16 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.summary_label = QLabel(self)
         self.summary_label.setObjectName("Muted")
         root.addWidget(self.summary_label)
+
+        self.note_label = QLabel(
+            "Point values are community-reported: low-impact choices are worth "
+            "1 point and high-impact choices 3. Tao and Yoko battle bonuses "
+            "are not stored in these flags.",
+            self,
+        )
+        self.note_label.setObjectName("Muted")
+        self.note_label.setWordWrap(True)
+        root.addWidget(self.note_label)
 
         self.scroll = QScrollArea(self)
         self.scroll.setWidgetResizable(True)
@@ -172,7 +212,12 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             prefix = "Chaos"
         else:
             prefix = "Unknown"
-        return f"{prefix} — {' / '.join(option.text)}"
+        label = f"{prefix} — {' / '.join(option.text)}"
+        if option.weight == 0:
+            return f"{label} (no points)"
+        if option.weight != 1:
+            return f"{label} ({option.weight} pts)"
+        return label
 
     def add_row(self, offset: int, choice: AlignmentChoice):
         index = len(self.rows) + 1
@@ -344,6 +389,7 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
     def update_summary(self):
         selected = law = chaos = unknown = invalid = 0
+        law_points = chaos_points = 0
         for row in self.rows:
             if row.invalid and not row.combo.get_modified():
                 invalid += 1
@@ -354,15 +400,20 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             selected += 1
             if option.alignment == "law":
                 law += 1
+                law_points += option.weight
             elif option.alignment == "chaos":
                 chaos += 1
+                chaos_points += option.weight
             else:
                 unknown += 1
         unselected = len(self.rows) - selected - invalid
+        score = AlignmentScore(law_points, chaos_points)
         text = (
             f"Selected {selected}/{len(self.rows)} · "
-            f"Law {law} · Chaos {chaos} · Unknown {unknown} · "
-            f"Unselected {unselected}"
+            f"Law {law} ({law_points} pts) · "
+            f"Chaos {chaos} ({chaos_points} pts) · "
+            f"Net {score.net:+d} → {VERDICT_LABELS[score.verdict]} · "
+            f"Unknown {unknown} · Unselected {unselected}"
         )
         if invalid:
             text += f" · Invalid {invalid}"
@@ -399,31 +450,40 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
     def visible_rows(self) -> list[AlignmentRow]:
         return [self.rows[index] for index in sorted(self.visible_indices)]
 
-    def set_law_visible(self):
-        for row in self.visible_rows():
-            option = next(
-                (
-                    option
-                    for option in row.choice.options
-                    if option.alignment == "law"
-                ),
-                None,
+    def apply_preset(self):
+        target = self.preset.currentData()
+        label = VERDICT_LABELS.get(target, target)
+        rows = [
+            row
+            for row in self.visible_rows()
+            if not row.invalid
+            and self.selected_option(row) is not None
+            and any(
+                option.alignment == target for option in row.choice.options
             )
-            if option is not None:
-                row.combo.setCurrentIndex(row.combo.findData(option.bit))
-
-    def set_chaos_visible(self):
-        for row in self.visible_rows():
-            option = next(
-                (
-                    option
-                    for option in row.choice.options
-                    if option.alignment == "chaos"
-                ),
-                None,
+        ]
+        if not rows:
+            QMessageBox.information(
+                self,
+                "Nothing to flip",
+                "No visible row has an existing choice that can be flipped.",
             )
-            if option is not None:
-                row.combo.setCurrentIndex(row.combo.findData(option.bit))
+            return
+        answer = QMessageBox.question(
+            self,
+            "Flip alignment",
+            f"Switch {len(rows)} already-chosen row(s) to {label}?\n\n"
+            "Rows without a choice are left alone.",
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        for row in rows:
+            option = next(
+                option
+                for option in row.choice.options
+                if option.alignment == target
+            )
+            row.combo.setCurrentIndex(row.combo.findData(option.bit))
 
     def clear_visible(self):
         for row in self.visible_rows():
