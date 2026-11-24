@@ -1,14 +1,17 @@
 from dataclasses import dataclass
 
-from PySide6.QtCore import QSignalBlocker
+from PySide6.QtCore import QSignalBlocker, Qt
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QCheckBox,
     QComboBox,
-    QGridLayout,
+    QHBoxLayout,
+    QHeaderView,
     QLabel,
     QLineEdit,
     QPushButton,
-    QScrollArea,
+    QTableWidget,
+    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -18,7 +21,6 @@ from kadishutu.data.alignment import (
     ALIGNMENT_DATA,
     AlignmentBit,
     AlignmentChoice,
-    AlignmentScore,
 )
 
 from ..shared import AppliableWidget, MComboBox
@@ -30,11 +32,12 @@ ALIGNMENT_COLORS = {
     "unknown": "#9e9e9e",
 }
 
-VERDICT_LABELS = {
-    "law": "Preservation",
-    "chaos": "Reformation",
-    "humanity": "Humanity",
-}
+COLUMNS = ["Choice", "Pts", "Place", "Quest", "Type", "Offset", "Bits"]
+COLUMN_WIDTHS = {1: 46, 2: 165, 3: 185, 4: 85, 5: 78, 6: 72}
+
+
+def points_text(points: int) -> str:
+    return "1 pt" if points == 1 else f"{points} pts"
 
 
 @dataclass
@@ -42,13 +45,7 @@ class AlignmentRow:
     offset: int
     choice: AlignmentChoice
     combo: MComboBox
-    status: QLabel
-    place: QLabel
-    quest: QLabel
-    kind: QLabel
-    offset_label: QLabel
-    bits_label: QLabel
-    widgets: list[QWidget]
+    points: QTableWidgetItem
     invalid: bool = False
 
 
@@ -82,15 +79,33 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.unknown_label.setVisible(False)
         root.addWidget(self.unknown_label)
 
-        controls = QGridLayout()
+        search_row = QHBoxLayout()
         self.search = QLineEdit(self)
-        self.search.setPlaceholderText(
-            "Search by place, choice, quest, or type…"
-        )
+        self.search.setPlaceholderText("Search by place, choice, or quest…")
         self.search.setClearButtonEnabled(True)
         self.search.textChanged.connect(lambda _: self.filter_rows())
-        controls.addWidget(self.search, 0, 0, 1, 3)
+        search_row.addWidget(self.search, 1)
 
+        canon_title = QLabel("Canon:", self)
+        search_row.addWidget(canon_title)
+        self.canon_filter = QComboBox(self)
+        for label, key in [
+            ("Detected", "detected"),
+            ("Creation", "creation"),
+            ("Vengeance", "vengeance"),
+            ("Both", "all"),
+        ]:
+            self.canon_filter.addItem(label, key)
+        self.canon_filter.setToolTip(
+            "Detected from the save at 0x53a; override it here if needed."
+        )
+        self.canon_filter.currentIndexChanged.connect(
+            lambda _: self.on_canon_changed()
+        )
+        search_row.addWidget(self.canon_filter)
+        root.addLayout(search_row)
+
+        filter_row = QHBoxLayout()
         self.selection_filter = QComboBox(self)
         for label, key in [
             ("All choices", "all"),
@@ -98,13 +113,13 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             ("Chaos", "chaos"),
             ("Unknown", "unknown"),
             ("Not chosen", "unselected"),
-            ("Invalid", "invalid"),
+            ("Both set", "invalid"),
         ]:
             self.selection_filter.addItem(label, key)
         self.selection_filter.currentIndexChanged.connect(
             lambda _: self.filter_rows()
         )
-        controls.addWidget(self.selection_filter, 0, 3)
+        filter_row.addWidget(self.selection_filter)
 
         self.kind_filter = QComboBox(self)
         for label, key in [
@@ -116,73 +131,62 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.kind_filter.currentIndexChanged.connect(
             lambda _: self.filter_rows()
         )
-        controls.addWidget(self.kind_filter, 0, 4)
+        filter_row.addWidget(self.kind_filter)
 
-        self.advanced = QCheckBox("Show raw offset/bit", self)
+        self.advanced = QCheckBox("Show offsets", self)
         self.advanced.checkStateChanged.connect(self.set_raw_visible)
-        controls.addWidget(self.advanced, 1, 0, 1, 2)
-
-        self.canon_filter = QComboBox(self)
-        for label, key in [
-            ("Detected canon", "detected"),
-            ("Canon of Creation", "creation"),
-            ("Canon of Vengeance", "vengeance"),
-            ("Both canons", "all"),
-        ]:
-            self.canon_filter.addItem(label, key)
-        self.canon_filter.setToolTip(
-            "Detected from the save at 0x53a; override it here if needed."
-        )
-        self.canon_filter.currentIndexChanged.connect(
-            lambda _: self.on_canon_changed()
-        )
-        controls.addWidget(self.canon_filter, 1, 2, 1, 2)
+        filter_row.addWidget(self.advanced)
 
         self.clear_button = QPushButton("Clear visible", self)
         self.clear_button.clicked.connect(self.clear_visible)
-        controls.addWidget(self.clear_button, 1, 4)
+        filter_row.addWidget(self.clear_button)
 
+        filter_row.addStretch()
         self.count_label = QLabel(self)
         self.count_label.setObjectName("Muted")
-        controls.addWidget(self.count_label, 1, 5)
-        root.addLayout(controls)
+        filter_row.addWidget(self.count_label)
+        root.addLayout(filter_row)
 
-        self.summary_label = QLabel(self)
-        self.summary_label.setObjectName("Muted")
-        root.addWidget(self.summary_label)
+        summary_row = QHBoxLayout()
+        summary_row.setSpacing(18)
+        self.law_label = QLabel(self)
+        self.law_label.setStyleSheet(f"color: {ALIGNMENT_COLORS['law']};")
+        self.chaos_label = QLabel(self)
+        self.chaos_label.setStyleSheet(f"color: {ALIGNMENT_COLORS['chaos']};")
+        self.verdict_label = QLabel(self)
+        self.verdict_label.setObjectName("Muted")
+        summary_row.addWidget(self.law_label)
+        summary_row.addWidget(self.chaos_label)
+        summary_row.addStretch()
+        summary_row.addWidget(self.verdict_label)
+        root.addLayout(summary_row)
 
         self.note_label = QLabel(
-            "Point values are community-reported: low-impact choices are worth "
-            "1 point and high-impact choices 3. Tao and Yoko battle bonuses "
-            "are not stored in these flags.",
+            "Point values are community-reported. Most choices are worth 1 "
+            "point; the major ones are worth 3.",
             self,
         )
         self.note_label.setObjectName("Muted")
         self.note_label.setWordWrap(True)
         root.addWidget(self.note_label)
 
-        self.scroll = QScrollArea(self)
-        self.scroll.setWidgetResizable(True)
-        self.inner = QWidget(self.scroll)
-        self.scroll.setWidget(self.inner)
-        self.grid = QGridLayout(self.inner)
-        root.addWidget(self.scroll, 1)
-
-        self.headers: list[QLabel] = []
-        for column, (title, tooltip) in enumerate([
-            ("Selection", "The chosen option for this decision."),
-            ("Status", "Warns when both sides are set in the save."),
-            ("Place", "Where the choice happens."),
-            ("Quest", "The side quest, if any."),
-            ("Type", "Main story or side quest."),
-            ("Offset", "Raw save offset."),
-            ("Bits", "Raw bits inside the offset."),
-        ]):
-            header = QLabel(title, self.inner)
-            header.setObjectName("Muted")
-            header.setToolTip(tooltip)
-            self.grid.addWidget(header, 0, column)
-            self.headers.append(header)
+        self.table = QTableWidget(0, len(COLUMNS), self)
+        self.table.setHorizontalHeaderLabels(COLUMNS)
+        self.table.verticalHeader().setVisible(False)
+        self.table.setAlternatingRowColors(True)
+        self.table.setShowGrid(False)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setWordWrap(False)
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        for column, width in COLUMN_WIDTHS.items():
+            header.setSectionResizeMode(
+                column, QHeaderView.ResizeMode.Interactive
+            )
+            self.table.setColumnWidth(column, width)
+        header.setStretchLastSection(False)
+        root.addWidget(self.table, 1)
 
         for offset, choice in self.flat_data():
             self.add_row(offset, choice)
@@ -190,49 +194,6 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.set_raw_visible()
         self.stack_refresh()
         self.update_canon_label()
-
-    def active_canon(self) -> str | None:
-        key = self.canon_filter.currentData()
-        if key == "detected":
-            return self.detected_canon
-        if key == "all":
-            return None
-        return key
-
-    def on_canon_changed(self):
-        self.update_canon_label()
-        self.filter_rows()
-
-    def update_canon_label(self):
-        raw = (
-            f"0x{self.save.data[0x53A]:02x}"
-            if len(self.save.data) > 0x53A
-            else "?"
-        )
-        if self.detected_canon == "creation":
-            detected = f"Canon of Creation (0x53a = {raw})"
-        elif self.detected_canon == "vengeance":
-            detected = f"Canon of Vengeance (0x53a = {raw})"
-        else:
-            detected = f"not detected (0x53a = {raw})"
-
-        active = self.active_canon()
-        if active is None:
-            shown = "Showing every mapped choice from both canons."
-        elif active == "creation":
-            shown = (
-                "Showing shared choices and Creation choices. "
-                "Creation-specific choices are not mapped yet, so only shared "
-                "ones appear. Creation decides its ending at Empyrean, not "
-                "from these points."
-            )
-        else:
-            shown = (
-                "Showing shared choices and Vengeance choices. Law is "
-                "Preservation and Chaos is Reformation; a two-point lead "
-                "decides the path, one point or less is Humanity."
-            )
-        self.canon_label.setText(f"Detected canon: {detected}. {shown}")
 
     @staticmethod
     def flat_data() -> list[tuple[int, AlignmentChoice]]:
@@ -249,70 +210,48 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             prefix = "Chaos"
         else:
             prefix = "Unknown"
-        label = f"{prefix} — {' / '.join(option.text)}"
-        if option.weight == 0:
-            return f"{label} (no points)"
-        if option.weight != 1:
-            return f"{label} ({option.weight} pts)"
-        return label
+        return f"{prefix} — {' / '.join(option.text)}"
 
     def add_row(self, offset: int, choice: AlignmentChoice):
-        index = len(self.rows) + 1
-        combo = MComboBox(self.inner)
-        combo.setMinimumWidth(260)
-        combo.setSizeAdjustPolicy(
-            QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
-        )
-        combo.setMinimumContentsLength(40)
-        status = QLabel(self.inner)
-        status.setObjectName("Warning")
-        status.setVisible(False)
-        place = QLabel(choice.place, self.inner)
-        quest = QLabel(choice.side_quest or "", self.inner)
-        kind = QLabel(
-            "Main story" if choice.side_quest is None else "Side quest",
-            self.inner,
-        )
-        kind.setObjectName("Muted")
-        offset_label = QLabel(f"0x{offset:04x}", self.inner)
-        bits_label = QLabel(
-            ", ".join(str(option.bit) for option in choice.options),
-            self.inner,
-        )
-        widgets: list[QWidget] = [
-            combo,
-            status,
-            place,
-            quest,
-            kind,
-            offset_label,
-            bits_label,
-        ]
-        for column, widget in enumerate(widgets):
-            self.grid.addWidget(widget, index, column)
+        index = self.table.rowCount()
+        self.table.insertRow(index)
+        self.table.setRowHeight(index, 34)
 
-        row = AlignmentRow(
-            offset,
-            choice,
-            combo,
-            status,
-            place,
-            quest,
-            kind,
-            offset_label,
-            bits_label,
-            widgets,
+        combo = MComboBox(self.table)
+        combo.setToolTip(
+            "Law and Chaos options for this decision. Only one can be set."
         )
+        self.table.setCellWidget(index, 0, combo)
+
+        points = QTableWidgetItem("")
+        points.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.table.setItem(index, 1, points)
+        place = QTableWidgetItem(choice.place)
+        place.setToolTip(choice.place)
+        self.table.setItem(index, 2, place)
+        quest = QTableWidgetItem(choice.side_quest or "")
+        quest.setToolTip(choice.side_quest or "Main story")
+        self.table.setItem(index, 3, quest)
+        kind = QTableWidgetItem(
+            "Side quest" if choice.side_quest else "Main story"
+        )
+        kind.setForeground(Qt.GlobalColor.gray)
+        self.table.setItem(index, 4, kind)
+        offset_item = QTableWidgetItem(f"0x{offset:04x}")
+        self.table.setItem(index, 5, offset_item)
+        bits_item = QTableWidgetItem(
+            ", ".join(str(option.bit) for option in choice.options)
+        )
+        self.table.setItem(index, 6, bits_item)
+
+        row = AlignmentRow(offset, choice, combo, points)
         tooltip = "\n".join([
-            f"Offset: 0x{offset:04x}",
-            f"Bits: {', '.join(str(o.bit) for o in choice.options)}",
             f"Place: {choice.place}",
             f"Quest: {choice.side_quest or 'Main story'}",
             "Options:",
             *[f"  {self.option_label(o)}" for o in choice.options],
         ])
-        for widget in widgets:
-            widget.setToolTip(tooltip)
+        combo.setToolTip(tooltip)
         combo.currentIndexChanged.connect(
             lambda _, row=row: self.on_choice_changed(row)
         )
@@ -324,19 +263,23 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         selected_bits: list[int],
     ):
         combo = row.combo
+        invalid = len(selected_bits) > 1
+        row.invalid = invalid
         with QSignalBlocker(combo):
             combo.clear()
-            combo.addItem("Not chosen", None)
+            if invalid:
+                combo.addItem("Both are set — pick one", None)
+            else:
+                combo.addItem("Not chosen", None)
             for option in row.choice.options:
                 combo.addItem(self.option_label(option), option.bit)
-            if len(selected_bits) > 1:
+            if invalid:
                 combo.setCurrentIndex(0)
-                row.invalid = True
-                row.status.setText("Both selected")
-                row.status.setVisible(True)
+                combo.setToolTip(
+                    "Both the Law and Chaos values are set in this save. "
+                    "Pick one to resolve it."
+                )
             else:
-                row.invalid = False
-                row.status.setVisible(False)
                 index = (
                     combo.findData(selected_bits[0])
                     if selected_bits
@@ -344,11 +287,19 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
                 )
                 combo.setCurrentIndex(index if index >= 0 else 0)
         combo.set_modified(False)
+        self.update_points(row)
+
+    def update_points(self, row: AlignmentRow):
+        option = self.selected_option(row)
+        if option is None:
+            row.points.setText("")
+        else:
+            row.points.setText(str(option.weight))
 
     def set_raw_visible(self, *_):
         self.show_raw = self.advanced.isChecked()
-        self.headers[5].setVisible(self.show_raw)
-        self.headers[6].setVisible(self.show_raw)
+        for column in (5, 6):
+            self.table.setColumnHidden(column, not self.show_raw)
         self.filter_rows()
 
     def matches_query(self, row: AlignmentRow, query: str) -> bool:
@@ -398,11 +349,52 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             return row.choice.side_quest is not None
         return True
 
+    def active_canon(self) -> str | None:
+        key = self.canon_filter.currentData()
+        if key == "detected":
+            return self.detected_canon
+        if key == "all":
+            return None
+        return key
+
     def matches_canon(self, row: AlignmentRow) -> bool:
         canon = self.active_canon()
         if canon is None:
             return True
         return row.choice.canon in ("shared", canon)
+
+    def on_canon_changed(self):
+        self.update_canon_label()
+        self.filter_rows()
+
+    def update_canon_label(self):
+        raw = (
+            f"0x{self.save.data[0x53A]:02x}"
+            if len(self.save.data) > 0x53A
+            else "?"
+        )
+        if self.detected_canon == "creation":
+            detected = f"Canon of Creation (0x53a = {raw})"
+        elif self.detected_canon == "vengeance":
+            detected = f"Canon of Vengeance (0x53a = {raw})"
+        else:
+            detected = f"not detected (0x53a = {raw})"
+
+        active = self.active_canon()
+        if active is None:
+            shown = "Showing choices from both canons."
+        elif active == "creation":
+            shown = (
+                "Showing shared and Creation choices. Creation-specific "
+                "choices are not mapped yet. Creation decides its ending at "
+                "Empyrean, not from these points."
+            )
+        else:
+            shown = (
+                "Showing shared and Vengeance choices. A two-point lead "
+                "decides the path; one point or less is Humanity."
+            )
+        self.canon_label.setText(f"Detected canon: {detected}. {shown}")
 
     def filter_rows(self):
         query = self.search.text().strip().lower()
@@ -414,15 +406,7 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
                 and self.matches_kind(row)
                 and self.matches_canon(row)
             )
-            for widget in row.widgets:
-                widget.setVisible(matches)
-            row.status.setVisible(
-                matches
-                and row.invalid
-                and not row.combo.get_modified()
-            )
-            row.offset_label.setVisible(matches and self.show_raw)
-            row.bits_label.setVisible(matches and self.show_raw)
+            self.table.setRowHidden(index, not matches)
             if matches:
                 visible.append(index)
         self.visible_indices = set(visible)
@@ -433,16 +417,12 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
     def update_summary(self):
         rows = self.visible_rows()
-        selected = law = chaos = unknown = invalid = 0
+        law = chaos = unknown = 0
         law_points = chaos_points = 0
         for row in rows:
-            if row.invalid and not row.combo.get_modified():
-                invalid += 1
-                continue
             option = self.selected_option(row)
             if option is None:
                 continue
-            selected += 1
             if option.alignment == "law":
                 law += 1
                 law_points += option.weight
@@ -451,25 +431,26 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
                 chaos_points += option.weight
             else:
                 unknown += 1
-        unselected = len(rows) - selected - invalid
-        score = AlignmentScore(law_points, chaos_points)
+        self.law_label.setText(
+            f"Law {law} · {points_text(law_points)}"
+        )
+        self.chaos_label.setText(
+            f"Chaos {chaos} · {points_text(chaos_points)}"
+        )
+
         if self.detected_canon == "creation":
-            text = (
-                f"Selected {selected}/{len(rows)} · "
-                f"Law {law} ({law_points} pts) · "
-                f"Chaos {chaos} ({chaos_points} pts)"
-            )
+            self.verdict_label.setText("Creation has no point verdict")
+            return
+        net = law_points - chaos_points
+        if net >= 2:
+            verdict = f"Law leads by {points_text(net)}"
+        elif net <= -2:
+            verdict = f"Chaos leads by {points_text(-net)}"
         else:
-            text = (
-                f"Selected {selected}/{len(rows)} · "
-                f"Law {law} ({law_points} pts) · "
-                f"Chaos {chaos} ({chaos_points} pts) · "
-                f"Net {score.net:+d} → {VERDICT_LABELS[score.verdict]} · "
-                f"Unknown {unknown} · Unselected {unselected}"
-            )
-        if invalid:
-            text += f" · Invalid {invalid}"
-        self.summary_label.setText(text)
+            verdict = "Even — Humanity"
+        if unknown:
+            verdict += f" · {unknown} unverified"
+        self.verdict_label.setText(verdict)
 
     def update_unknown_bits(self):
         warnings = []
@@ -494,7 +475,7 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
     def on_choice_changed(self, row: AlignmentRow):
         row.invalid = False
-        row.status.setVisible(False)
+        self.update_points(row)
         self.update_summary()
         if self.selection_filter.currentData() != "all":
             self.filter_rows()
@@ -528,5 +509,5 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             for option in row.choice.options:
                 editor.set_flag(option.bit, option.bit == selected_bit)
             row.invalid = False
-            row.status.setVisible(False)
             row.combo.set_modified(False)
+            self.update_points(row)

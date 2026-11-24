@@ -497,11 +497,9 @@ def test_alignment_summary_reports_weighted_points(main_window, tmp_path: Path):
         main_window, tmp_path, {0x69CFA: 0x40, 0x69CFC: 0x10}
     )
 
-    text = screen.summary_label.text()
-
-    assert "Law 2 (6 pts)" in text
-    assert "Net +6" in text
-    assert "Preservation" in text
+    assert screen.law_label.text() == "Law 2 · 6 pts"
+    assert screen.chaos_label.text() == "Chaos 0 · 0 pts"
+    assert screen.verdict_label.text() == "Law leads by 6 pts"
 
 
 def make_cross_cycle_screen(main_window, tmp_path: Path, bits=None):

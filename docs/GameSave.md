@@ -963,8 +963,9 @@ page](https://megatenwiki.com/wiki/Alignment_(Shin_Megami_Tensei_V:_Vengeance))
 [ludo.guide choice list](https://www.ludo.guide/guide/shin-megami-tensei-v-vengeance/alignment-choice-guide).
 These are community measurements, not values read from the save.
 
-The **Alignment preset** flips only choices the save already has: unselected
-rows, unknown alignments, and rows with both bits set are left alone.
+The **Alignment preset** was removed: the screen only edits the choices you
+pick, and **Apply Changes** writes them. Rows holding both values at once show
+`Both are set — pick one` in their dropdown instead of a separate status column.
 
 Each choice carries a `canon` tag: `shared`, `creation`, or `vengeance`. The
 screen filters on the detected canon and always keeps shared choices, so a

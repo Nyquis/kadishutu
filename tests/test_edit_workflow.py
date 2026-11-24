@@ -252,9 +252,10 @@ def test_alignment_screen_filters_and_edits_choices(window, editor):
     window.stack_add(screen)
     screen.stack_refresh()
 
-    assert [header.text() for header in screen.headers[:5]] == [
-        "Selection",
-        "Status",
+    header = screen.table.horizontalHeaderItem
+    assert [header(column).text() for column in range(5)] == [
+        "Choice",
+        "Pts",
         "Place",
         "Quest",
         "Type",
@@ -279,7 +280,7 @@ def test_alignment_screen_filters_and_edits_choices(window, editor):
     alignment = editor.save.alignment.at_offset(0x69CFA)
     assert alignment.get_flag(4) is True
     assert alignment.get_flag(5) is False
-    assert "Law 1" in screen.summary_label.text()
+    assert "Law 1" in screen.law_label.text()
 
     row.combo.setCurrentIndex(row.combo.findData(5))
     screen.on_apply_changes()
@@ -287,9 +288,10 @@ def test_alignment_screen_filters_and_edits_choices(window, editor):
     assert alignment.get_flag(4) is False
     assert alignment.get_flag(5) is True
 
+    assert screen.table.isColumnHidden(5)
     screen.advanced.setChecked(True)
-    assert not row.offset_label.isHidden()
-    assert not row.bits_label.isHidden()
+    assert not screen.table.isColumnHidden(5)
+    assert not screen.table.isColumnHidden(6)
 
 
 def test_alignment_screen_warns_when_both_sides_are_set(window, editor):
@@ -309,8 +311,7 @@ def test_alignment_screen_warns_when_both_sides_are_set(window, editor):
     )
 
     assert row.invalid is True
-    assert "Both selected" in row.status.text()
-    assert "Invalid 1" in screen.summary_label.text()
+    assert "Both are set" in row.combo.currentText()
 
     row.combo.setCurrentIndex(row.combo.findData(4))
     screen.on_apply_changes()
