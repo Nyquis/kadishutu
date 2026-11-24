@@ -607,6 +607,33 @@ def test_alignment_without_detection_shows_every_choice(
     assert "not detected" in screen.canon_label.text()
 
 
+def test_alignment_canon_override_is_labelled(
+    main_window, tmp_path: Path
+):
+    screen = make_alignment_screen(main_window, tmp_path, {0x53A: 1})
+
+    screen.canon_filter.setCurrentIndex(
+        screen.canon_filter.findData("vengeance")
+    )
+
+    assert "overridden" in screen.canon_label.text()
+    assert "save says Canon of Creation" in screen.canon_label.text()
+    assert screen.count_label.text() == "18 / 19 choices"
+
+
+def test_alignment_true_neutral_notes_the_quest_requirement(
+    main_window, tmp_path: Path
+):
+    screen = make_alignment_screen(main_window, tmp_path, {0x53A: 1})
+
+    screen.route_filter.setCurrentIndex(
+        screen.route_filter.findData("true-neutral")
+    )
+
+    assert "Empyrean" in screen.route_note.text()
+    assert "Ra, Fionn, and Shiva" in screen.route_note.text()
+
+
 def test_alignment_creation_route_options(
     main_window, tmp_path: Path
 ):

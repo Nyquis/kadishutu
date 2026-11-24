@@ -966,8 +966,12 @@ These are community measurements, not values read from the save.
 The **Route** selector offers that canon's endings: Law, Neutral, True Neutral,
 and Chaos for Creation; Law and Chaos for Vengeance. Picking Law or Chaos sets
 the choices you already made to that side; decisions you have not made are left
-alone, and **Apply Changes** writes the result. Neutral and True Neutral leave
-the choices unchanged because they are decided at Empyrean. Rows holding both
+alone, and **Apply Changes** writes the result.
+
+In Creation this only moves the tracked alignment (and the matching miracle);
+the ending itself is still chosen at Empyrean, and True Neutral additionally
+needs the Ra, Fionn, and Shiva side quests. In Vengeance a two-point Law/Chaos
+lead decides the route, and one point or less is Humanity. Rows holding both
 values at once show `Both are set — pick one` in their dropdown instead of a
 separate status column.
 

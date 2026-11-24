@@ -71,6 +71,7 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
 
         self.canon_label = QLabel(self)
         self.canon_label.setWordWrap(True)
+        self.canon_label.setTextFormat(Qt.TextFormat.RichText)
         root.addWidget(self.canon_label)
 
         self.unknown_label = QLabel(self)
@@ -413,10 +414,16 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         if route is None:
             return
         if route in ("neutral", "true-neutral"):
-            self.route_note.setText(
-                "Neutral and True Neutral are decided at Empyrean, not by "
-                "these points. Choices were left unchanged."
+            detail = (
+                "Creation's Neutral and True Neutral are chosen at Empyrean, "
+                "not from the Law/Chaos totals."
             )
+            if route == "true-neutral":
+                detail += (
+                    " True Neutral also needs the Ra, Fionn, and Shiva "
+                    "side quests."
+                )
+            self.route_note.setText(detail + " Choices were left unchanged.")
             with QSignalBlocker(self.route_filter):
                 self.route_filter.setCurrentIndex(0)
             return
@@ -440,6 +447,12 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         self.route_note.setText(
             f"Set {changed} already-made choice(s) to {label}. Decisions you "
             "have not made are untouched; Apply Changes writes the result."
+            + (
+                " In Creation this only moves the tracked alignment and the "
+                "matching miracle; the ending is still chosen at Empyrean."
+                if self.active_canon() == "creation"
+                else ""
+            )
         )
         with QSignalBlocker(self.route_filter):
             self.route_filter.setCurrentIndex(0)
@@ -450,34 +463,48 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
             if len(self.save.data) > 0x53A
             else "?"
         )
-        if self.detected_canon == "creation":
-            detected = f"Canon of Creation (0x53a = {raw})"
-        elif self.detected_canon == "vengeance":
-            detected = f"Canon of Vengeance (0x53a = {raw})"
-        else:
-            detected = f"not detected (0x53a = {raw})"
-
+        names = {
+            "creation": "Canon of Creation",
+            "vengeance": "Canon of Vengeance",
+        }
+        detected_name = names.get(self.detected_canon or "")
         active = self.active_canon()
-        if active is None:
-            shown = "Showing choices from both canons."
-        elif active == "creation":
-            shown = (
-                "Showing shared and Creation choices. Creation-specific "
-                "choices are not mapped yet. Creation decides its ending at "
-                "Empyrean, not from these points."
+        active_name = names.get(active or "")
+
+        if detected_name is None:
+            head = (
+                f"<b>Canon not detected</b> · 0x53a = {raw} — showing both"
+            )
+        elif active is None:
+            head = (
+                f"<b>Showing both canons</b> · detected {detected_name} "
+                f"(0x53a = {raw})"
+            )
+        elif active == self.detected_canon:
+            head = (
+                f"<b>{active_name}</b> · detected from 0x53a = {raw}"
             )
         else:
-            shown = (
-                "Showing shared and Vengeance choices. A two-point lead "
-                "decides the path; one point or less is Humanity."
+            head = (
+                f"<b>{active_name}</b> · overridden "
+                f"(save says {detected_name}, 0x53a = {raw})"
             )
-        if (
-            self.detected_canon is not None
-            and active is not None
-            and active != self.detected_canon
-        ):
-            shown = f"Canon overridden. {shown}"
-        self.canon_label.setText(f"Detected canon: {detected}. {shown}")
+
+        if active is None:
+            detail = "Choices from both canons are listed."
+        elif active == "creation":
+            detail = (
+                "Shared and Creation choices. Creation-specific choices are "
+                "not mapped yet. Law, Neutral, True Neutral, and Chaos are all "
+                "decided at Empyrean, not by these points."
+            )
+        else:
+            detail = (
+                "Shared and Vengeance choices. Law is the Peaceful route and "
+                "Chaos the Apocalypse route; a two-point lead decides which, "
+                "and one point or less is Humanity."
+            )
+        self.canon_label.setText(f"{head}<br>{detail}")
 
     def filter_rows(self):
         query = self.search.text().strip().lower()
@@ -522,7 +549,7 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         )
 
         if self.detected_canon == "creation":
-            self.verdict_label.setText("Creation has no point verdict")
+            self.verdict_label.setText("Endings are chosen at Empyrean")
             return
         net = law_points - chaos_points
         if net >= 2:
@@ -530,7 +557,7 @@ class AlignmentEditorScreen(QWidget, GameScreenMixin, AppliableWidget):
         elif net <= -2:
             verdict = f"Chaos leads by {points_text(-net)}"
         else:
-            verdict = "Even — Humanity"
+            verdict = "Humanity — within 1 pt"
         if unknown:
             verdict += f" · {unknown} unverified"
         self.verdict_label.setText(verdict)
